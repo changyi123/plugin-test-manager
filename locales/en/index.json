@@ -697,17 +697,19 @@
         ]
       },
       "repoDropDown": {
-        "MenuItem": [
-          "Test case import",
-          "Test case import template download",
-          "Test case import from workspace",
-          "Test case export (all groups)",
-          "Test case export (current group)",
-          "Test case export (current groups)",
-          "Test case export (current plan)",
-          "Test case export (filter result)",
-          "Test execution export"
-        ],
+        "MenuItem": {
+          "0": "Test case import",
+          "1": "Test case import template download",
+          "2": "Test case import from workspace",
+          "3": "Test case export (all groups)",
+          "4": "Test case export (current group)",
+          "5": "Test case export (current groups)",
+          "6": "Test case export (current plan)",
+          "7": "Test case export (filter result)",
+          "8": "Test execution export",
+          "importJson": "用例导入（json）",
+          "exportJsonFiltered": "导出用例json文件（筛选结果）"
+        },
         "importCaseSuccess": "Test management test case export complete",
         "importCaseWarning": "No test case repository is selected, please select the test case repository to be exported first",
         "importCaseLoading": "Exporting test management test cases",
