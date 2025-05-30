@@ -20,7 +20,6 @@ import {
   EXPORT_PLAN_FIELDS,
   EXPORT_TEST_FIELDS,
   IQLFieldNameMapping,
-  JSON_KEY_SUPPORTED_FIELD_TYPES,
   TestLinkType,
   TestType,
 } from '@/lib/constants';
@@ -78,13 +77,7 @@ const RepoDropDown = ({
         propertyNames: ['name', 'key', 'fieldType'],
         fieldType: true,
       }).then(data => {
-        setTestCaseFields(
-          data.filter(f =>
-            exportType === 'json'
-              ? JSON_KEY_SUPPORTED_FIELD_TYPES.includes(f.fieldType?.key)
-              : !EXPORT_EXCLUDED_TYPES.includes(f.fieldType?.key),
-          ),
-        );
+        setTestCaseFields(data.filter(f => !EXPORT_EXCLUDED_TYPES.includes(f.fieldType?.key)));
       });
   }, [testCaseFieldKeys, exportType]);
 
