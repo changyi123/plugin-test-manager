@@ -35,6 +35,7 @@ import { downloadExampleFile, TreeNode } from './export';
 
 const { ExportModal } = components.Components;
 const { FilterProvider, RecoilRoot } = hooks;
+import cx from './index.less';
 
 const RepoDropDown = ({
   type,
@@ -406,16 +407,19 @@ const RepoDropDown = ({
       <Suspense fallback={null}>
         <RecoilRoot>
           <FilterProvider>
-            <ExportModal
-              iql={iql}
-              exportModalVisible={visible}
-              setExportModalVisible={setVisible}
-              workspace={workspace}
-              appKey={AppKey}
-              appFields={appFields}
-              extraParams={extraParams}
-              exportType={exportType}
-            />
+            {visible && (
+              <ExportModal
+                iql={iql}
+                exportModalVisible={visible}
+                setExportModalVisible={setVisible}
+                workspace={workspace}
+                appKey={AppKey}
+                appFields={appFields}
+                extraParams={extraParams}
+                exportType={exportType}
+                className={cx('export-modal')}
+              />
+            )}
           </FilterProvider>
         </RecoilRoot>
       </Suspense>
