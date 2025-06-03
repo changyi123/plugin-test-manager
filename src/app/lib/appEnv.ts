@@ -159,6 +159,10 @@ const SupportAppEnv = {
     defaultValue: false,
     transformer: value => value,
   },
+  ENABLE_JSON_IMPORT: {
+    defaultValue: false,
+    transformer: value => value,
+  },
 } as const;
 
 /**

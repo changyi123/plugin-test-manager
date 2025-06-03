@@ -90,7 +90,13 @@ function safeToString(value) {
 }
 
 function getErrorMessage(error) {
-  return safeToString(error.message || error);
+  return safeToString(
+    error?.response?.data?.error ??
+      error?.response?.data?.message ??
+      error?.response?.data ??
+      error?.message ??
+      error,
+  );
 }
 
 function getResult(retryId) {
@@ -289,6 +295,8 @@ export const createTestRuns = async (params: ProcessJobParams<BatchCreateTestRun
             skipItemTypeQueryFilter: true,
             // 跳过层级校验
             skipItemValidationLevel: true,
+            // 跳过 ItemForest
+            skipItemForest: true,
           },
         },
         getHeaders(),
@@ -579,6 +587,10 @@ export const copyTesCases = async (params: ProcessJobParams<BatchCopyTestCaseV3P
         await batchCreateItemsV2(
           {
             items: createParams,
+            parseContext: {
+              // 跳过 ItemForest
+              skipItemForest: true,
+            },
           },
           getHeaders(),
         );
