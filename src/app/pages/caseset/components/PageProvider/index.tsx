@@ -12,7 +12,6 @@ import { TestType } from '@/lib/constants';
 import { TestEntity } from '@/lib/types/Test';
 import { SearchSelectors } from '@/lib/utils/iql';
 
-//  todo  这个文件需要精简
 type TestCaseSetEntity = TestEntity<TestType.CaseSet> & {
   refTestDetails: TestEntity[];
 };

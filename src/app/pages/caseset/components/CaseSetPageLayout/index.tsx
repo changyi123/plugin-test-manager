@@ -1,7 +1,5 @@
-import { ArrowLeftOutlined } from '@ant-design/icons';
 import { useListener } from '@projectproxima/proxima-sdk-js';
 import { useUpdateEffect } from 'ahooks';
-import { Space } from 'antd';
 import React, { memo, useCallback, useRef, useState } from 'react';
 import { useLocation } from 'react-router-dom';
 
@@ -31,10 +29,7 @@ const CaseSetPageLayout: React.FC<any> = () => {
   const pageLeftRef = useRef(null);
   // ,
   const testEntitySelectorRef = React.useRef<ModelActionType>();
-  const [selectValue, setSelectValue] = useState<string[] | undefined>(undefined);
-  const [treeType, setTreeType] = React.useState<string | undefined>('repository');
   const [selectNode, setSelectNode] = React.useState<Record<string, any>>(null);
-  const { setTestCaseSet } = usePageContext();
 
   const [activeType, setActiveType] = useState<'TestPlan' | 'TestExecution' | 'TestCaseSet'>(
     'TestCaseSet',
@@ -44,12 +39,10 @@ const CaseSetPageLayout: React.FC<any> = () => {
 
   const { query } = useLocation();
 
-  // todo 需要确认是否需要
   useUpdateEffect(() => {
     if (query?.actionType && !activeType) {
       setActiveType(query?.actionType);
     }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [query?.actionType]);
 
   const treeParams = useTreeParams({
@@ -64,14 +57,11 @@ const CaseSetPageLayout: React.FC<any> = () => {
   }, [activeType, selectedTestCaseSet]);
 
   const refreshTreeAndScopeTestCase = useCallback(async () => {
-    // await scopeTestRunIdsRefresh();
     pageLeftRef.current.refresh?.();
   }, []);
 
   const refresh = useCallback(
     (props = {} as any) => {
-      setSelectValue([]);
-      setTreeType('repository');
       if (!props?.itemIdList?.length) {
         executionListRef?.current?.refresh();
       }

@@ -1,7 +1,6 @@
 import { useUpdateEffect } from 'ahooks';
 import { Button, Dropdown, Menu, message, notification, Tooltip } from 'antd';
-import { components, hooks } from 'proxima-sdk';
-import React, { Suspense, useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import React, { useCallback, useMemo, useRef, useState } from 'react';
 
 import { updateItemsWithProcess } from '@/components/business/BatchResult/hooks';
 import TestEntitySelectorModal, {
@@ -10,31 +9,22 @@ import TestEntitySelectorModal, {
 import { SystemFieldKeys } from '@/components/common/BusinessTable/hook';
 import FilterSearch from '@/components/common/FilterSearch';
 import { getFilterFields } from '@/components/common/FilterSearch/utils';
-import { CustomMore } from '@/icons';
-import { searchFields } from '@/lib/api/proxima';
-import { getAppEnv } from '@/lib/appEnv';
 import {
-  AppKey,
-  EXPORT_EXCLUDED_TYPES,
-  EXPORT_ITEM_FIELDS,
-  EXPORT_TEST_FIELDS,
   getExtendFields,
   RepositoryModel,
   TestCaseStatusModel,
   TestFiledKeyMapping,
   TestType,
 } from '@/lib/constants';
-import { useBaseAction, useTestConfig } from '@/lib/hooks/useContext';
+import { useBaseAction } from '@/lib/hooks/useContext';
 import useI18n from '@/lib/hooks/useI18n';
-import { getProximaBasePath, getTenantKey, inIframe } from '@/lib/utils/helper';
 import { usePageContext } from '@/pages/caseset/components/hook';
 import TestEntityList from '@/pages/caseset/components/TestEntityList';
+import RepoDropDown from '@/pages/repository/RepoDropDown';
 
 import { useSetTableHeight } from './hooks';
 import cx from './index.less';
 
-const { ExportModal } = components.Components;
-const { FilterProvider, RecoilRoot } = hooks;
 interface RightProps {
   activeType?: string;
   selectedExecution?: Record<string, any>;
@@ -56,7 +46,6 @@ const Right: React.FC<RightProps> = props => {
     mutateTestTableList,
     tableSelectionToggleEvent,
   } = usePageContext();
-  const { workspace } = useTestConfig();
   const { testCaseFieldKeys, createItemUseModal, getCreatePermission } = useBaseAction();
   const { t } = useI18n();
 
@@ -89,51 +78,6 @@ const Right: React.FC<RightProps> = props => {
       detailSearchRef.current.reset();
     }
   }, [selectedTestCaseSet?.objectId]);
-
-  const [testCaseFields, setTestCaseFields] = useState([]);
-
-  useEffect(() => {
-    testCaseFieldKeys?.length &&
-      searchFields({
-        keys: [...testCaseFieldKeys, ...SystemFieldKeys],
-        propertyNames: ['name', 'key', 'fieldType'],
-        fieldType: true,
-      }).then(data => {
-        setTestCaseFields(data.filter(f => !EXPORT_EXCLUDED_TYPES.includes(f.fieldType?.key)));
-      });
-  }, [testCaseFieldKeys]);
-
-  const basicFields = useMemo(() => {
-    const basic = [...EXPORT_ITEM_FIELDS, ...EXPORT_TEST_FIELDS];
-    const fields = basic;
-
-    return fields.map(field => {
-      return {
-        ...field,
-        label: t(`page.repository.repoDropDown.excelExportTitle.${field.label}`),
-        checked: true,
-        readonly: true,
-      };
-    });
-  }, [t]);
-
-  const appFields = useMemo(() => {
-    const moreFields = testCaseFields
-      .filter(field => !EXPORT_ITEM_FIELDS.some(f => f.value === field.key))
-      .map(field => ({ value: field.key, label: field.name }));
-    return [...basicFields, ...moreFields];
-  }, [testCaseFields, basicFields]);
-
-  const extraParams = useMemo(
-    () => ({
-      testCaseId: selectedTestCaseSet.objectId,
-      iqlContext: {
-        displayContext: AppKey,
-      },
-      fileName: `${t('page.repository.repoDropDown.importRepoCase')}-${workspace?.name}`,
-    }),
-    [selectedTestCaseSet, t, workspace?.name],
-  );
 
   const filterSearchExtendFieldsProps = useMemo(() => {
     const fieldsMapping = {
@@ -191,40 +135,6 @@ const Right: React.FC<RightProps> = props => {
       },
     });
   };
-  const [exportShow, setExportShow] = useState(false);
-  const [iql, setIql] = useState('');
-
-  const moreMenuClick = useCallback(
-    async e => {
-      const key = e.key;
-      if (key === 'exportTask') {
-        // setIql(); // todo这个需要确认怎么传递参数
-        setExportShow(true);
-        return;
-      }
-      if (key === 'importTask') {
-        const appendedQueryString = inIframe() ? '&hiddenSider=true&hiddenHeader=true' : '';
-        const baseUrl = getProximaBasePath() ? `${getProximaBasePath()}` : '/';
-        // 跳转到导入页面
-        const href = `${baseUrl}/${getTenantKey()}/workspaces/${workspace.key}/import/${
-          workspace.objectId
-        }?app=test_manager&disableToggleWorkspace=true&hiddenItemType=true&validateRequired=${getAppEnv(
-          'GROUP_REQUIRED_WHEN_VALIDATE',
-        )}${appendedQueryString}`;
-        window.open(href);
-      }
-    },
-    [t, setExportShow],
-  );
-  // // 右侧...按钮折叠菜单
-  const moreMenu = useMemo(() => {
-    return (
-      <Menu onClick={e => moreMenuClick(e)}>
-        <Menu.Item key="exportTask">{t('common.exportJson')}</Menu.Item>
-        <Menu.Item key="importTask">{t('common.importJson')}</Menu.Item>
-      </Menu>
-    );
-  }, [moreMenuClick, t]);
 
   const menuClick = useCallback(
     async e => {
@@ -316,26 +226,10 @@ const Right: React.FC<RightProps> = props => {
                 {t('modules.panel.testCaseSet.testAddPanel.modelTitle')}
               </Button>
             </Dropdown>
-            <Dropdown dropdownRender={() => moreMenu} placement="bottomLeft">
-              <Button icon={<CustomMore />} />
-            </Dropdown>
-            {/* 规划空间测试用例 */}
-            <Suspense fallback={null}>
-              <RecoilRoot>
-                <FilterProvider>
-                  <ExportModal
-                    iql={iql}
-                    exportModalVisible={exportShow}
-                    setExportModalVisible={setExportShow}
-                    workspace={workspace}
-                    appKey={AppKey}
-                    appFields={appFields}
-                    extraParams={extraParams}
-                    exportType="json"
-                  />
-                </FilterProvider>
-              </RecoilRoot>
-            </Suspense>
+            <RepoDropDown
+              type="repository"
+              // filteredCaseIds={allTestCaseIds}
+            />
           </div>
         </div>
         <FilterSearch
