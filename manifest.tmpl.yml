@@ -2,7 +2,7 @@ app:
   key: test_manager
   uuid: bf73e61c-e15a-4461-a1f7-f940c2009332
   name: test_manager
-  version: "4.36.0"
+  version: "4.36.11"
 modules:
   webtrigger:
     # TODO: Debug 使用，生产环境禁止调用下面的 trigger
@@ -156,7 +156,7 @@ modules:
     # 大商所测试报告联调对接
     - key: extension-report-dss
       function: extension-report-dss-function
-    
+
     - key: extension-weichai-file-encrypt
       function: extension-weichai-file-encrypt-function
 
@@ -515,6 +515,14 @@ modules:
       displayInBoardManage: true
       parent: test-manager-group
       {workspacePageHidden}
+    - key: test-case-set
+      resource: main
+      title: 测试用例集
+      loadType: Micro
+      route: /caseset
+      displayInBoardManage: true
+      parent: test-manager-group
+      {workspacePageHidden}
     - key: test-report
       resource: main
       title: 测试报告
@@ -633,6 +641,15 @@ modules:
       undeletable: true
       locked: true
       description: 测试管理内置字段-测试报告引用的报表（勿删改）
+    - key: r_test_manager_referenceSet
+      name: 测试用例集
+      fieldType: DataQuote
+      undeletable: true
+      locked: true
+      readonly: true
+      description: 测试管理用来用例所引用的测试用例集
+      property:
+        mode: multiple
     - key: r_test_manager_reportOverviewData
       name: test_report_overview_data
       fieldType: r_test_manager_es_object
@@ -748,6 +765,23 @@ modules:
       name: 测试计划
       icon: /icons/Issue_Plan.svg
       description: 测试管理类型-测试计划
+      displayConditions:
+        displayModules:
+          adminPage:
+            - automation
+            - itemType
+            - hierarchy
+            - linkType
+            - screenScheme
+            - workflowScheme
+            - fieldBehavior
+          plugin:
+            - testManager
+        displayContext: test_manager
+    - key: test_manager_caseset
+      name: 测试用例集
+      icon: /icons/Issue_Plan.svg
+      description: 测试管理类型-测试用例集
       displayConditions:
         displayModules:
           adminPage:
@@ -1028,7 +1062,7 @@ tables:
         type: Array
       count:
         type: Number
-      type: 
+      type:
         type: String
   - className: BatchHandleRecord
     fields:

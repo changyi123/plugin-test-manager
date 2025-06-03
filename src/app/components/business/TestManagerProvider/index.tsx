@@ -443,6 +443,12 @@ const TestManagerProvider: React.FC<RepositoryDataProviderProps> = ({
     workspaceKey,
   });
 
+  const testCaseSetFieldKeys = useScreenFieldKeysFromTestConfig({
+    testConfig,
+    testType: TestType.CaseSet,
+    workspaceKey,
+  });
+
   const testReportFieldKeys = useScreenFieldKeysFromTestConfig({
     testConfig,
     testType: TestType.Report,
@@ -645,7 +651,6 @@ const TestManagerProvider: React.FC<RepositoryDataProviderProps> = ({
           itemType = await getItemTypeByKey(itemTypeKey ?? '');
         }
 
-        // TODO: 通知统一处理！
         if (!itemType?.objectId) {
           message.warning(t('components.business.testManagerProvider.notCreateCase'));
         }
@@ -708,6 +713,7 @@ const TestManagerProvider: React.FC<RepositoryDataProviderProps> = ({
       getCreatePermission,
       getTestCaseRepositoryPath,
       testPlanFieldKeys,
+      testCaseSetFieldKeys,
       testCaseFieldKeys,
       testReportFieldKeys,
       testExecutionFieldKeys,

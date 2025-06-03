@@ -28,6 +28,8 @@ interface TestDetailsSelectorListProps {
   setSelectedTestDetailIds?: (val: any) => void;
   treeType?: string;
   planId?: string;
+  caseSetId?: string;
+  isPlanForTestSet?: boolean;
   treeProps?: Record<string, any>;
   validateCaseStatus?: boolean;
 }
@@ -40,6 +42,8 @@ const TestDetailsSelectorList: React.FC<TestDetailsSelectorListProps> = ({
   setSelectedTestDetailIds,
   treeType,
   planId,
+  caseSetId,
+  isPlanForTestSet = false,
   selectors: selector,
   validateCaseStatus = false,
 }) => {
@@ -108,7 +112,7 @@ const TestDetailsSelectorList: React.FC<TestDetailsSelectorListProps> = ({
         ascending: ['sortIndex', 'createdAt'],
         limit: 99999,
         sortByRepositoryIds: allNodeKeys,
-        select: ['id', 'status'],
+        select: ['id', 'status', isPlanForTestSet ? 'testSet' : ''].filter(Boolean) as FieldKey[],
       });
 
       return data as Array<{ id: string; workflowStatus: { objectId: string } }>;
@@ -150,7 +154,7 @@ const TestDetailsSelectorList: React.FC<TestDetailsSelectorListProps> = ({
         ...baseQueryOptions,
         offset: (current - 1) * 100,
         limit: 100,
-        select: ['id', 'name', 'status'],
+        select: ['id', 'name', 'status', isPlanForTestSet ? 'testSet' : ''].filter(Boolean),
         sortByRepositoryIds: allNodeKeys,
       });
 
@@ -435,6 +439,8 @@ const TestDetailsSelectorList: React.FC<TestDetailsSelectorListProps> = ({
               disabledIdsSet={disabledIdsSet}
               setCurrent={setCurrent}
               current={current}
+              isPlanForTestSet={isPlanForTestSet}
+              testSetId={caseSetId}
               groupCounts={groupCounts}
               validateCaseStatus={validateCaseStatus}
             />
@@ -450,5 +456,5 @@ const TestDetailsSelectorList: React.FC<TestDetailsSelectorListProps> = ({
     </div>
   );
 };
-
+TestDetailsSelectorList.displayName = 'TestDetailsSelectorList';
 export default React.memo(TestDetailsSelectorList);

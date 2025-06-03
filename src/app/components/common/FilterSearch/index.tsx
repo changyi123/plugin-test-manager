@@ -17,16 +17,18 @@ import { useLocation } from 'react-router-dom';
 
 import AddFilterIcon from '@/icons/svg/add-filter.svg';
 import { getTestConfig } from '@/lib/api/common';
+import { getTestEntityByQuery } from '@/lib/api/item';
 import { openFieldValuePopover, useOpenFilterPopover } from '@/lib/api/sdk';
 import { getCurrentUserSetting } from '@/lib/api/userSetting';
-import { CurrentWorkspaceConfigStorageKey } from '@/lib/constants';
 import {
+  CurrentWorkspaceConfigStorageKey,
   FILTER_EXPRESSIONS,
   getExtendFields,
   ItemUserTypeComponentKey,
   RepositoryModel,
   SelectorCurrentUserValue,
   TestCaseStatusModel,
+  TestSetModel,
   TestType,
   UserTypeSelectorFieldKeys,
 } from '@/lib/constants';
@@ -411,6 +413,23 @@ const FilterSearch: React.ForwardRefRenderFunction<FilterRefMethod, FilterSearch
     });
   }, []);
 
+  // todo 查询这个空间下的用例集
+  const extendFetchTestSet = useCallback(async () => {
+    return (
+      await getTestEntityByQuery({
+        query: {
+          workspaceKey: workspaceKey,
+          type: TestType.CaseSet,
+        },
+        fields: ['id', 'name'],
+        notConcatField: true,
+      })
+    )?.list?.map(item => ({
+      value: item.objectId,
+      label: item.name,
+    }));
+  }, [globalTestConfig, t]);
+
   const extendFetch = useCallback(async () => {
     const query = new Parse.Query(Repository);
     query.equalTo('workspaceKey', workspace?.key);
@@ -469,6 +488,11 @@ const FilterSearch: React.ForwardRefRenderFunction<FilterRefMethod, FilterSearch
       }
       if (fieldId === TestCaseStatusModel) {
         (props as any).fetchMethod = () => getStatusOptions();
+      }
+
+      // todo 查询空间下所有的用例集
+      if (fieldId === TestSetModel) {
+        (props as any).fetchMethod = () => extendFetchTestSet();
       }
 
       if (isDate(data.key)) {

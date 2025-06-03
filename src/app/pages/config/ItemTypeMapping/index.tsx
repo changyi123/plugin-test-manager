@@ -28,6 +28,10 @@ const TestTypes = [
     type: TestType.Execution,
     title: 'testExecution',
   },
+  {
+    type: TestType.CaseSet,
+    title: 'testCaseSet',
+  },
 ];
 
 const ItemTypeMapping = () => {

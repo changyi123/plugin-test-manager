@@ -1,0 +1,98 @@
+.page-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 16px 24px 16px 0;
+  line-height: 24px;
+  width: 100%;
+
+  .header-left {
+    display: flex;
+    align-items: center;
+    width: 100%;
+
+    .title {
+      font-size: 18px;
+      font-weight: 500;
+      color: #1e2a3d;
+      line-height: 26px;
+    }
+
+    .icon {
+      &:hover {
+        color: #0c62ff;
+      }
+    }
+
+    > * {
+      margin-right: 12px;
+
+      &:last-child {
+        margin-right: 0;
+      }
+    }
+
+    .test-tabs {
+      position: relative;
+      display: flex;
+      align-items: center;
+      padding-left: 16px;
+      width: 100%;
+
+      &::before {
+        position: absolute;
+        content: '';
+        top: 50%;
+        left: 0;
+        height: 60%;
+        width: 0;
+        border-left: 1px solid #dadde3;
+        transform: translateY(-50%);
+      }
+
+      .tab-title {
+        position: relative;
+        font-size: 18px;
+        font-weight: 500;
+        color: #213053;
+        line-height: 26px;
+        cursor: pointer;
+        margin-right: 16px;
+
+        &.actived {
+          color: #0c62ff;
+
+          &::after {
+            position: absolute;
+            content: '';
+            bottom: -6px;
+            left: 0;
+            height: 0;
+            width: 100%;
+            border-bottom: 2px solid #0c62ff;
+          }
+        }
+      }
+    }
+  }
+
+  .header-right {
+    min-width: 360px;
+  }
+}
+
+.tab-extra-action {
+  margin-left: auto;
+}
+
+.action-box {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 0 24px 0px 0;
+
+  .box-right {
+    display: flex;
+    align-items: center;
+  }
+}

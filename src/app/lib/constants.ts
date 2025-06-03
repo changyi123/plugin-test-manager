@@ -48,6 +48,7 @@ export const TestTypeNameMapping = {
   [TestType.Report]: 'testReport',
   [TestType.Run]: 'testRun',
   [TestType.TestDefect]: 'testDefect',
+  [TestType.CaseSet]: 'testcaseset',
 };
 
 // 内置三种类型标识
@@ -488,6 +489,7 @@ export const TestRunDesigneeModel = `${appKey}_designee`;
 export const TestRunExecutorModel = `${appKey}_executor`;
 export const TestExecutionModel = `${appKey}_Execution`;
 export const TestPlanModel = `${appKey}_Plan`;
+export const TestSetModel = `${appKey}_referenceSet`;
 
 export const getExtendFields = t => [
   {
@@ -500,6 +502,18 @@ export const getExtendFields = t => [
       objectId: RepositoryModel,
       key: RepositoryModel,
       name: t('common.testRepository'),
+    },
+  },
+  {
+    key: TestSetModel,
+    name: '测试用例集',
+    objectId: TestSetModel,
+    fieldType: {
+      isExtend: true,
+      dataType: 'object',
+      objectId: TestSetModel,
+      key: TestSetModel,
+      name: '测试用例集',
     },
   },
   {

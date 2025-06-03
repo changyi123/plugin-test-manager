@@ -52,6 +52,8 @@ type ModelBtn = {
 export type TestEntitySelectorProps = {
   title?: string;
   planId?: string;
+  caseSetId?: string;
+  isPlanForTestSet?: boolean;
   width?: number;
   testType?: TestType;
   placeholder?: string;
@@ -82,6 +84,8 @@ const TestEntitySelector: React.FC<TestEntitySelectorProps> = props => {
     afterClose,
     onCancel,
     getContainer,
+    caseSetId,
+    isPlanForTestSet = false,
   } = props;
   const [visible, setVisible] = useSafeState(false);
   const debounceSelectContainerRef = React.useRef();
@@ -419,6 +423,8 @@ const TestEntitySelector: React.FC<TestEntitySelectorProps> = props => {
         isWorkspaceIsolate={isolateTestType.includes(TestType.Case)}
         onTestDetailSelect={testDetails => setSelectedTestDetails(testDetails ?? [])}
         planId={planId}
+        caseSetId={caseSetId}
+        isPlanForTestSet={isPlanForTestSet}
         treeType={treeType}
         setTreeType={setTreeType}
         showDefaultRange={showDefaultRange}
@@ -544,5 +550,5 @@ const TestEntitySelector: React.FC<TestEntitySelectorProps> = props => {
     </Modal>
   );
 };
-
+TestEntitySelector.displayName = 'TestEntitySelectorModal';
 export default React.memo(TestEntitySelector);

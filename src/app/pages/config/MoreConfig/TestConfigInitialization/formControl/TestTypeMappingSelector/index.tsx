@@ -24,6 +24,10 @@ const TestTypes = [
     title: 'testExecution',
   },
   {
+    type: TestType.CaseSet,
+    title: 'testcaseset',
+  },
+  {
     type: TestType.Report,
     title: 'testReport',
   },

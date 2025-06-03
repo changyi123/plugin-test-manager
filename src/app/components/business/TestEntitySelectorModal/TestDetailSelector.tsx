@@ -1,17 +1,18 @@
-import { useDebounce } from 'ahooks';
-import { Input, Select } from 'antd';
-import { cloneDeep, isEqual } from 'lodash';
-import React, { useEffect, useMemo, useRef } from 'react';
+import { SearchOutlined } from '@ant-design/icons';
+import { useDebounce, useRequest } from 'ahooks';
+import { Input, Select, Table } from 'antd';
+import { cloneDeep, isEqual, uniqBy } from 'lodash';
+import React, { useEffect, useMemo, useRef, useState } from 'react';
 
 import { SystemFieldKeys } from '@/components/common/BusinessTable/hook';
 import FilterSearch from '@/components/common/FilterSearch';
 import { getFilterFields } from '@/components/common/FilterSearch/utils';
-import { SearchOutlined } from '@/icons';
+import { getTestEntityByQuery, handleSelector } from '@/lib/api/item';
 import { TestLinkType, TestType } from '@/lib/constants';
 import { useBaseAction, useTestConfig } from '@/lib/hooks/useContext';
 import useI18n from '@/lib/hooks/useI18n';
 import { useAllTestWorkspace } from '@/lib/hooks/useTest';
-import { SearchSelectors } from '@/lib/utils/iql';
+import { SearchSelectors, selectorToIql } from '@/lib/utils/iql';
 
 import RepositoryFolderTree, { ActionType } from '../RepositoryFolderTree';
 import { exclude, includeAll, includeItem } from './helper';
@@ -31,6 +32,8 @@ type TestDetailSelectorProps = {
   onTestDetailSelect?: (testDetails) => void;
   selectValue?: string[];
   planId?: string;
+  isPlanForTestSet?: boolean;
+  caseSetId?: string;
   treeType?: string;
   setTreeType?: (val: string) => void;
   validateCaseStatus?: boolean;
@@ -46,6 +49,10 @@ const tabsList = [
     label: 'testPlan',
     key: 'plan',
   },
+  {
+    label: 'testcaseset',
+    key: 'testcaseset',
+  },
 ];
 
 const TestDetailSelector: React.FC<TestDetailSelectorProps> = props => {
@@ -57,6 +64,8 @@ const TestDetailSelector: React.FC<TestDetailSelectorProps> = props => {
     isWorkspaceIsolate,
     selectValue,
     planId,
+    caseSetId,
+    isPlanForTestSet = false,
     treeType,
     setTreeType,
     validateCaseStatus,
@@ -112,35 +121,152 @@ const TestDetailSelector: React.FC<TestDetailSelectorProps> = props => {
     setSelectedTestDetailIds([]);
   }, [workspaceKey]);
 
+  const [selectedRowKeys, setSelectedRowKeys] = useState<React.Key[]>([]);
+
+  const onSelectChange = newSelectedRowKeys => {
+    console.info('newSelectedRowKeys', newSelectedRowKeys);
+    setSelectedRowKeys(newSelectedRowKeys);
+  };
+
+  const onCaseSelectChange = newSelectedRowKeys => {
+    setSelectedTestDetailIds(newSelectedRowKeys);
+  };
+
+  const caseSetColumns = [
+    {
+      title: t('common.testCaseSet'),
+      dataIndex: 'name',
+    },
+  ];
+
+  const { data: caseSetData } = useRequest(
+    async () => {
+      const res = [];
+      if (treeType !== 'testcaseset') return res;
+      const result = await getTestEntityByQuery({
+        query: {
+          workspaceKey: workspaceKey,
+          type: TestType.CaseSet,
+        },
+        fields: ['name', 'id', 'objectId'],
+        selector: selectors,
+        notConcatField: true,
+      });
+
+      return result?.list;
+    },
+    {
+      refreshDeps: [treeType, selectors],
+      ready: Boolean(treeType === 'testcaseset'),
+    },
+  );
+
+  const [testSetLoading, setTestSetLoading] = useState(false);
+  const { data: testSetCases } = useRequest(
+    async () => {
+      if (selectedRowKeys?.length === 0) {
+        return [];
+      }
+      setTestSetLoading(true);
+      const filterSelectors = selectorToIql(handleSelector(selectors));
+      try {
+        const { list } = await getTestEntityByQuery({
+          query: {
+            workspaceKey: workspaceKey,
+            type: TestType.Case,
+          },
+          fields: ['name', 'id', 'objectId'],
+          limit: 9999,
+          selector: `${
+            filterSelectors ? `${filterSelectors} and ` : ''
+          }'测试用例集' in [${selectedRowKeys.map(item => `'${item.toString()}'`).join(',')}]`,
+        });
+        let newList = list;
+        if (list?.length) {
+          newList = uniqBy(newList, 'objectId');
+          setSelectedTestDetailIds([...new Set(newList.map(item => item.objectId) as string[])]);
+        }
+        return newList;
+      } finally {
+        setTestSetLoading(false);
+      }
+    },
+    {
+      refreshDeps: [selectedRowKeys],
+      ready: treeType === 'testcaseset',
+    },
+  );
+
+  const filterTestCaseSets = useMemo(() => {
+    if (treeType !== 'testcaseset' || (caseSetData || [])?.length === 0) {
+      return [];
+    }
+    return caseSetData.filter(item => {
+      if (folderSearchValue) {
+        return item.name.includes(folderSearchValue);
+      }
+      return true;
+    });
+  }, [folderSearchValue, caseSetData, treeType]);
+
+  const rowSelection = {
+    selectedRowKeys,
+    onChange: onSelectChange,
+  };
+
+  const caseSetRowSelection = {
+    selectedRowKeys: (ignoreTestDetailIds ?? []).concat(selectedTestDetailIds),
+    onChange: onCaseSelectChange,
+    getCheckboxProps: () => ({
+      disabled: true, // 根据属性禁用
+    }),
+  };
+
+  // 改写之前的代码，让逻辑更加清晰
   const treeProps: any = useMemo(() => {
-    return planId && treeType === 'plan'
-      ? {
-          hideEmptyFolder: true,
-          params: {
-            query: {
-              workspaceKey: selectedWorkspaceKey,
-              type: TestType.Case,
-            },
-            selector: selectors,
-            fields: ['name'],
-            linkType: TestLinkType.CaseLinkPlan,
-            sourceIds: [planId],
-            destinationType: TestType.Case,
+    if (planId && treeType === 'plan') {
+      return {
+        hideEmptyFolder: true,
+        params: {
+          query: {
+            workspaceKey: selectedWorkspaceKey,
+            type: TestType.Case,
           },
-        }
-      : selectors
-      ? {
-          hideEmptyFolder: true,
-          params: {
-            query: {
-              workspaceKey: selectedWorkspaceKey,
-              type: TestType.Case,
-            },
-            selector: selectors,
-            fields: ['name'],
+          selector: selectors,
+          fields: ['name'],
+          linkType: TestLinkType.CaseLinkPlan,
+          sourceIds: [planId],
+          destinationType: TestType.Case,
+        },
+      };
+    } else if (treeType === 'testcaseset') {
+      return {
+        hideEmptyFolder: false,
+        params: {
+          query: {
+            workspaceKey: selectedWorkspaceKey,
+            type: TestType.CaseSet,
           },
-        }
-      : { isShowAll: showDefaultRange ? !iql : true };
+          fields: ['name'],
+        },
+      };
+    } else if (selectors) {
+      return {
+        hideEmptyFolder: true,
+        params: {
+          query: {
+            workspaceKey: selectedWorkspaceKey,
+            type: TestType.Case,
+          },
+          selector: selectors,
+          fields: ['name'],
+        },
+      };
+    } else {
+      return {
+        isShowAll: showDefaultRange ? !iql : true,
+      };
+    }
   }, [planId, treeType, selectedWorkspaceKey, selectors, showDefaultRange, iql]);
 
   // 测试案例库选中
@@ -170,9 +296,23 @@ const TestDetailSelector: React.FC<TestDetailSelectorProps> = props => {
     setSelectedWorkspaceKey(key);
     setFolderCheckedKey(folderCheckedCacheRef.current[key] ?? DEFAULT_CHECKED_KEY);
   };
+  const inputPlaceHolder = React.useMemo(() => {
+    if (treeType === 'testcaseset') {
+      return t('components.business.testEntitySelectorModal.searchTestCaseSet');
+    } else {
+      return t('components.business.testEntitySelectorModal.searchGroup');
+    }
+  }, [treeType]);
 
+  useEffect(() => {
+    setSelectedTestDetailIds([]);
+  }, [treeType]);
   const debouncedFolderSearchValue = useDebounce(folderSearchValue, { wait: 400 });
   React.useEffect(() => {
+    // 用例集不是用的目录树，所以不需要过滤
+    if (treeType === 'testcaseset') {
+      return;
+    }
     repositoryFolderTreeRef.current.filterFolder(debouncedFolderSearchValue);
   }, [debouncedFolderSearchValue]);
 
@@ -266,43 +406,70 @@ const TestDetailSelector: React.FC<TestDetailSelectorProps> = props => {
               </div>
             )}
             <Input
-              placeholder={t('components.business.testEntitySelectorModal.searchGroup')}
+              placeholder={inputPlaceHolder}
               value={folderSearchValue}
               className={cx('search-input-selector', planId ? 'tab-layout' : '')}
               addonAfter={<SearchOutlined />}
               size={planId ? 'middle' : 'large'}
               onChange={e => setFolderSearchValue(e.target.value)}
             />
-            <div className={cx('tree-box', planId ? 'tab-layout' : '')}>
-              <RepositoryFolderTree
-                workspaceKey={selectedWorkspaceKey}
-                shouldIncludeSubFolder={false}
-                actionRef={repositoryFolderTreeRef}
-                onFolderSelect={node => setSelectedNode(node)}
-                // isModelTree={true}
-                {...treeProps}
+            {treeType !== 'testcaseset' ? (
+              <div className={cx('tree-box', planId ? 'tab-layout' : '')}>
+                <RepositoryFolderTree
+                  workspaceKey={selectedWorkspaceKey}
+                  shouldIncludeSubFolder={false}
+                  actionRef={repositoryFolderTreeRef}
+                  onFolderSelect={node => setSelectedNode(node)}
+                  // isModelTree={true}
+                  {...treeProps}
+                />
+              </div>
+            ) : (
+              <Table
+                className={cx('test-case-set-table')}
+                rowSelection={rowSelection}
+                columns={caseSetColumns}
+                rowKey="id"
+                dataSource={filterTestCaseSets}
+                pagination={false}
               />
-            </div>
+            )}
           </div>
           <div className={cx('detail-selector-container')}>
-            <TestDetailsSelectorList
-              workspaceKey={selectedWorkspaceKey}
-              selectedNode={selectedNode}
-              searchName={searchName}
-              selectors={selectors}
-              ignoreTestDetailIds={ignoreTestDetailIds ?? []}
-              selectedTestDetailIds={selectedTestDetailIds}
-              setSelectedTestDetailIds={setSelectedTestDetailIds}
-              treeType={treeType}
-              planId={planId}
-              treeProps={treeProps}
-              validateCaseStatus={validateCaseStatus}
-            />
+            {treeType !== 'testcaseset' ? (
+              <TestDetailsSelectorList
+                workspaceKey={selectedWorkspaceKey}
+                selectedNode={selectedNode}
+                searchName={searchName}
+                selectors={selectors}
+                ignoreTestDetailIds={ignoreTestDetailIds ?? []}
+                selectedTestDetailIds={selectedTestDetailIds}
+                setSelectedTestDetailIds={setSelectedTestDetailIds}
+                treeType={treeType}
+                planId={planId}
+                caseSetId={caseSetId}
+                isPlanForTestSet={isPlanForTestSet}
+                treeProps={treeProps}
+                validateCaseStatus={validateCaseStatus}
+              />
+            ) : (
+              <Table
+                scroll={{ y: 345 }}
+                className={cx('test-case-table')}
+                style={{ minHeight: 345 }}
+                rowSelection={caseSetRowSelection}
+                columns={caseSetColumns}
+                rowKey="id"
+                dataSource={testSetCases}
+                loading={testSetLoading}
+                pagination={{ showQuickJumper: false, size: 'small' }}
+              />
+            )}
           </div>
         </div>
       </div>
     </div>
   );
 };
-
+TestDetailSelector.displayName = 'TestDetailSelector';
 export default TestDetailSelector;
