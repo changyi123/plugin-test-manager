@@ -2,7 +2,7 @@ app:
   key: test_manager
   uuid: bf73e61c-e15a-4461-a1f7-f940c2009332
   name: test_manager
-  version: "4.36.1"
+  version: "4.38.0"
 modules:
   webtrigger:
     # TODO: Debug 使用，生产环境禁止调用下面的 trigger
@@ -470,14 +470,22 @@ modules:
     # - key: test-manager-item-after-save-function
     #   handler: trigger.itemAfterSave
 
+  proxima:itemDetail:
+    - key: test-manager-item-detail
+      resource: main
+      title: 测试管理
+      loadType: Micro
+      route: /itemDetail
+      baseLineItem: true
   itemPanel:
     - key: test-manager-test-detail
       resource: main
       title: 测试管理
       loadType: Micro
       route: /panelModule
-      defaultActive: false
+      defaultActive: true
       baseLineItem: true
+      priority: 99 
   adminPage:
     - key: test-config
       resource: main
@@ -1054,6 +1062,11 @@ tables:
         type: Object
       retryId:
         type: String
+  - className: GeneralSetting
+    fields:
+     # 用例详情是否独立显示
+      caseDetailExtra:
+        type: Boolean
 locales:
   zh-CN:
     test-manager-test-detail:

@@ -21,7 +21,7 @@ import {
   withItemType,
   withWorkspace,
 } from '@/lib/utils/iql';
-import { Item, Repository, Test, TestRelation, Workspace } from '@/services/models';
+import { GeneralSetting, Item, Repository, Test, TestRelation, Workspace } from '@/services/models';
 
 import { TestConfig } from '../../services/models';
 
@@ -766,6 +766,19 @@ export const getAllTestConfigs = (selectKeys?: string[]) => {
     query.select(selectKeys);
   }
   return query.findAll();
+};
+
+// 获取测试管理通用配置
+export const getGeneralSetting = async () => {
+  const generalConfig = await new Parse.Query(GeneralSetting).first();
+  return generalConfig?.toJSON();
+};
+
+// 更新测试管理通用配置
+export const updateGeneralSetting = async ({ caseDetailExtra, objectId }) => {
+  const object = objectId ? new GeneralSetting({ objectId }) : new GeneralSetting();
+
+  await object.save({ caseDetailExtra });
 };
 
 // 调用外部接口保存itemTypeMap

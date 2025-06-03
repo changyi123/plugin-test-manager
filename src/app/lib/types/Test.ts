@@ -41,3 +41,7 @@ export type CopyTestCaseV2PayloadTo = {
   repository: string;
   workspace: { objectId: string; key: string };
 };
+
+export type GeneralSetting = {
+  caseDetailExtra: boolean;
+};
