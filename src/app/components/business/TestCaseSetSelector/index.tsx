@@ -80,7 +80,7 @@ const TestCaseSelector: React.FC<{ hiddenCheckAll?: boolean }> = ({ hiddenCheckA
             showInput
             value={search}
             allowClear
-            placeholder={t('components.business.testPlanSelector.desc')}
+            placeholder={t('components.business.testCaseSetSelector.placeholder')}
             onChange={value => setSearch(value)}
           />
         </div>
@@ -131,7 +131,7 @@ const TestCaseSelector: React.FC<{ hiddenCheckAll?: boolean }> = ({ hiddenCheckA
   }, [data, search, selectedTestCaseSet?.objectId]);
 
   return (
-    <div className={cx('plan-selector-container')}>
+    <div className={cx('test-case-set-selector-container')}>
       <Dropdown trigger={['click']} dropdownRender={menu} autoAdjustOverflow>
         <div className={cx('title')}>
           <Tooltip

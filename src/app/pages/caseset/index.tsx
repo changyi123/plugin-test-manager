@@ -7,7 +7,7 @@ import PageProvider from './components/PageProvider';
 
 logPluginVersion();
 
-const TestPlanPage = () => {
+const TestCaseSetPage = () => {
   return (
     <PageProvider>
       <CaseSetPageLayout />
@@ -15,4 +15,4 @@ const TestPlanPage = () => {
   );
 };
 
-export default TestPlanPage;
+export default TestCaseSetPage;

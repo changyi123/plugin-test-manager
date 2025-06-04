@@ -7,8 +7,7 @@ import React, { useMemo } from 'react';
 import DebounceSelect from '@/components/common/DebounceSelect';
 import { getAllTestConfigs } from '@/lib/api/common';
 import { getItemByIQL } from '@/lib/api/proxima';
-import { TestType } from '@/lib/constants';
-import { TestTypeNameMapping } from '@/lib/constants';
+import { TestType, TestTypeNameMapping } from '@/lib/constants';
 import { useTestConfig } from '@/lib/hooks/useContext';
 import useI18n from '@/lib/hooks/useI18n';
 import EventBus from '@/lib/utils/eventBus';
@@ -53,7 +52,7 @@ export type TestEntitySelectorProps = {
   title?: string;
   planId?: string;
   caseSetId?: string;
-  isPlanForTestSet?: boolean;
+  isPlanForTestSet?: boolean; // 当为true时候，查询用例的时候会把用例关联的用例集给查出来，然后用来判断该用例是否可以选中
   width?: number;
   testType?: TestType;
   placeholder?: string;

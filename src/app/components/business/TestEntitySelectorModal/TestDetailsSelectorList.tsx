@@ -29,7 +29,7 @@ interface TestDetailsSelectorListProps {
   treeType?: string;
   planId?: string;
   caseSetId?: string;
-  isPlanForTestSet?: boolean;
+  isPlanForTestSet?: boolean; // 当为true时候，查询用例的时候会把用例关联的用例集给查出来，然后用来判断该用例是否可以选中
   treeProps?: Record<string, any>;
   validateCaseStatus?: boolean;
 }

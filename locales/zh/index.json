@@ -24,7 +24,6 @@
     },
     "importJson": "导入JSON",
     "exportJson": "导出JSON",
-    "testcaseset": "测试用例集",
     "whiteCaseRule": "状态不属于“{{statusNames}}”，不允许规划",
     "blackCaseRule": "状态属于“{{statusNames}}”，不允许规划",
     "casePlanRule": "{{statusName}}状态的用例不允许规划",
