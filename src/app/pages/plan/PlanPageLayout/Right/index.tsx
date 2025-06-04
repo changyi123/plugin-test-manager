@@ -165,7 +165,7 @@ const Right: React.FC<RightProps> = props => {
       },
       update: {
         [TestFiledKeyMapping.linkItems]: {
-          add: [selectedTestPlan.objectId],
+          add: selectedTestPlan.objectId,
         },
       },
       handleSuccess: () => {

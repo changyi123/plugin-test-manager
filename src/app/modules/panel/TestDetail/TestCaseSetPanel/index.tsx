@@ -23,6 +23,12 @@ import { actionConfirm, alert, getTestManagerContainer } from '@/lib/utils/helpe
 import cx from './index.less';
 const proxima = createProximaSdk();
 
+const toArray = (value: any) => {
+  if (!value) {
+    return [];
+  }
+  return Array.isArray(value) ? value : [value];
+};
 const TestCaseSetPanel = () => {
   const { t } = useI18n();
   const { testEntity, workspace, setTestEntity } = useTestConfig();
@@ -120,7 +126,7 @@ const TestCaseSetPanel = () => {
             },
             update: {
               [TestFiledKeyMapping.testSet]: {
-                add: [itemData?.item?.objectId],
+                add: itemData?.item?.objectId,
               },
             },
             handleSuccess: () => {
@@ -156,7 +162,7 @@ const TestCaseSetPanel = () => {
             },
             update: {
               [TestFiledKeyMapping.testSet]: {
-                add: testSetIds,
+                concat: testSetIds,
               },
             },
             handleSuccess: () => {
@@ -181,7 +187,7 @@ const TestCaseSetPanel = () => {
       if (!Array.isArray(casesetIds)) return;
       // 高并发场景下，可能会出现想删除的时候，已经没有关联的用例集了，所以需要先查询一下
       const { list } = await getTestEntityDetailFn();
-      const _testCaseSets = list?.[0]?.testSet ?? [];
+      const _testCaseSets = toArray(list?.[0]?.testSet ?? []);
       setTestsetIds(_testCaseSets);
       if (_testCaseSets.length === 0) {
         return message.error(
@@ -200,7 +206,7 @@ const TestCaseSetPanel = () => {
         },
         update: {
           [TestFiledKeyMapping.testSet]: {
-            add: newTestsetIds,
+            concat: newTestsetIds,
           },
         },
         handleSuccess: () => {

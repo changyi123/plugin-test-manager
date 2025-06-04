@@ -65,6 +65,7 @@
 
     "overview": "Test Overview",
     "testCase": "Test case",
+    "testCaseSet": "Test Suite",
     "testPlan": "Test plan",
     "testExecution": "Test execution task",
     "testRun": "Test run",
@@ -300,7 +301,8 @@
       "itemTypeMapping": {
         "title": "Type association configuration",
         "description": "Configure the type associated with the current workspace test management type",
-        "typeAssociationConfigurationSavedSuccessfully": "Type association configuration save successfully"
+        "typeAssociationConfigurationSavedSuccessfully": "Type association configuration save successfully",
+        "pleaseSelectAllTypes": "Please configure all type associations"
       },
       "moreConfig": {
         "descriptions": [

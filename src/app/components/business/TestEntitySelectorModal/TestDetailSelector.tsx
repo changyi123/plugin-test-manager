@@ -50,7 +50,7 @@ const tabsList = [
     key: 'plan',
   },
   {
-    label: 'testcaseset',
+    label: 'testCaseSet',
     key: 'testcaseset',
   },
 ];
@@ -165,6 +165,7 @@ const TestDetailSelector: React.FC<TestDetailSelectorProps> = props => {
   const { data: testSetCases } = useRequest(
     async () => {
       if (selectedRowKeys?.length === 0) {
+        setSelectedTestDetailIds([]);
         return [];
       }
       setTestSetLoading(true);
@@ -184,9 +185,10 @@ const TestDetailSelector: React.FC<TestDetailSelectorProps> = props => {
         let newList = list;
         if (list?.length) {
           newList = uniqBy(newList, 'objectId');
-          setSelectedTestDetailIds([...new Set(newList.map(item => item.objectId) as string[])]);
+          const ids = newList.map(item => item.objectId);
+          setSelectedTestDetailIds(ids);
         }
-        return newList;
+        return list;
       } finally {
         setTestSetLoading(false);
       }

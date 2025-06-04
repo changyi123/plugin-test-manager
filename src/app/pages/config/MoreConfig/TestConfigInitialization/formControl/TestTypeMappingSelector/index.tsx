@@ -25,7 +25,7 @@ const TestTypes = [
   },
   {
     type: TestType.CaseSet,
-    title: 'testcaseset',
+    title: 'testCaseSet',
   },
   {
     type: TestType.Report,

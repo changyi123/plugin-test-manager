@@ -22,7 +22,9 @@ import {
 const LibraryProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const { context } = useSDK();
 
+  // todo 有个历史问题，但是影响有点大，只影响非集成环境，这个地方需要先备注下
   const proximaGatewayURL = context?.env?.PROXIMA_GATEWAY ?? getDevConfig()?.baseURL;
+  const proximaTeamBaseUrl = context?.env?.PROXIMA_BASE_PATH ?? getDevConfig()?.baseURL;
 
   const tenant = useMemo(
     () => context?.env.PROXIMA_APP_ID ?? 'proxima-core',
@@ -42,7 +44,7 @@ const LibraryProvider: React.FC<{ children: React.ReactNode }> = ({ children }) 
           workspaceKey={context?.env?.WORKSPACE_KEY}
           teamGateway={proximaGatewayURL}
           getPopupContainer={getRootContainer}
-          teamBasePath={proximaGatewayURL}
+          teamBasePath={proximaTeamBaseUrl}
           datetimeFormat="absolute"
           currentUser={
             {

@@ -64,6 +64,7 @@
 
     "overview": "Обзор теста",
     "testCase": "Тест-кейс",
+    "testCaseSet": "Набор тестовых примеров",
     "testPlan": "План тестирования",
     "testExecution": "Задача выполнения теста",
     "testRun": "Выполнение теста",
@@ -295,7 +296,8 @@
       "itemTypeMapping": {
         "title": "?-> Конфигурация ассоциации типов",
         "description": "Настройте тип, связанный с текущим типом управления тестированием проекта",
-        "typeAssociationConfigurationSavedSuccessfully": "Конфигурация ассоциации типов успешно сохранена"
+        "typeAssociationConfigurationSavedSuccessfully": "Конфигурация ассоциации типов успешно сохранена",
+        "pleaseSelectAllTypes": "Настройка всех типов связей"
       },
       "moreConfig": {
         "descriptions": [

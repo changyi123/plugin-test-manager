@@ -125,9 +125,9 @@ const Right: React.FC<RightProps> = props => {
           mutateTestTableList.emit('refreshTable');
         }, 500);
         setLoading(false);
-        notification.success({
-          message: t('page.testset.CaseSetPageLayout.right.caseToTestCaseSetSuccessMessage'),
-        });
+        // notification.success({
+        //   message: t('page.testset.CaseSetPageLayout.right.caseToTestCaseSetSuccessMessage'),
+        // });
       },
       handleFail: error => {
         setLoading(false);
@@ -191,9 +191,9 @@ const Right: React.FC<RightProps> = props => {
           mutateTestTableList.emit('refreshTable');
         }, 500);
         setLoading(false);
-        notification.success({
-          message: t('page.testset.CaseSetPageLayout.right.caseBatchToTestCaseSetSuccessMessage'),
-        });
+        // notification.success({
+        //   message: t('page.testset.CaseSetPageLayout.right.caseBatchToTestCaseSetSuccessMessage'),
+        // });
       },
       handleFail: error => {
         setLoading(false);
