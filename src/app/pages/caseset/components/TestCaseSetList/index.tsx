@@ -71,6 +71,7 @@ const TestTaskList: React.FC<any> = ({ listRef }) => {
       actionRef.current?.refresh(); // 刷新表格
     },
   }));
+  const [canSelectCaseIds, setCanSelectCaseIds] = useState([]);
 
   const tableDataGetter = useCallback(
     async (queryParams, tableFields) => {
@@ -101,7 +102,6 @@ const TestTaskList: React.FC<any> = ({ listRef }) => {
       });
 
       const { list, total } = res;
-
       setTableLoading(false);
 
       return {
@@ -117,8 +117,9 @@ const TestTaskList: React.FC<any> = ({ listRef }) => {
     [queryDeps],
   );
 
-  const onSuccess = useMemoizedFn(async (data, mutate) => {
-    //  todo 改造点 需要把用例集的统计改成用例集的统计
+  const onSuccess = useMemoizedFn(async data => {
+    const { list = [] } = data ?? {};
+    setCanSelectCaseIds(list.map(i => i.objectId));
   });
 
   const { data: currentFields } = useRequest(
@@ -316,6 +317,7 @@ const TestTaskList: React.FC<any> = ({ listRef }) => {
         getDataSource={tableDataGetter}
         handleFilterField={handleFilterField}
         onSuccess={onSuccess}
+        allSelectableRowKeys={canSelectCaseIds}
         onSelectionCancel={() => toggleSelection(false)}
       />
     </div>

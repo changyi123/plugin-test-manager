@@ -14,6 +14,7 @@ const useGetPermissions = (workspace: Record<string, any>, testConfig: Record<st
         [TestType.Plan]: null,
         [TestType.Execution]: null,
         [TestType.Report]: null,
+        [TestType.CaseSet]: null,
         ...(testConfig?.itemTypeMap ?? {}),
       })
         .concat([[TestType.TestDefect, testConfig?.defectsMapping?.[0]]])

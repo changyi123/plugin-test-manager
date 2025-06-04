@@ -48,7 +48,7 @@ export const TestTypeNameMapping = {
   [TestType.Report]: 'testReport',
   [TestType.Run]: 'testRun',
   [TestType.TestDefect]: 'testDefect',
-  [TestType.CaseSet]: 'testcaseset', // 不能修改，这个地方是为了国际化
+  [TestType.CaseSet]: 'testCaseSet', // 不能修改，这个地方是为了国际化
 };
 
 // 内置三种类型标识

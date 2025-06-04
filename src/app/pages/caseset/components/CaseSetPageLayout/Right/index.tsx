@@ -99,7 +99,7 @@ const Right: React.FC<RightProps> = props => {
     setRefrehCaseIdKey(refrehCaseIdKey + 1);
   }, [refreshTreeAndScopeTestCase, setRefrehCaseIdKey]);
 
-  const handleCreateCase = async () => {
+  const handleCreateCase = useCallback(async () => {
     const itemData = await createItemUseModal({
       type: TestType.Case,
       extraData: {
@@ -125,16 +125,22 @@ const Right: React.FC<RightProps> = props => {
           mutateTestTableList.emit('refreshTable');
         }, 500);
         setLoading(false);
-        notification.success({
-          message: t('page.testset.CaseSetPageLayout.right.caseToTestCaseSetSuccessMessage'),
-        });
+        // notification.success({
+        //   message: t('page.testset.CaseSetPageLayout.right.caseToTestCaseSetSuccessMessage'),
+        // });
       },
       handleFail: error => {
         setLoading(false);
         message.error(error.message);
       },
     });
-  };
+  }, [
+    selectedTestCaseSet.objectId,
+    mutateTestTableList,
+    refresh,
+    refreshTreeAndScopeTestCase,
+    createItemUseModal,
+  ]);
 
   const menuClick = useCallback(
     async e => {
@@ -147,7 +153,7 @@ const Right: React.FC<RightProps> = props => {
         await addTestDetailFromExistCase();
       }
     },
-    [t],
+    [t, selectedTestCaseSet.objectId],
   );
 
   const menu = useMemo(() => {
@@ -163,7 +169,7 @@ const Right: React.FC<RightProps> = props => {
     );
   }, [menuClick, t]);
 
-  const addTestDetailFromExistCase = async () => {
+  const addTestDetailFromExistCase = useCallback(async () => {
     const itemData = await testEntitySelectorRef.current.open();
 
     if (!itemData.length) {
@@ -191,16 +197,22 @@ const Right: React.FC<RightProps> = props => {
           mutateTestTableList.emit('refreshTable');
         }, 500);
         setLoading(false);
-        notification.success({
-          message: t('page.testset.CaseSetPageLayout.right.caseBatchToTestCaseSetSuccessMessage'),
-        });
+        // notification.success({
+        //   message: t('page.testset.CaseSetPageLayout.right.caseBatchToTestCaseSetSuccessMessage'),
+        // });
       },
       handleFail: error => {
         setLoading(false);
         message.error(error.message);
       },
     });
-  };
+  }, [
+    selectedTestCaseSet.objectId,
+    mutateTestTableList,
+    refresh,
+    refreshTreeAndScopeTestCase,
+    createItemUseModal,
+  ]);
 
   return (
     <div className={cx('right-box')}>
@@ -265,5 +277,5 @@ const Right: React.FC<RightProps> = props => {
     </div>
   );
 };
-
+Right.displayName = 'CaseSetRight';
 export default Right;

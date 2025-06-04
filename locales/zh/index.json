@@ -20,7 +20,7 @@
       "report": "测试报告",
       "task": "测试执行任务",
       "plan": "测试计划",
-      "testcaseset": "测试用例集"
+      "testCaseSet": "测试用例集"
     },
     "importJson": "导入JSON",
     "exportJson": "导出JSON",
@@ -307,7 +307,8 @@
       "itemTypeMapping": {
         "title": "类型关联配置",
         "description": "配置当前空间测试管理类型关联的类型",
-        "typeAssociationConfigurationSavedSuccessfully": "类型关联配置保存成功"
+        "typeAssociationConfigurationSavedSuccessfully": "类型关联配置保存成功",
+        "pleaseSelectAllTypes": "请配置所有的类型关联"
       },
       "moreConfig": {
         "descriptions": [
@@ -844,11 +845,14 @@
           "menuList": ["新建用例集合", "现有用例集合"],
           "dropToCaseSet": "添加至用例集合",
           "createTestCaseSetSuccess": "测试用例集创建成功",
-          "deleteCaseSetSuccessMessage": "已将该用例从相关测试用例集中移除！",
-          "addCaseSetSuccessMessage": "从测试用例集中删除该用例成功！",
-          "confirmDeleteTestCaseTips": "该操作会将将用例从该测试用例库中移除，是否继续操作？",
+          "deleteCaseSetSuccessMessage": "测试用例集中移除成功！",
+          "addCaseSetSuccessMessage": "测试用例集添加成功！",
+          "addSingleCaseSetSuccessMessage": "测试用例已成功添加至测试用例集！",
+          "planTestCase": "规划用例集中",
+          "confirmDeleteTestCaseTips": "该操作会将用例从该测试用例库中移除，是否继续操作？",
           "hasNoAttashTestSetMessage": "该测试用例已无关联的用例集，请刷新页面!",
-          "attashCaseToCaseSetSuccessMessage": "用例关联用例集成功！"
+          "attashCaseToCaseSetSuccessMessage": "用例关联用例集成功！",
+          "removeTestCaseSet": "用例集移除中"
         },
         "testPlanPanel": {
           "menuList": ["已存在的测试计划", "新建测试计划"],

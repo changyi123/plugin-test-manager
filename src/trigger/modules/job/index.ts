@@ -391,7 +391,7 @@ export const createTestRuns = async (params: ProcessJobParams<BatchCreateTestRun
         },
         update: {
           [TestFiledKeyMapping.linkItems]: {
-            add: [planId],
+            add: planId,
           },
         },
       };
@@ -564,7 +564,7 @@ export const copyTesCases = async (params: ProcessJobParams<BatchCopyTestCaseV3P
         },
         update: {
           [TestFiledKeyMapping.sortIndex]: {
-            add: sortIndexAddStep,
+            appendString: sortIndexAddStep,
           },
         },
         itemType: itemType.get('objectId'),
@@ -579,7 +579,7 @@ export const copyTesCases = async (params: ProcessJobParams<BatchCopyTestCaseV3P
 
       if (needSuffix)
         createParams.update[SystemField.Name] = {
-          add: `_${copyName}`,
+          appendString: `_${copyName}`,
           keyType: 'item',
           valueType: 'item',
         };
@@ -904,7 +904,7 @@ export const addExecutionToPlanWorker = async (
       const updateCaseParams = {
         update: {
           [TestFiledKeyMapping.linkItems]: {
-            add: [planId],
+            add: planId,
           },
         },
         fields: {

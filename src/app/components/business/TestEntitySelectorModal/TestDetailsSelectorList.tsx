@@ -125,7 +125,7 @@ const TestDetailsSelectorList: React.FC<TestDetailsSelectorListProps> = ({
         typeof selector === 'object' ? JSON.stringify(selector) : selector
       }`,
       staleTime: 999999999,
-      cacheTime: 999999999,
+      cacheTime: isPlanForTestSet ? 0 : 999999999,
     },
   );
 
@@ -249,7 +249,7 @@ const TestDetailsSelectorList: React.FC<TestDetailsSelectorListProps> = ({
         (typeof selector === 'object' ? JSON.stringify(selector) : selector) ?? ''
       }_${showType}_${current}_${treeType}_${orderByCratedAt}${workspaceKey}`,
       staleTime: 999999999,
-      cacheTime: 999999999,
+      cacheTime: isPlanForTestSet ? 0 : 999999999,
     },
   );
 

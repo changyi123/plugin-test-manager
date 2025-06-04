@@ -23,6 +23,12 @@ import { actionConfirm, alert, getTestManagerContainer } from '@/lib/utils/helpe
 import cx from './index.less';
 const proxima = createProximaSdk();
 
+const toArray = (value: any) => {
+  if (!value) {
+    return [];
+  }
+  return Array.isArray(value) ? value : [value];
+};
 const TestCaseSetPanel = () => {
   const { t } = useI18n();
   const { testEntity, workspace, setTestEntity } = useTestConfig();
@@ -113,22 +119,25 @@ const TestCaseSetPanel = () => {
 
           setLoading(true);
           await updateItemsWithProcess({
-            title: '用例规划中',
+            title: t('modules.panel.testDetail.testCaseSetPanel.planTestCase'),
             items: [testEntity.objectId],
             fields: {
               values: {},
             },
             update: {
               [TestFiledKeyMapping.testSet]: {
-                add: [itemData?.item?.objectId],
+                add: itemData?.item?.objectId,
               },
             },
+            hideNotification: true,
             handleSuccess: () => {
-              refreshDepData();
-              setLoading(false);
-              notification.success({
-                message: t('modules.panel.testDetail.testCaseSetPanel.deleteCaseSetSuccessMessage'),
-              });
+              setTimeout(() => {
+                refreshDepData();
+                setLoading(false);
+                notification.success({
+                  message: t('modules.panel.testDetail.testCaseSetPanel.addCaseSetSuccessMessage'),
+                });
+              }, 200);
             },
             handleFail: error => {
               setLoading(false);
@@ -149,22 +158,25 @@ const TestCaseSetPanel = () => {
 
           setLoading(true);
           await updateItemsWithProcess({
-            title: '用例规划中',
+            title: t('modules.panel.testDetail.testCaseSetPanel.planTestCase'),
             items: [testEntity.objectId],
             fields: {
               values: {},
             },
+            hideNotification: true,
             update: {
               [TestFiledKeyMapping.testSet]: {
-                add: testSetIds,
+                concat: testSetIds,
               },
             },
             handleSuccess: () => {
-              setLoading(false);
-              refreshDepData();
-              notification.warning({
-                message: t('modules.panel.testDetail.testCaseSetPanel.addCaseSetSuccessMessage'),
-              });
+              setTimeout(() => {
+                setLoading(false);
+                refreshDepData();
+                notification.success({
+                  message: t('modules.panel.testDetail.testCaseSetPanel.addCaseSetSuccessMessage'),
+                });
+              }, 200);
             },
             handleFail: error => {
               setLoading(false);
@@ -181,7 +193,7 @@ const TestCaseSetPanel = () => {
       if (!Array.isArray(casesetIds)) return;
       // 高并发场景下，可能会出现想删除的时候，已经没有关联的用例集了，所以需要先查询一下
       const { list } = await getTestEntityDetailFn();
-      const _testCaseSets = list?.[0]?.testSet ?? [];
+      const _testCaseSets = toArray(list?.[0]?.testSet ?? []);
       setTestsetIds(_testCaseSets);
       if (_testCaseSets.length === 0) {
         return message.error(
@@ -191,16 +203,17 @@ const TestCaseSetPanel = () => {
       // 防止页面停留太久，高并发问题，然后在重新获取数据
       const newTestsetIds = _testCaseSets.filter(item => !casesetIds.includes(item));
       await updateItemsWithProcess({
-        title: '从用例集移除该用例中',
+        title: t('modules.panel.testDetail.testCaseSetPanel.removeTestCaseSet'),
         items: [testEntity?.objectId],
         fields: {
           values: {
             [TestFiledKeyMapping.testSet]: [],
           },
         },
+        hideNotification: true,
         update: {
           [TestFiledKeyMapping.testSet]: {
-            add: newTestsetIds,
+            concat: newTestsetIds,
           },
         },
         handleSuccess: () => {
@@ -307,7 +320,7 @@ const TestCaseSetPanel = () => {
         actionMenuList={[
           {
             key: 'delete',
-            content: t('common.delete'),
+            content: t('common.remove'),
             onClick(selectedRowKeys) {
               removeCaseFromCaseSet(selectedRowKeys);
             },

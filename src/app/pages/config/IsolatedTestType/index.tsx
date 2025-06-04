@@ -10,7 +10,13 @@ import { useCurrentTestConfig, useDataContext } from '../hooks';
 import cx from './index.less';
 
 // 所有隔离类型配置
-const AllIsolateTestType = [TestType.TestDefect, TestType.Case, TestType.Execution, TestType.Plan];
+const AllIsolateTestType = [
+  TestType.TestDefect,
+  TestType.Case,
+  TestType.Execution,
+  TestType.Plan,
+  TestType.CaseSet,
+];
 
 // 判断所有测试类型是否都被设置空间隔离
 const isIsolateAllTestType = (isolation: string[]) => {
@@ -74,6 +80,7 @@ const IsolatedTestType = () => {
               TestType.Plan,
               TestType.Execution,
               TestType.TestDefect,
+              TestType.CaseSet,
             ]),
           ).map(([type, name]) => (
             <div key={type}>

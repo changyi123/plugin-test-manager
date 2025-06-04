@@ -111,31 +111,7 @@ const TestEntityList: React.FC<TestEntityListProps> = ({
     },
   );
 
-  const allCaseIds = [];
-  // const { data: allCaseIds } = useRequest(
-  //   async () => {
-  //     console.info('刷新参数', 12123132);
-  //     const filterSelectors = selectorToIql(handleSelector(selectors));
-  //     console.info('filterSelectors', filterSelectors);
-  //     const { list } = await getTestEntityByQuery({
-  //       query: {
-  //         workspaceKey: workspaceKey,
-  //         type: TestType.Case,
-  //         repository: selectNode ? getRepositoryQuery(selectNode)?.repository : '',
-  //       },
-  //       selector: `${filterSelectors ? `${filterSelectors} and ` : ''}'测试用例集' in ['${
-  //         selectedTestCaseSet.objectId
-  //       }']`,
-  //       limit: 99999,
-  //     });
-  //     return list.map(item => item.objectId);
-  //   },
-  //   {
-  //     refreshDeps: [selectNode, selectors, activeType, selectedTestCaseSet.objectId],
-  //     debounceWait: 400,
-  //   },
-  // );
-
+  const [allCanSelectTestIds, setAllCanSelectTestIds] = useState([]);
   // 获取全部用例 getter
   const testCaseTableDataGetter = useFnHookTriggerFn(
     useCallback(
@@ -154,13 +130,14 @@ const TestEntityList: React.FC<TestEntityListProps> = ({
             selectedTestCaseSet.objectId
           }']`,
         });
+        setAllCanSelectTestIds(list.map(d => d.objectId));
         //  需要把testSet字段拍平处理，这样少调用一个接口
         return {
           list: list,
           total: total,
         };
       },
-      [selectNode, selectors, activeType, selectedTestCaseSet.objectId],
+      [selectNode, selectors, activeType, selectedTestCaseSet.objectId, setAllCanSelectTestIds],
     ),
     () => {
       setTableLoading(true);
@@ -235,11 +212,11 @@ const TestEntityList: React.FC<TestEntityListProps> = ({
         fixed: true,
         isSystem: true,
         title: t('common.title'),
-        sorter: {
-          compare: (a, b) => {
-            return a.name.length - b.name.length;
-          },
-        },
+        // sorter: {
+        //   compare: (a, b) => {
+        //     return a.name.length - b.name.length;
+        //   },
+        // },
         className: 'test-case-title',
         extraProps: {
           onClick: record => {
@@ -276,21 +253,21 @@ const TestEntityList: React.FC<TestEntityListProps> = ({
         },
       },
       // 测试执行状态
-      {
-        key: 'caseLatestStatus',
-        title: t('page.plan.testEntityList.runStatus'),
-        sorter: {
-          compare: (a, b) => {
-            return (a.caseLatestStatus || '').localeCompare(b.caseLatestStatus || '');
-          },
-        },
-        width: 200,
-        render(_, rowData) {
-          return (
-            <StatusBadge readonly status={rowData.caseLatestStatus} className={cx('cell-min')} />
-          );
-        },
-      },
+      // {
+      //   key: 'caseLatestStatus',
+      //   title: t('page.plan.testEntityList.runStatus'),
+      //   sorter: {
+      //     compare: (a, b) => {
+      //       return (a.caseLatestStatus || '').localeCompare(b.caseLatestStatus || '');
+      //     },
+      //   },
+      //   width: 200,
+      //   render(_, rowData) {
+      //     return (
+      //       <StatusBadge readonly status={rowData.caseLatestStatus} className={cx('cell-min')} />
+      //     );
+      //   },
+      // },
       // 最新执行人
       {
         key: 'caseLatestExecutor',
@@ -450,7 +427,7 @@ const TestEntityList: React.FC<TestEntityListProps> = ({
         loading={loading}
         getDataSource={testCaseTableDataGetter}
         onHasRowSelected={setHasRowSelected}
-        allSelectableRowKeys={allCaseIds}
+        allSelectableRowKeys={allCanSelectTestIds}
         selectionActionNodes={selectionActionNodes}
         onSelectionCancel={() => tableSelectionToggleEvent.emit(false)}
         handleFilterField={handleFilterField}

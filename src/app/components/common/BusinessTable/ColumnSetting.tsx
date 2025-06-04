@@ -487,5 +487,5 @@ const ColumnSetting: React.FC<ColumnSettingProps> = props => {
     </>
   );
 };
-
+ColumnSetting.displayName = 'ColumnSetting';
 export default ColumnSetting;

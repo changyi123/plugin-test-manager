@@ -55,6 +55,7 @@ type ProcessSwap<T> = T & {
   actionType?: ACTION_TYPE_ENUM;
   title?: string;
   key?: string;
+  hideNotification?: boolean;
 };
 
 export async function createTestRunWithProcess(props: ProcessSwap<BatchCreateTestRunV2Payload>) {
@@ -128,6 +129,7 @@ export async function execWithProcess(
     actionType,
     handleSuccess: originHandleSuccess,
     handleFail,
+    hideNotification = false,
     ...params
   } = props;
 
@@ -248,6 +250,7 @@ export async function execWithProcess(
       processBarKey,
       handleSuccess,
       handleFail,
+      hideNotification,
     };
 
     info({

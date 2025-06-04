@@ -50,7 +50,7 @@ const tabsList = [
     key: 'plan',
   },
   {
-    label: 'testcaseset',
+    label: 'testCaseSet',
     key: 'testcaseset',
   },
 ];
@@ -151,6 +151,7 @@ const TestDetailSelector: React.FC<TestDetailSelectorProps> = props => {
         fields: ['name', 'id', 'objectId'],
         selector: selectors,
         notConcatField: true,
+        limit: 9999,
       });
 
       return result?.list;
@@ -164,7 +165,9 @@ const TestDetailSelector: React.FC<TestDetailSelectorProps> = props => {
   const [testSetLoading, setTestSetLoading] = useState(false);
   const { data: testSetCases } = useRequest(
     async () => {
+      if (treeType !== 'testcaseset') return [];
       if (selectedRowKeys?.length === 0) {
+        setSelectedTestDetailIds([]);
         return [];
       }
       setTestSetLoading(true);
@@ -184,9 +187,10 @@ const TestDetailSelector: React.FC<TestDetailSelectorProps> = props => {
         let newList = list;
         if (list?.length) {
           newList = uniqBy(newList, 'objectId');
-          setSelectedTestDetailIds([...new Set(newList.map(item => item.objectId) as string[])]);
+          const ids = newList.map(item => item.objectId);
+          setSelectedTestDetailIds(ids);
         }
-        return newList;
+        return list;
       } finally {
         setTestSetLoading(false);
       }
