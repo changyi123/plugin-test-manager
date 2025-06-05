@@ -1,7 +1,7 @@
 import parallelLimit from 'async/parallelLimit';
 import dayjs from 'dayjs';
 import { t } from 'i18next';
-import { cloneDeep, last, omit, uniq, uniqBy } from 'lodash';
+import _, { cloneDeep, last, omit, uniq, uniqBy, forEach, round, toString } from 'lodash';
 
 import { getTestConfigByWorkspaceKeys } from '@/lib/api/common';
 import {
@@ -327,7 +327,6 @@ const getCustomDataSourceResults = async (dsConfigs, reportParams, dsIqlConfig) 
 
   // 是否有自定义数据源
   const hasCustomDataSourceSelector = dsConfigs.some(isCustomDataSourceSelector);
-
   if (hasCustomDataSourceSelector) {
     const parallelRequestWebTrigger = () => {
       return new Promise((resolve, reject) => {
@@ -389,7 +388,7 @@ const getCustomDataSourceResults = async (dsConfigs, reportParams, dsIqlConfig) 
     if (!customDataSourceConfigResult.report)
       customDataSourceConfigResult.report = reportParams.report;
   }
-
+  console.log('customDataSourceConfigResult--->1', customDataSourceConfigResult)
   return customDataSourceConfigResult;
 };
 
@@ -672,6 +671,37 @@ const chainChartDataAdaptor = (chartData, dataSource) => {
     },
     /** 自定义数据源 */
     customDataSource(customDataSourceResults) {
+      const formatValue = (v) => {
+        return (_.isNull(v) || _.isUndefined(v) || _.isNaN(v) )? '-' : toString(round(v, 2).toFixed(2)) + '%'
+      }
+      function handleEmptyData(_reportDetail) {
+        const _noData = [{
+          type: 'p',
+          children: [
+            {
+              type: 'p',
+              children: [
+                {
+                  text: t('report.coverRate.noData'),
+                },
+              ],
+              align: "center",
+              id: Date.now(),
+            },
+          ],
+        }]
+        if (_.isEmpty(_reportDetail)) return _noData
+        return []
+      }
+
+      function handleReportType(_reportType) {
+        if ([1].includes(_reportType)) {
+          return t('report.coverRate.typeIncrement')
+        } else if ([2].includes(_reportType)) {
+          return t('report.coverRate.typeAll')
+        }
+        return t('report.coverRate.typeEmpty')
+      }
       const adaptors = {
         richText(chartOption, chartOptionAdaptor, result) {
           let richTextValue = chartOption.richTextValue ?? [];
@@ -680,7 +710,7 @@ const chainChartDataAdaptor = (chartData, dataSource) => {
           const replace = data => {
             replaceValue = data;
           };
-          const { text, useTemplate } = chartOptionAdaptor;
+          const { text, useTemplate, type } = chartOptionAdaptor;
           if (useTemplate) {
             let richTextValueString = JSON.stringify(richTextValue);
             richTextValueString = richTextValueString.replace(/#{{(.*?)}}#/g, (_, s) => {
@@ -697,7 +727,216 @@ const chainChartDataAdaptor = (chartData, dataSource) => {
               return result;
             });
             richTextValue = replaceValue ?? JSON.parse(richTextValueString);
-          } else {
+          } else if (['table_coverRate'].includes(type)) {
+            const { reportType, reportUrl, reportDetail } = result?.data || {}
+            const _dataJson = []
+            forEach(reportDetail, (item) => {
+              const { baseVersionNumber, branchCov, functionCov, rowCov, servicesName, remarks } =  item || {}
+              _dataJson.push(
+                {
+                  type: 'tr',
+                  id: Math.random(),
+                  children: [
+                    {
+                      type: 'td',
+                      id: Math.random(),
+                      children: [
+                        {
+                          children: [{text: servicesName || '-'}],
+                          id: Math.random(),
+                          type: "p",
+                          align: "center"
+                        }
+                      ]
+                    },
+                    {
+                      type: 'td',
+                      id: Math.random(),
+                      children: [
+                        {
+                          children: [{text: formatValue(branchCov)}],
+                          id: Math.random(),
+                          type: "p",
+                          align: "right"
+                        }
+                      ]
+                    },
+                    {
+                      type: 'td',
+                      id: Math.random(),
+                      children: [
+                        {
+                          children: [{text: formatValue(functionCov)}],
+                          id: Math.random(),
+                          type: "p",
+                          align: "right"
+                        }
+                      ]
+                    },
+                    {
+                      type: 'td',
+                      id: Math.random(),
+                      children: [
+                        {
+                          children: [{text: formatValue(rowCov)}],
+                          id: Math.random(),
+                          type: "p",
+                          align: "right"
+                        }
+                      ]
+                    },
+                    {
+                      type: 'td',
+                      id: Math.random(),
+                      children: [
+                        {
+                          children: [{text: baseVersionNumber || '-'}],
+                          id: Math.random(),
+                          type: "p",
+                          align: "center"
+                        }
+                      ]
+                    },
+                    {
+                      type: 'td',
+                      id: Math.random(),
+                      children: [
+                        {
+                          children: [{text: remarks || '-'}],
+                          id: Math.random(),
+                          type: "p",
+                          align: "center"
+                        }
+                      ]
+                    },
+                  ],
+                }
+              )
+            })
+            richTextValue = [
+              {
+                type: 'p',
+                children: [
+                  {
+                    type: 'a',
+                    url: reportUrl,
+                    children: [
+                      {
+                        text: t('report.coverRate.linkA'),
+                      },
+                    ],
+                    id: Date.now(),
+                  },
+                ],
+              },
+              {
+                type: 'p',
+                children: [
+                  {
+                    type: 'p',
+                    children: [
+                      {
+                        text: handleReportType(reportType),
+                      },
+                    ],
+                    id: Date.now(),
+                  },
+                ],
+              },
+              {
+                type: 'table',
+                id: Math.random(),
+                class: 'curtable',
+                // colSizes: [200, 120, 120, 120, 120, 120],
+                children: [
+                  {
+                    type: 'tr',
+                    id: Math.random(),
+                    children: [
+                      {
+                        type: 'td',
+                        id: Math.random(),
+                        children: [
+                          {
+                            children: [{text: t('report.coverRate.servicesName'), bold: true}],
+                            id: Math.random(),
+                            type: "p",
+                            align: "center"
+                          }
+                        ]
+                      },
+                      {
+                        type: 'td',
+                        id: Math.random(),
+                        children: [
+                          {
+                            children: [{text: t('report.coverRate.branchCov'), bold: true}],
+                            id: Math.random(),
+                            type: "p",
+                            align: "right"
+                          }
+                        ]
+                      },
+                      {
+                        type: 'td',
+                        id: Math.random(),
+                        children: [
+                          {
+                            children: [{text: t('report.coverRate.functionCov'), bold: true}],
+                            id: Math.random(),
+                            type: "p",
+                            align: "right"
+                          }
+                        ]
+                      },
+                      {
+                        type: 'td',
+                        id: Math.random(),
+                        children: [
+                          {
+                            children: [{text: t('report.coverRate.rowCov'), bold: true}],
+                            id: Math.random(),
+                            type: "p",
+                            align: "right"
+                          }
+                        ]
+                      },
+                      {
+                        type: 'td',
+                        id: Math.random(),
+                        children: [
+                          {
+                            children: [{text: t('report.coverRate.baseVersionNumber'), bold: true}],
+                            id: Math.random(),
+                            type: "p",
+                            align: "center"
+                          }
+                        ]
+                      },
+                      {
+                        type: 'td',
+                        id: Math.random(),
+                        children: [
+                          {
+                            children: [{text: t('report.coverRate.remarks'), bold: true}],
+                            id: Math.random(),
+                            type: "p",
+                            align: "center"
+                          }
+                        ]
+                      },
+                    ],
+                  },
+                  ..._dataJson
+                ],
+              },
+              ...handleEmptyData(reportDetail)
+            ];
+            return {
+              ...chartOption,
+              richTextValue,
+            };
+          }  else {
             richTextValue = [
               {
                 type: 'p',

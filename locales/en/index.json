@@ -143,6 +143,19 @@
         "sprint": "Selected sprint"
       }
     },
+    "coverRate": {
+      "servicesName": "Service name",
+      "branchCov": "Branch coverage rate",
+      "functionCov": "Function coverage",
+      "rowCov": "Line coverage rate",
+      "baseVersionNumber": "Baseline version",
+      "remarks": "Remarks",
+      "linkA": "Link",
+      "typeIncrement": "Type: Increment",
+      "typeAll": "Type: Full",
+      "typeEmpty": "Type: -",
+      "noData": "No data available for the time being."
+    },
     "workspaceReportTemplate": {
       "modalTitle": "Report template manager in the workspace",
       "deleteConfirm": {
