@@ -5,7 +5,7 @@ import React, { useEffect, useState } from 'react';
 import SearchInput from '@/components/business/SearchInput';
 
 import OverflowTooltip from '@/components/common/OverflowTooltip';
-import { deleteTestEntity } from '@/lib/api/item';
+import { deleteTestEntity, updateTestEntity } from '@/lib/api/item';
 import useI18n from '@/lib/hooks/useI18n';
 import { actionConfirm, openItemViewScreen } from '@/lib/utils/helper';
 
@@ -106,15 +106,51 @@ const ExecutionList: React.FC<ExecutionListProps> = ({
         },
       );
     }
+    if (type === 'remove') {
+      console.log(data, 'remove')
+      actionConfirm(
+        {
+          title: t('common.tip'),
+          okText: t('common.okText'),
+          cancelText: t('common.cancel'),
+          content: t('page.plan.planPageLayout.executionList.removeTips'),
+        },
+        async () => {
+          setLoading?.(true);
+          const res = await updateTestEntity([
+              {
+                objectId: data?.objectId,
+                linkItems: {
+                  action: 'delete',
+                  value: data?.linkItems || [],
+                }
+              },
+            ]);
+          if (res?.status === 'error') {
+            setLoading?.(false);
+            message.error(res.data);
+            return;
+          }
+          setActiveId('');
+          setTimeout(() => {
+            actionRef.current?.refresh();
+          }, 500);
+          setLoading?.(false);
+          notification.success({
+            message: t('page.plan.planPageLayout.executionList.removeSuccess'),
+          });
+        },
+      );
+    }
   };
 
   const menu = data => (
     <Menu onClick={e => menuClick(e.key, data)}>
       <Menu.Item key="check">{t('page.plan.planPageLayout.executionList.checkTask')}</Menu.Item>
       <Menu.Item key="delete">{t('page.plan.planPageLayout.executionList.deleteTask')}</Menu.Item>
+      <Menu.Item key="remove">{t('page.plan.planPageLayout.executionList.removeTask')}</Menu.Item>
     </Menu>
   );
-
   
   return (
     <>
