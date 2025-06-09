@@ -8,7 +8,7 @@ import Input from '@/components/business/TestStep/fields/Input';
 import { DeleteOutlined } from '@/icons';
 import { addTestDefect, deleteTestDefect, updateTestRunDetail } from '@/lib/api/item';
 import useI18n from '@/lib/hooks/useI18n';
-import { escapeHtmlString, goToItemDetailPage } from '@/lib/utils/helper';
+import { escapeHtmlString, getEditorOrStringText, goToItemDetailPage } from '@/lib/utils/helper';
 
 import AddDefectButton from './AddDefectButton';
 import ExecutionEditor from './ExecutionEditor';
@@ -20,7 +20,7 @@ const { ItemIcon } = components.Components.Common;
 
 import { clone } from 'lodash';
 
-import { getAppEnv } from '@/lib/appEnv';
+import { getAppEnv, isTestPlanUseEditor } from '@/lib/appEnv';
 
 import Editor from '../TestStep/fields/editor';
 import cx from './TestStep.less';
@@ -40,6 +40,7 @@ const TestStep: React.FC<TestStepProps> = props => {
   const { t } = useI18n();
   const statusRef = useRef({});
   const { TestToDefect = '' } = useItemLinkTypeConfig();
+  const isUseEditor = isTestPlanUseEditor();
   // const [statusConfig, setStatusConfig] = React.useState({});
   const renderFieldValue = value => (value ? escapeHtmlString(value) : '-');
   // 步骤状态更新标识，每次执行 set true，每次更新数据会 set false
@@ -246,11 +247,19 @@ const TestStep: React.FC<TestStepProps> = props => {
                 {t('components.business.testRunModal.testStep.result')}：
               </span>
               <span className={cx('input')}>
-                <Editor
-                  placeholder={t('components.business.testRunModal.testStep.resultPlaceholder')}
-                  value={step.actualResult}
-                  onChange={value => handleActualResultChange(step.id, value)}
-                />
+                {isUseEditor ? (
+                  <Editor
+                    placeholder={t('components.business.testRunModal.testStep.resultPlaceholder')}
+                    value={step.actualResult}
+                    onChange={value => handleActualResultChange(step.id, value)}
+                  />
+                ) : (
+                  <Input
+                    placeholder={t('components.business.testRunModal.testStep.resultPlaceholder')}
+                    value={getEditorOrStringText(step.actualResult)}
+                    onChange={value => handleActualResultChange(step.id, value)}
+                  />
+                )}
               </span>
             </div>
             <div className={cx('field')}>

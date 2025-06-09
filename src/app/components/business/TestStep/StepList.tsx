@@ -24,6 +24,7 @@ const REACT_DND_PORTAL_CLASS = 'react-beautiful-dnd-portal';
 let RBDPortal = null;
 
 import { getAppEnv } from '@/lib/appEnv';
+import { getEditorOrStringText } from '@/lib/utils/helper';
 
 import cx from './StepList.less';
 
@@ -59,7 +60,10 @@ const StepFields: React.FC<{
                   readonly,
                   isNeedSomeButton: true,
                 },
-                field,
+                {
+                  ...field,
+                  value: field.type === 'input' ? getEditorOrStringText(field.value) : field.value,
+                },
               ),
             )}
           </Form.Item>
