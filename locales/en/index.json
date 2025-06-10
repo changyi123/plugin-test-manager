@@ -594,7 +594,10 @@
           "deleteTips": "This operation will delete the test execution task. do you want to continue?",
           "deleteSuccess": "Test execution task deleted successfully",
           "checkTask": " Check tasks",
-          "deleteTask": "Delete task"
+          "deleteTask": "Delete task",
+          "removeTips": "This operation will remove the test execution task. do you want to continue?",
+          "removeSuccess": "Test execution task Removed successfully",
+          "removeTask": "Remove task"
         },
         "executionStatus": {
           "rate": "Pass rate"
