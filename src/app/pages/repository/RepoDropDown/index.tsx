@@ -305,91 +305,45 @@ const RepoDropDown = ({
 
   const isEnableJsonImport = getAppEnv('ENABLE_JSON_IMPORT');
 
-  const menu = useMemo(() => {
-    const commonItems = [
-      isEnableJsonImport && {
-        key: 'importJson',
-        label: t('page.repository.repoDropDown.MenuItem.importJson'), // 用例导入（json）
-      },
-      {
-        key: 'import',
-        label: t('page.repository.repoDropDown.MenuItem.0'), // 用例导入
-      },
-      {
-        key: 'example',
-        label: t('page.repository.repoDropDown.MenuItem.1'), // 示例文件
-      },
-      {
-        key: 'importFromWorkspace',
-        label: t('page.repository.repoDropDown.MenuItem.2'), // 从别的空间导入
-      },
-    ].filter(Boolean);
-
-    const repositoryItems = [
-      {
-        key: 'exportAll',
-        label: t('page.repository.repoDropDown.MenuItem.3'), // 导出所有用例
-      },
-      {
-        key: 'exportGroup',
-        label: t('page.repository.repoDropDown.MenuItem.4'), // 导出分组用例
-      },
-      {
-        key: 'exportChildGroup',
-        label: t('page.repository.repoDropDown.MenuItem.5'), // 导出子分组用例
-      },
-      {
-        key: 'exportFilter',
-        label: t('page.repository.repoDropDown.MenuItem.7'), // 导出过滤用例
-      },
-      isEnableJsonImport && {
-        key: 'exportJsonFiltered',
-        label: t('page.repository.repoDropDown.MenuItem.exportJsonFiltered'), // 导出用例json文件（筛选结果）
-      },
-    ].filter(Boolean);
-
-    const planItems = [
-      {
-        key: 'exportPlan',
-        label: t('page.repository.repoDropDown.MenuItem.6'), // 导出计划用例
-        disabled: !selectedTestPlanId,
-      },
-    ];
-
-    const extraItems = Array.isArray(extraMenuOptions)
-      ? extraMenuOptions.map((prop, index) => ({
-          key: index.toString(),
-          label: prop.label,
-        }))
-      : null;
-
-    return (
-      <Menu onClick={e => menuClick(e)}>
-        {type === 'repository' && (
-          <>
-            {commonItems.map(item => (
-              <Menu.Item key={item.key}>{item.label}</Menu.Item>
-            ))}
-            {repositoryItems.map(item => (
-              <Menu.Item key={item.key}>{item.label}</Menu.Item>
-            ))}
-            {extraItems}
-          </>
-        )}
-        {type === 'plan' && (
-          <>
-            {commonItems.map(item => (
-              <Menu.Item key={item.key}>{item.label}</Menu.Item>
-            ))}
-            {planItems.map(item => (
-              <Menu.Item key={item.key}>{item.label}</Menu.Item>
-            ))}
-            {extraItems}
-          </>
-        )}
-      </Menu>
-    );
-  }, [type, selectedTestPlanId, t, menuClick, extraMenuOptions, isEnableJsonImport]);
+  const menu = (
+    <Menu onClick={e => menuClick(e)}>
+      {type === 'repository' && (
+        <>
+          {isEnableJsonImport && (
+            <Menu.Item key="importJson">
+              {t('page.repository.repoDropDown.MenuItem.importJson')}
+            </Menu.Item>
+          )}
+          <Menu.Item key="import">{t('page.repository.repoDropDown.MenuItem.0')}</Menu.Item>
+          <Menu.Item key="example">{t('page.repository.repoDropDown.MenuItem.1')}</Menu.Item>
+          <Menu.Item key="importFromWorkspace">
+            {t('page.repository.repoDropDown.MenuItem.2')}
+          </Menu.Item>
+          <Menu.Item key="exportAll">{t('page.repository.repoDropDown.MenuItem.3')}</Menu.Item>
+          <Menu.Item key="exportGroup">{t('page.repository.repoDropDown.MenuItem.4')}</Menu.Item>
+          <Menu.Item key="exportChildGroup">
+            {t('page.repository.repoDropDown.MenuItem.5')}
+          </Menu.Item>
+          <Menu.Item key="exportFilter">{t('page.repository.repoDropDown.MenuItem.7')}</Menu.Item>
+          {isEnableJsonImport && (
+            <Menu.Item key="exportJsonFiltered">
+              {t('page.repository.repoDropDown.MenuItem.exportJsonFiltered')}
+            </Menu.Item>
+          )}
+        </>
+      )}
+      {type === 'plan' && (
+        <>
+          <Menu.Item key="exportPlan" disabled={!selectedTestPlanId}>
+            {t('page.repository.repoDropDown.MenuItem.6')}
+          </Menu.Item>
+        </>
+      )}
+      {Array.isArray(extraMenuOptions)
+        ? extraMenuOptions.map((prop, index) => <Menu.Item key={index} {...prop} />)
+        : null}
+    </Menu>
+  );
 
   return (
     <>
