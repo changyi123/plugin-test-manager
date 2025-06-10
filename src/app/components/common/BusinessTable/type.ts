@@ -31,3 +31,5 @@ export type BusinessTableActionType = {
   unSelectedRowKeys?: any[];
   dataSource?: any[];
 };
+
+export type EnableCacheEpandedRowKeys = 'enable' | 'disable'

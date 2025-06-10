@@ -584,6 +584,8 @@
     "repository": {
       "list": "列表",
       "minder": "脑图",
+      "expandAllCases": "展开全部用例详情",
+      "collapseAllCases": "收起全部用例详情",
       "folderTree": {
         "repositoryName": "模块名称",
         "placeholder": "请输入模块名",

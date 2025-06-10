@@ -652,6 +652,8 @@
     "repository": {
       "list": "List",
       "minder": "Minder",
+      "expandAllCases": "Expand all the details of the use cases",
+      "collapseAllCases": "Collapse all the details of the use cases",
       "folderTree": {
         "repositoryName": "Name",
         "placeholder": "Please enter a module name",

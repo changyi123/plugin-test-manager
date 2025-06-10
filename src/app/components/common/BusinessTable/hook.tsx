@@ -1,3 +1,4 @@
+import { useState, useEffect } from 'react';
 import { useRequest } from 'ahooks';
 import { uniq } from 'lodash';
 
@@ -8,6 +9,8 @@ import { SYSTEM_FIELD, TestType } from '@/lib/constants';
 import { CurrentWorkspaceConfigStorageKey, GlobalConfigStorageKey } from '@/lib/constants';
 import { useUsedScreenFieldKeys } from '@/lib/hooks/useProxima';
 import { useNoExpiredRequest } from '@/lib/hooks/useRequest';
+import type { EnableCacheEpandedRowKeys } from '@/components/common/BusinessTable/type';
+import { useListener } from '@projectproxima/proxima-sdk-js';
 
 import { TitleCellOption } from './type';
 
@@ -155,3 +158,19 @@ export const useGetCustomFields = ({ filedKeys }: { filedKeys?: string[] }) => {
   });
   return customFields;
 };
+
+// 修改弹窗的步骤后，更新table的数据
+export function useStepAfterUpdateItemList({ refresh, selectNodeKey }) {
+  const [enableCacheEpandedRowKeys, setEnableCacheEpandedRowKeys] = useState<EnableCacheEpandedRowKeys>('disable')
+  useListener('stepAfterUpdateItemList', async(v) => {
+    await setEnableCacheEpandedRowKeys('enable')
+    refresh && refresh()
+  })
+  useEffect(() => {
+    setEnableCacheEpandedRowKeys('disable')
+  }, [selectNodeKey])
+
+  return {
+    enableCacheEpandedRowKeys
+  }
+}

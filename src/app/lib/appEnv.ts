@@ -20,6 +20,8 @@ export const SupportFeatureFlags = {
   ENABLE_MORE_CONFIG: 'ENABLE_MORE_CONFIG',
   /** 开启离线测试报告 */
   ENABLE_OFFLINE_TEST_REPORT: 'ENABLE_OFFLINE_TEST_REPORT',
+  /**用例展示模式开关 - 用例的展示效果可以通过开关控制是否在列中展示用例的步骤信息*/ 
+  ENABLE_REPOSITORY_TABLE_STEP: 'ENABLE_REPOSITORY_TABLE_STEP',
 } as const;
 
 type SupportFeatureFlagKey = keyof typeof SupportFeatureFlags;

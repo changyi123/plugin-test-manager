@@ -23,6 +23,7 @@ import { reverseTreeNodes } from '../../util';
 import { ViewComponentProps } from '../type';
 import cx from './index.less';
 import Table, { ActionType } from './Table';
+import { useStepAfterUpdateItemList } from '@/components/common/BusinessTable/hook';
 
 type GroupedMode = 'all' | 'current';
 
@@ -72,6 +73,17 @@ const ListView: React.FC<ViewComponentProps> = ({
       tableActionRef.current.refresh();
     }, 400);
   });
+
+  // 修改弹窗的步骤后，更新table的数据
+  const { enableCacheEpandedRowKeys } = useStepAfterUpdateItemList({ 
+    selectNodeKey,
+    refresh: () => {
+      refreshAll();
+      setTimeout(() => {
+        tableActionRef.current.refresh();
+      }, 400);
+    }
+  })
 
   const repository = useMemo(
     () => getRepositoryQuery(selectedNode, groupedMode),
@@ -280,6 +292,7 @@ const ListView: React.FC<ViewComponentProps> = ({
           workspaceKey={workspaceKey}
           repository={repository}
           selector={selector}
+          enableCacheEpandedRowKeys={enableCacheEpandedRowKeys}
         />
       </div>
     </div>
