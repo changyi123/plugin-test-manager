@@ -217,7 +217,13 @@ const TestStep: React.FC<TestStepProps> = props => {
             <span className={cx('position')}>
               <span className={cx('position-tip')}>{index + 1}</span>
             </span>
-            <span className={cx('action')}>{<Editor value={step.action} readonly />}</span>
+            <span className={cx('action')}>
+              {isUseEditor ? (
+                <Editor value={step.action} readonly />
+              ) : (
+                getEditorOrStringText(step.action)
+              )}
+            </span>
             <span className={cx('status')}>
               <div className={cx('status-selector')}>
                 <StatusList
@@ -240,7 +246,13 @@ const TestStep: React.FC<TestStepProps> = props => {
               <span className={cx('label')}>
                 {t('components.business.testRunModal.testStep.expect')}：
               </span>
-              <span className={cx('data')}>{<Editor value={step.result} readonly />}</span>
+              <span className={cx('data')} style={{ paddingTop: !isUseEditor ? '8px' : 0 }}>
+                {isUseEditor ? (
+                  <Editor value={step.result} readonly />
+                ) : (
+                  <span>{getEditorOrStringText(step.result)}</span>
+                )}
+              </span>
             </div>
             <div className={cx('field')}>
               <span className={cx('label')}>
@@ -266,7 +278,13 @@ const TestStep: React.FC<TestStepProps> = props => {
               <span className={cx('label')}>
                 {t(`components.business.testRunModal.testStep.${enable ? 'preData' : 'data'}`)}：
               </span>
-              <span className={cx('data')}>{<Editor value={step.data} readonly={true} />}</span>
+              <span className={cx('data')} style={{ paddingTop: !isUseEditor ? '8px' : 0 }}>
+                {isUseEditor ? (
+                  <Editor value={step.result} readonly />
+                ) : (
+                  <span>{getEditorOrStringText(step.result)}</span>
+                )}
+              </span>
             </div>
           </div>
           <div className={cx('step-defects')}>
