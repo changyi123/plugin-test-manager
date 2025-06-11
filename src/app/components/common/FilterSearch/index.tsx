@@ -64,6 +64,7 @@ interface FilterSearchProps {
   // 默认筛选iql
   defaultIql?: string;
   hiddenSearchInput?: boolean; // 是否隐藏搜索框
+  disableComponent?: boolean; // 是否禁用组件
   initSelector?: Selectors; // 初始selector
   selectTagId?: string; // 筛选id
 }
@@ -134,6 +135,7 @@ const FilterSearch: React.ForwardRefRenderFunction<FilterRefMethod, FilterSearch
     hiddenSearchInput,
     initSelector,
     selectTagId = 'filter-search-selector',
+    disableComponent = false,
   },
   ref,
 ) => {
@@ -574,12 +576,14 @@ const FilterSearch: React.ForwardRefRenderFunction<FilterRefMethod, FilterSearch
           onChange={onChangeInput}
           placeholder={t('components.common.filterSearch.screenPlaceholder')}
           value={search}
+          disabled={disableComponent}
         />
       )}
       {showDefaultRange && defaultIqlProp && (
         <Checkbox
           style={{ lineHeight: '28px' }}
           checked={useDefaultRange}
+          disabled={disableComponent}
           onChange={e => {
             setUseDefaultRange(e.target.checked);
             handleSearch();
@@ -598,6 +602,7 @@ const FilterSearch: React.ForwardRefRenderFunction<FilterRefMethod, FilterSearch
             active={item?.active}
             data={item}
             selectTagId={selectTagId}
+            disabled={disableComponent}
             onClick={data => {
               const backup = cloneDeep(data);
               backup.value = generateFieldValue(backup);
@@ -615,6 +620,7 @@ const FilterSearch: React.ForwardRefRenderFunction<FilterRefMethod, FilterSearch
           id={filterId || storageKey || 'filter-btn'}
           icon={<AddFilterIcon className={cx('filter-tag-icon')} />}
           className={cx('filter-tag-btn')}
+          disabled={disableComponent}
           onClick={() => {
             openFilterPopover({
               selectors,

@@ -57,6 +57,7 @@ export const BuiltinItemTypeMapping = {
   [TestType.Plan]: 'test_manager_plan',
   [TestType.Execution]: 'test_manager_execution',
   [TestType.Report]: 'test_manager_report',
+  [TestType.CaseSet]: 'test_manager_caseset',
 };
 
 /** 本地存储前缀 */

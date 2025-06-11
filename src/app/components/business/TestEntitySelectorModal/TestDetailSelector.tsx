@@ -2,7 +2,7 @@ import { SearchOutlined } from '@ant-design/icons';
 import { useDebounce, useRequest } from 'ahooks';
 import { Input, Select, Table } from 'antd';
 import { cloneDeep, isEqual, uniqBy } from 'lodash';
-import React, { useEffect, useMemo, useRef, useState } from 'react';
+import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 
 import { SystemFieldKeys } from '@/components/common/BusinessTable/hook';
 import FilterSearch from '@/components/common/FilterSearch';
@@ -96,6 +96,8 @@ const TestDetailSelector: React.FC<TestDetailSelectorProps> = props => {
   const [selectedTestDetailIds, setSelectedTestDetailIds] = React.useState<string[] | undefined>(
     [],
   );
+  // 预览的用例集 id
+  const [previewCaseSetId, setPreviewCaseSetId] = React.useState<string>('');
   // 选中空间
   const [selectedWorkspaceKey, setSelectedWorkspaceKey] = React.useState(workspaceKey);
 
@@ -109,6 +111,14 @@ const TestDetailSelector: React.FC<TestDetailSelectorProps> = props => {
     [selectors],
   );
 
+  const finalTabs = useMemo(() => {
+    let tabs = cloneDeep(tabsList);
+    if (!planId) {
+      tabs = tabs.filter(item => item.key !== 'plan');
+    }
+    return tabs;
+  }, [planId, isPlanForTestSet]);
+
   useEffect(() => {
     setSelectedTestDetailIds(selectValue ?? []);
   }, [selectValue]);
@@ -121,14 +131,9 @@ const TestDetailSelector: React.FC<TestDetailSelectorProps> = props => {
     setSelectedTestDetailIds([]);
   }, [workspaceKey]);
 
-  const [selectedRowKeys, setSelectedRowKeys] = useState<React.Key[]>([]);
+  const [selectedRowKeys, setSelectedRowKeys] = useState<Array<string>>([]);
 
-  const onSelectChange = newSelectedRowKeys => {
-    console.info('newSelectedRowKeys', newSelectedRowKeys);
-    setSelectedRowKeys(newSelectedRowKeys);
-  };
-
-  const onCaseSelectChange = newSelectedRowKeys => {
+  const onCaseSelectChange = async newSelectedRowKeys => {
     setSelectedTestDetailIds(newSelectedRowKeys);
   };
 
@@ -138,7 +143,11 @@ const TestDetailSelector: React.FC<TestDetailSelectorProps> = props => {
       dataIndex: 'name',
     },
   ];
+  const [cacheCaseSetIdToTestCaseMap, setCacheCaseSetIdToTestCaseMap] = useState<
+    Record<string, Array<object>>
+  >({});
 
+  // 获取选中全部用例集下的用例，为了左下角的数字用
   const { data: caseSetData } = useRequest(
     async () => {
       const res = [];
@@ -163,7 +172,9 @@ const TestDetailSelector: React.FC<TestDetailSelectorProps> = props => {
   );
 
   const [testSetLoading, setTestSetLoading] = useState(false);
-  const { data: testSetCases } = useRequest(
+
+  // 获取当前选中或者点击的用例集下的用例
+  useRequest(
     async () => {
       if (treeType !== 'testcaseset') return [];
       if (selectedRowKeys?.length === 0) {
@@ -178,7 +189,7 @@ const TestDetailSelector: React.FC<TestDetailSelectorProps> = props => {
             workspaceKey: workspaceKey,
             type: TestType.Case,
           },
-          fields: ['name', 'id', 'objectId'],
+          fields: ['id', 'objectId'],
           limit: 9999,
           selector: `${
             filterSelectors ? `${filterSelectors} and ` : ''
@@ -201,6 +212,45 @@ const TestDetailSelector: React.FC<TestDetailSelectorProps> = props => {
     },
   );
 
+  // 获取当前选中或者点击的用例集下的用例
+  const { data: curTestSetCases } = useRequest(
+    async () => {
+      if (treeType !== 'testcaseset') return [];
+      if (!previewCaseSetId) {
+        return [];
+      }
+      if (cacheCaseSetIdToTestCaseMap[previewCaseSetId]) {
+        return cacheCaseSetIdToTestCaseMap[previewCaseSetId];
+      }
+      setTestSetLoading(true);
+      const filterSelectors = selectorToIql(handleSelector(selectors));
+      try {
+        const { list } = await getTestEntityByQuery({
+          query: {
+            workspaceKey: workspaceKey,
+            type: TestType.Case,
+          },
+          fields: ['name', 'id', 'objectId'],
+          limit: 9999,
+          selector: `${
+            filterSelectors ? `${filterSelectors} and ` : ''
+          }'测试用例集' in ['${previewCaseSetId}']`,
+        });
+        setCacheCaseSetIdToTestCaseMap({
+          ...cacheCaseSetIdToTestCaseMap,
+          [previewCaseSetId]: list,
+        });
+        return list;
+      } finally {
+        setTestSetLoading(false);
+      }
+    },
+    {
+      refreshDeps: [previewCaseSetId],
+      ready: treeType === 'testcaseset',
+    },
+  );
+
   const filterTestCaseSets = useMemo(() => {
     if (treeType !== 'testcaseset' || (caseSetData || [])?.length === 0) {
       return [];
@@ -213,12 +263,28 @@ const TestDetailSelector: React.FC<TestDetailSelectorProps> = props => {
     });
   }, [folderSearchValue, caseSetData, treeType]);
 
-  const rowSelection = {
+  const caseSetRowSelection = {
     selectedRowKeys,
-    onChange: onSelectChange,
+    onSelect: async (record, selected) => {
+      if (selected) {
+        setSelectedRowKeys(prev => [...prev, record.id]); // 新增行
+        setPreviewCaseSetId(record.id);
+      } else {
+        setSelectedRowKeys(prev => prev.filter(row => row !== record.id)); // 移除行
+        setPreviewCaseSetId('');
+      }
+    },
   };
 
-  const caseSetRowSelection = {
+  const onCaseSetRow = useCallback(record => {
+    return {
+      onClick: () => {
+        setPreviewCaseSetId(record.id);
+      }, // 点击行
+    };
+  }, []);
+
+  const caseRowSelection = {
     selectedRowKeys: (ignoreTestDetailIds ?? []).concat(selectedTestDetailIds),
     onChange: onCaseSelectChange,
     getCheckboxProps: () => ({
@@ -387,6 +453,7 @@ const TestDetailSelector: React.FC<TestDetailSelectorProps> = props => {
           showDefaultRange={showDefaultRange}
           ref={detailSearchRef}
           onSearch={setSearchParams}
+          disableComponent={treeType === 'testcaseset'}
           className={`${cx('plan-page-layout-search')} common-search-box`}
           fields={getFilterFields([].concat(SystemFieldKeys, testCaseFieldKeys))}
           testType={TestType.Case}
@@ -396,9 +463,9 @@ const TestDetailSelector: React.FC<TestDetailSelectorProps> = props => {
       <div className={cx('main')}>
         <div className={cx('selector-container')}>
           <div className={cx('folder-selector')}>
-            {planId && (
+            {
               <div className={cx('tabs-box')}>
-                {tabsList.map(d => (
+                {finalTabs.map(d => (
                   <div
                     className={cx('tab-title', d.key === treeType ? 'actived' : '')}
                     key={d.key}
@@ -408,7 +475,7 @@ const TestDetailSelector: React.FC<TestDetailSelectorProps> = props => {
                   </div>
                 ))}
               </div>
-            )}
+            }
             <Input
               placeholder={inputPlaceHolder}
               value={folderSearchValue}
@@ -431,11 +498,15 @@ const TestDetailSelector: React.FC<TestDetailSelectorProps> = props => {
             ) : (
               <Table
                 className={cx('test-case-set-table')}
-                rowSelection={rowSelection}
+                rowSelection={caseSetRowSelection}
                 columns={caseSetColumns}
                 rowKey="id"
                 dataSource={filterTestCaseSets}
                 pagination={false}
+                rowClassName={record => {
+                  return record.objectId === previewCaseSetId ? 'row-bg-blue' : '';
+                }}
+                onRow={onCaseSetRow}
               />
             )}
           </div>
@@ -460,11 +531,11 @@ const TestDetailSelector: React.FC<TestDetailSelectorProps> = props => {
               <Table
                 scroll={{ y: 345 }}
                 className={cx('test-case-table')}
+                rowSelection={caseRowSelection}
                 style={{ minHeight: 345 }}
-                rowSelection={caseSetRowSelection}
                 columns={caseSetColumns}
                 rowKey="id"
-                dataSource={testSetCases}
+                dataSource={curTestSetCases}
                 loading={testSetLoading}
                 pagination={{ showQuickJumper: false, size: 'small' }}
               />
