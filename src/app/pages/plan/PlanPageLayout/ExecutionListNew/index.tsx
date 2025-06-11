@@ -11,6 +11,7 @@ import { actionConfirm, openItemViewScreen } from '@/lib/utils/helper';
 
 import { usePageContext } from '../../hook';
 import cx from './index.less';
+import _ from 'lodash';
 
 type ExecutionListRef = {
   refresh?: () => void;
@@ -55,7 +56,7 @@ const ExecutionList: React.FC<ExecutionListProps> = ({
   useListener('updateItemList', async props => {
     if (props?.type === 'create') return;
     if (props?.type === 'delete') {
-      setActiveId('');
+      // setActiveId('');
     }
     setTimeout(() => {
       actionRef.current?.refresh();
@@ -95,7 +96,6 @@ const ExecutionList: React.FC<ExecutionListProps> = ({
             message.error(res.data);
             return;
           }
-          setActiveId('');
           setTimeout(() => {
             actionRef.current?.refresh();
           }, 500);
@@ -107,7 +107,6 @@ const ExecutionList: React.FC<ExecutionListProps> = ({
       );
     }
     if (type === 'remove') {
-      console.log(data, 'remove')
       actionConfirm(
         {
           title: t('common.tip'),
@@ -131,9 +130,8 @@ const ExecutionList: React.FC<ExecutionListProps> = ({
             message.error(res.data);
             return;
           }
-          setActiveId('');
           setTimeout(() => {
-            actionRef.current?.refresh();
+            refresh && refresh()
           }, 500);
           setLoading?.(false);
           notification.success({
@@ -143,6 +141,20 @@ const ExecutionList: React.FC<ExecutionListProps> = ({
       );
     }
   };
+
+  // 当删除or 移除 任务时， 选中项默认第一条数据
+  useEffect(() => {
+    const _objectIdArray = _.map(executionList, (item) => item?.objectId)
+    if (!_.isEmpty(_objectIdArray)) {
+      setActiveId(_objectIdArray[0])
+      tableSelectionToggleEvent.emit(false);
+      setSelectedExecution(executionList[0]);
+    } else {
+      setActiveId(null)
+      tableSelectionToggleEvent.emit(false);
+      setSelectedExecution(null);
+    }
+  }, [executionList.length])
 
   const menu = data => (
     <Menu onClick={e => menuClick(e.key, data)}>
