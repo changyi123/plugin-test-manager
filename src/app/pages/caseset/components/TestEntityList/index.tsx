@@ -1,6 +1,7 @@
 /* eslint-disable react-hooks/exhaustive-deps */
 import { DeleteOutlined, UserOutlined } from '@ant-design/icons';
 import { useListener } from '@projectproxima/proxima-sdk-js';
+import { useMemoizedFn } from 'ahooks';
 import { useRequest } from 'ahooks';
 import { message, notification } from 'antd';
 import { TestFiledKeyMapping, TestType } from 'common/constant';
@@ -9,7 +10,6 @@ import React, { useCallback, useEffect, useState } from 'react';
 
 import { updateItemsWithProcess } from '@/components/business/BatchResult/hooks';
 import RenderRepository from '@/components/business/RenderRepository';
-import { StatusBadge } from '@/components/business/Status';
 import UserCell from '@/components/business/UserCell';
 import { BusinessTable } from '@/components/common/BusinessTable';
 import type { BusinessTableActionType } from '@/components/common/BusinessTable/type';
@@ -170,38 +170,34 @@ const TestEntityList: React.FC<TestEntityListProps> = ({
     }, 500);
   }, [refreshTreeAndScopeTestCase]);
 
-  const removeTestCaseFromSet = React.useCallback(
-    async selectedCaseIds => {
-      if (!Array.isArray(selectedCaseIds) || selectedCaseIds?.length === 0) {
-        return;
-      }
-      await updateItemsWithProcess({
-        title: '用例移除中',
-        items: selectedCaseIds,
-        fields: {
-          values: {},
+  const removeTestCaseFromSet = useMemoizedFn(async selectedCaseIds => {
+    if (!Array.isArray(selectedCaseIds) || selectedCaseIds?.length === 0) {
+      return;
+    }
+    await updateItemsWithProcess({
+      title: '用例移除中',
+      items: selectedCaseIds,
+      fields: {
+        values: {},
+      },
+      update: {
+        [TestFiledKeyMapping.testSet]: {
+          remove: selectedTestCaseSet.objectId,
         },
-        update: {
-          [TestFiledKeyMapping.testSet]: {
-            remove: selectedTestCaseSet.objectId,
-          },
-        },
-        handleSuccess: () => {
-          message.success(t('page.testset.testEntityList.removeCaseFromSetSuccessMsg'));
-          setTimeout(() => {
-            addAndDeleteRefresh();
-            mutateTestTableList.emit('refreshTable');
-          }, 500);
-        },
-        handleFail: error => {
-          // setLoading(false);
-          message.error(error.message);
-        },
-      });
-    },
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-    [addAndDeleteRefresh, t],
-  );
+      },
+      handleSuccess: () => {
+        message.success(t('page.testset.testEntityList.removeCaseFromSetSuccessMsg'));
+        setTimeout(() => {
+          addAndDeleteRefresh();
+          mutateTestTableList.emit('refreshTable');
+        }, 500);
+      },
+      handleFail: error => {
+        // setLoading(false);
+        message.error(error.message);
+      },
+    });
+  });
 
   //  测试计划--全部用例表头
   const allTestColumns = React.useMemo(() => {
