@@ -108,7 +108,7 @@ const Right: React.FC<RightProps> = props => {
     });
 
     await updateItemsWithProcess({
-      title: '用例规划中',
+      title: t('page.testset.CaseSetPageLayout.right.planTestIng'),
       items: [itemData?.item?.objectId],
       fields: {
         values: {},
@@ -180,7 +180,7 @@ const Right: React.FC<RightProps> = props => {
 
     setLoading(true);
     await updateItemsWithProcess({
-      title: '用例规划中',
+      title: t('page.testset.CaseSetPageLayout.right.planTestIng'),
       items: itemData,
       fields: {
         values: {},

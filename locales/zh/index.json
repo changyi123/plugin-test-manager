@@ -538,7 +538,8 @@
           "caseBatchToTestCaseSetSuccessMessage": "测试用例已批量成功添加至测试用例集中",
           "caseToTestCaseSetSuccessMessage": "测试用例已成功添加至测试用例集中",
           "caseSelectModelTitle": "选择规划的测试用例",
-          "createTestExecutionSuccessMessage": ["测试执行任务", "新建成功"]
+          "createTestExecutionSuccessMessage": ["测试执行任务", "新建成功"],
+          "planTestIng": "用例规划中"
         }
       }
     },
