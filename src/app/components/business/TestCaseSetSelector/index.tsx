@@ -61,8 +61,8 @@ const TestCaseSelector: React.FC<{ hiddenCheckAll?: boolean }> = ({ hiddenCheckA
   );
   const handleClick = useCallback(caseset => {
     setTestCaseSet({
-      objectId: caseset.id,
       ...caseset,
+      objectId: caseset.id,
     });
   }, []);
 
