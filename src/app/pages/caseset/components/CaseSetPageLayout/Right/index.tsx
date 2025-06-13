@@ -45,6 +45,7 @@ const Right: React.FC<RightProps> = props => {
     selectedTestCaseSet,
     mutateTestTableList,
     tableSelectionToggleEvent,
+    selectors,
   } = usePageContext();
   const { testCaseFieldKeys, createItemUseModal, getCreatePermission } = useBaseAction();
   const { t } = useI18n();
@@ -56,6 +57,15 @@ const Right: React.FC<RightProps> = props => {
 
   const [tableSelectionVisible, setTableSelectionVisible] = useState(false);
   const [loading, setLoading] = useState(false);
+
+  // 为RepoDropDown组件准备repository和selector参数
+  const repository = useMemo(() => {
+    return selectNode ? { repository: selectNode } : {};
+  }, [selectNode]);
+
+  const selector = useMemo(() => {
+    return selectors;
+  }, [selectors]);
 
   const toggleTableSelection = (visible?: boolean) => {
     visible = typeof visible === 'boolean' ? visible : !tableSelectionVisible;
@@ -239,7 +249,9 @@ const Right: React.FC<RightProps> = props => {
               </Button>
             </Dropdown>
             <RepoDropDown
-              type="repository"
+              type="caseset"
+              selectedTestCaseSetId={selectedTestCaseSet?.objectId}
+              selector={selector}
               // filteredCaseIds={allTestCaseIds}
             />
           </div>
