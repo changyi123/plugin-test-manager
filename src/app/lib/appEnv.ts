@@ -163,6 +163,10 @@ const SupportAppEnv = {
     defaultValue: false,
     transformer: value => value,
   },
+  alias: {
+    defaultValue: {},
+    transformer: value => value,
+  },
 } as const;
 
 /**
