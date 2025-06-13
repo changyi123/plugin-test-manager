@@ -2,7 +2,7 @@ app:
   key: test_manager
   uuid: bf73e61c-e15a-4461-a1f7-f940c2009332
   name: test_manager
-  version: "4.36.32"
+  version: "4.36.35"
 modules:
   webtrigger:
     # TODO: Debug 使用，生产环境禁止调用下面的 trigger
@@ -650,6 +650,8 @@ modules:
       description: 测试管理用来用例所引用的测试用例集
       property:
         mode: multiple
+        ignoreInvalidValue: true
+      
     - key: r_test_manager_reportOverviewData
       name: test_report_overview_data
       fieldType: r_test_manager_es_object

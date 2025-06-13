@@ -144,7 +144,7 @@ const RepoDropDown = ({
       const iqlList = [
         `'${IQLFieldNameMapping.type}' = '${TestType.Case}'`,
         `'${IQLFieldNameMapping.workspaceKey}' = '${workspace.key}'`,
-        selectedTestCaseSetId && `'用例数据集' in ['${selectedTestCaseSetId}']`,
+        selectedTestCaseSetId && `'测试用例集' in ['${selectedTestCaseSetId}']`,
       ];
 
       switch (type) {

@@ -491,6 +491,9 @@ export const runValidate = async () => {
             r_test_manager_linkItems: 'r_test_manager_linkItems',
             r_test_manager_linkType: 'r_test_manager_linkType',
           }),
+        ...(selectedTestCaseSetId && {
+          r_test_manager_referenceSet: 'r_test_manager_referenceSet',
+        }),
       },
       stop: false,
 
