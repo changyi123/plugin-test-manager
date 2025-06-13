@@ -308,7 +308,8 @@ const PlanPageLayout: React.FC<any> = () => {
       });
     }
     await addTestExecutionToPlan(ids);
-    executionListRef?.current.refresh();
+    // executionListRef?.current.refresh();
+    refreshExecutionList && refreshExecutionList()
   }, [addTestExecutionToPlan, executionListRef, t]);
 
   const cancelCallback = useCallback(
@@ -325,7 +326,8 @@ const PlanPageLayout: React.FC<any> = () => {
       setSelectValue([]);
       setTreeType('repository');
       if (!props?.itemIdList?.length) {
-        executionListRef?.current?.refresh();
+        // executionListRef?.current?.refresh();
+        refreshExecutionList && refreshExecutionList()
       }
     },
     [executionListRef],
