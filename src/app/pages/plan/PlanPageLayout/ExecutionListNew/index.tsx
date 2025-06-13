@@ -1,9 +1,10 @@
 import { EllipsisOutlined } from '@ant-design/icons';
 import { useListener } from '@projectproxima/proxima-sdk-js';
 import { Dropdown, Menu, message, notification, Spin } from 'antd';
+import _ from 'lodash';
 import React, { useEffect, useState } from 'react';
-import SearchInput from '@/components/business/SearchInput';
 
+import SearchInput from '@/components/business/SearchInput';
 import OverflowTooltip from '@/components/common/OverflowTooltip';
 import { deleteTestEntity, updateTestEntity } from '@/lib/api/item';
 import useI18n from '@/lib/hooks/useI18n';
@@ -25,13 +26,13 @@ interface ExecutionListProps {
   setRefreshExecution?: (val: boolean) => void;
   setLoading?: (val: boolean) => void;
 
-  refresh: () => void,
-  loading: boolean,
-  executionList: any[],
-  activeId: string,
-  setActiveId: any,
+  refresh: () => void;
+  loading: boolean;
+  executionList: any[];
+  activeId: string;
+  setActiveId: any;
 
-  setSelectors: any,
+  setSelectors: any;
 }
 
 const ExecutionList: React.FC<ExecutionListProps> = ({
@@ -55,7 +56,7 @@ const ExecutionList: React.FC<ExecutionListProps> = ({
   useListener('updateItemList', async props => {
     if (props?.type === 'create') return;
     if (props?.type === 'delete') {
-      setActiveId('');
+      // setActiveId('');
     }
     setTimeout(() => {
       actionRef.current?.refresh();
@@ -95,7 +96,6 @@ const ExecutionList: React.FC<ExecutionListProps> = ({
             message.error(res.data);
             return;
           }
-          setActiveId('');
           setTimeout(() => {
             actionRef.current?.refresh();
           }, 500);
@@ -107,7 +107,6 @@ const ExecutionList: React.FC<ExecutionListProps> = ({
       );
     }
     if (type === 'remove') {
-      console.log(data, 'remove')
       actionConfirm(
         {
           title: t('common.tip'),
@@ -118,22 +117,21 @@ const ExecutionList: React.FC<ExecutionListProps> = ({
         async () => {
           setLoading?.(true);
           const res = await updateTestEntity([
-              {
-                objectId: data?.objectId,
-                linkItems: {
-                  action: 'delete',
-                  value: data?.linkItems || [],
-                }
+            {
+              objectId: data?.objectId,
+              linkItems: {
+                action: 'delete',
+                value: data?.linkItems || [],
               },
-            ]);
+            },
+          ]);
           if (res?.status === 'error') {
             setLoading?.(false);
             message.error(res.data);
             return;
           }
-          setActiveId('');
           setTimeout(() => {
-            actionRef.current?.refresh();
+            refresh && refresh();
           }, 500);
           setLoading?.(false);
           notification.success({
@@ -144,6 +142,20 @@ const ExecutionList: React.FC<ExecutionListProps> = ({
     }
   };
 
+  // 当删除or 移除 任务时， 选中项默认第一条数据
+  useEffect(() => {
+    const _objectIdArray = _.map(executionList, item => item?.objectId);
+    if (!_.isEmpty(_objectIdArray)) {
+      setActiveId(_objectIdArray[0]);
+      tableSelectionToggleEvent.emit(false);
+      setSelectedExecution(executionList[0]);
+    } else {
+      setActiveId(null);
+      tableSelectionToggleEvent.emit(false);
+      setSelectedExecution(null);
+    }
+  }, [executionList.length]);
+
   const menu = data => (
     <Menu onClick={e => menuClick(e.key, data)}>
       <Menu.Item key="check">{t('page.plan.planPageLayout.executionList.checkTask')}</Menu.Item>
@@ -151,7 +163,7 @@ const ExecutionList: React.FC<ExecutionListProps> = ({
       <Menu.Item key="remove">{t('page.plan.planPageLayout.executionList.removeTask')}</Menu.Item>
     </Menu>
   );
-  
+
   return (
     <>
       <SearchInput
@@ -159,9 +171,9 @@ const ExecutionList: React.FC<ExecutionListProps> = ({
         allowClear
         className={cx('fold-search')}
         onSearch={() => {
-          setSelectors(searchValue)
+          setSelectors(searchValue);
         }}
-        onChange={(v) => setSearchValue(v)}
+        onChange={v => setSearchValue(v)}
         value={searchValue}
         placeholder={t('components.common.filterSearch.screenPlaceholder')}
       />
@@ -175,7 +187,10 @@ const ExecutionList: React.FC<ExecutionListProps> = ({
                     <div className={cx('show-list')}>
                       {executionList.map((d, index) => (
                         <div
-                          className={cx('execution-menu', `${activeId === d.objectId ? 'actived' : ''}`)}
+                          className={cx(
+                            'execution-menu',
+                            `${activeId === d.objectId ? 'actived' : ''}`,
+                          )}
                           key={index}
                           onClick={e => {
                             e.preventDefault();

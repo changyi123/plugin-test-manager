@@ -230,7 +230,8 @@ const PlanPageLayout: React.FC<any> = () => {
             createTestExecution(isCheckCreateNext);
           }, 500);
         }
-        executionListRef?.current?.refresh();
+        // executionListRef?.current?.refresh();
+        refreshExecutionList && refreshExecutionList()
         notification.success({
           message: `${t('page.plan.planPageLayout.right.createTestExecutionSuccessMessage.0')}【${
             item.name

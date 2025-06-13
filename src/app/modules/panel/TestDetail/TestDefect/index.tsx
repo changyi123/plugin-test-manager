@@ -143,12 +143,13 @@ const TestDefect: React.FC = () => {
           y: 200
         }}
         // privateColumnKey={['repositoryGroup', 'caseLatestStatus', 'runCount']}
-        rowKey="objectId"
+        rowKey="key"
         columns={tableColumns}
-        name={`${testEntity?.workspace?.key}_AllTestEntity`}
+        name={`${testEntity?.workspace?.key}_TestDetailTable`}
         actionRef={actionRef}
         loading={tableLoading}
         getDataSource={tableDataGetter}
+        showPagination={false}
       />
     </div>
   );

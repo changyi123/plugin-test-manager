@@ -214,10 +214,10 @@ const Right: React.FC<RightProps> = props => {
         </div>
       )}
     >
-      <Space size={5} className={cx('right-box-dropdown-text')}>
-        {selectNode?.name || t('common.allTestCase')}
-        <DownOutlined />
-      </Space>
+      <div className={cx('right-box-dropdown-text')}>
+        <div className={cx('right-box-text')}>{selectNode?.name || t('common.allTestCase')}</div>
+        <DownOutlined style={{ color: '#b4bac6' }}/>
+      </div>
     </Dropdown>
   )
   return (

@@ -425,7 +425,19 @@ export function useExecutionList({ activeType, workspaceKey, planId, setExecutio
         limit: 9999,
         linkType: TestLinkType.ExecutionLinkPlan,
         sourceIds: [planId],
-        selector: selectors,
+        selector: selectors ? [
+          {
+            name: {
+              component: "name",
+              expression: "",
+              fieldId: "name",
+              fieldLabel: [],
+              fieldName: "标题",
+              key: "name",
+              value: selectors,
+            }
+          }
+        ]: selectors,
         destinationType: TestType.Execution,
       });
       setExecutionKeys(list?.map(d => d.id));
