@@ -74,6 +74,7 @@
 }
 
 .right-box-dropdown-content {
+  width: 300px;
   border-radius: 4px;
   background: #fff;
   border: 1px solid #e9eaec;
@@ -81,7 +82,11 @@
   max-height: 400px;
   overflow-y: auto;
 }
+
 .right-box-dropdown-text {
+  display: flex;
+  justify-content: space-between;
+  width: 160px;
   cursor: pointer;
   margin-right: 20px;
   box-sizing: border-box;
@@ -91,4 +96,13 @@
   padding: 0 11px;
   border: 1px solid #DADDE3;
   border-radius: 4px;
+}
+.right-box-text {
+  flex: 1;
+  font-weight: normal;
+  position: relative;
+  user-select: none;
+  overflow: hidden;
+  white-space: nowrap;
+  text-overflow: ellipsis;
 }
