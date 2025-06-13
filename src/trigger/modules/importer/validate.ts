@@ -1,6 +1,7 @@
 import { i18n } from '@giteeteam/apps-api';
 import { axios, getData, getParseQuery } from '@giteeteam/apps-team-api';
 import dayjs from 'dayjs';
+
 import { InfinityLimit } from '../../../common/constant';
 
 // uuid
@@ -326,6 +327,7 @@ export const runValidate = async () => {
     group,
     executionId,
     planId,
+    selectedTestCaseSetId,
   } = global.triggerParams;
   // 根据 workspaceKId 获取事项类型
   const getItemTypeName = async workspace => {
@@ -459,6 +461,9 @@ export const runValidate = async () => {
               ...(isPlan && {
                 r_test_manager_linkType: 'CaseLinkPlan',
                 r_test_manager_linkItems: [cur?.planId],
+              }),
+              ...(selectedTestCaseSetId && {
+                r_test_manager_referenceSet: [selectedTestCaseSetId],
               }),
             };
             return curPrev;

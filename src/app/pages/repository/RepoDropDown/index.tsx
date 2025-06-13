@@ -46,6 +46,7 @@ const RepoDropDown = ({
   selectedTestPlanId,
   repository,
   selector,
+  selectedTestCaseSetId,
 }: {
   type: string;
   className?: string;
@@ -57,6 +58,7 @@ const RepoDropDown = ({
   setPageLoading?: (val: boolean) => void;
   repository?: Record<string, any>;
   selector?: SearchSelectors | string;
+  selectedTestCaseSetId?: string;
 }) => {
   const [visible, setVisible] = useState(false);
   const [iql, setIql] = useState('');
@@ -136,11 +138,13 @@ const RepoDropDown = ({
 
   const paramsToIql = useCallback(
     params => {
-      const { checkedId, type, workspace, treeData, repository, selector } = params;
+      const { checkedId, type, workspace, treeData, repository, selector, selectedTestCaseSetId } =
+        params;
       const selectTreeNode = getTreeNodeByKey(treeData, checkedId);
       const iqlList = [
         `'${IQLFieldNameMapping.type}' = '${TestType.Case}'`,
         `'${IQLFieldNameMapping.workspaceKey}' = '${workspace.key}'`,
+        selectedTestCaseSetId && `'用例数据集' in ['${selectedTestCaseSetId}']`,
       ];
 
       switch (type) {
@@ -153,7 +157,7 @@ const RepoDropDown = ({
           );
           break;
         case 'exportFilter':
-          iqlList.push(repositoryQuery2Iql(repository.repository));
+          repository?.repository && iqlList.push(repositoryQuery2Iql(repository.repository));
           iqlList.push(selectorToIql(handleSelector(selector)));
           break;
         case 'exportPlan':
@@ -170,8 +174,10 @@ const RepoDropDown = ({
     async e => {
       const key = e.key;
       // iframe 中跳转链接增加隐藏 header 和 sider 属性
-      const appendedQueryString = inIframe() ? '&hiddenSider=true&hiddenHeader=true' : '';
-
+      let appendedQueryString = inIframe() ? '&hiddenSider=true&hiddenHeader=true' : '';
+      if (selectedTestCaseSetId) {
+        appendedQueryString += `&selectedTestCaseSetId=${selectedTestCaseSetId}`;
+      }
       if (key === 'import') {
         const baseUrl = getProximaBasePath() ? `${getProximaBasePath()}` : '/';
         // 跳转到导入页面
@@ -214,7 +220,11 @@ const RepoDropDown = ({
         }
 
         const params =
-          'exportFilter' === key || 'exportJsonFiltered' === key ? { repository, selector } : {};
+          'exportFilter' === key || 'exportJsonFiltered' === key
+            ? selectedTestCaseSetId
+              ? { selector, selectedTestCaseSetId }
+              : { repository, selector }
+            : {};
         setIql(
           paramsToIql(
             Object.assign(
@@ -337,6 +347,22 @@ const RepoDropDown = ({
           <Menu.Item key="exportPlan" disabled={!selectedTestPlanId}>
             {t('page.repository.repoDropDown.MenuItem.6')}
           </Menu.Item>
+        </>
+      )}
+      {type === 'caseset' && (
+        <>
+          {isEnableJsonImport && (
+            <Menu.Item key="importJson">
+              {t('page.repository.repoDropDown.MenuItem.importJson')}
+            </Menu.Item>
+          )}
+          <Menu.Item key="import">{t('page.repository.repoDropDown.MenuItem.0')}</Menu.Item>
+          <Menu.Item key="exportFilter">{t('page.repository.repoDropDown.MenuItem.7')}</Menu.Item>
+          {isEnableJsonImport && (
+            <Menu.Item key="exportJsonFiltered">
+              {t('page.repository.repoDropDown.MenuItem.exportJsonFiltered')}
+            </Menu.Item>
+          )}
         </>
       )}
       {Array.isArray(extraMenuOptions)
