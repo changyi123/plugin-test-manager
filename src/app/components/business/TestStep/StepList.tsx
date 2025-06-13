@@ -24,6 +24,7 @@ const REACT_DND_PORTAL_CLASS = 'react-beautiful-dnd-portal';
 let RBDPortal = null;
 
 import { getAppEnv } from '@/lib/appEnv';
+import { getEditorOrStringText } from '@/lib/utils/helper';
 
 import cx from './StepList.less';
 
@@ -35,10 +36,16 @@ const StepFields: React.FC<{
   const { t } = useI18n();
   const fieldsWithImpl = getFields(fields).filter(Boolean);
   const { saveFieldRef, nextField } = useNextStepFieldContext();
+  const changeFieldsWithImpl = fieldsWithImpl.map(field => {
+    return {
+      ...field,
+      value: field.type === 'input' ? getEditorOrStringText(field.value) : field.value,
+    };
+  });
 
   return (
     <>
-      {fieldsWithImpl.map(field => (
+      {changeFieldsWithImpl.map(field => (
         <span key={field.key} className={cx('column', 'field')}>
           <Form.Item name={[stepId, field.key]} noStyle>
             {React.createElement(
