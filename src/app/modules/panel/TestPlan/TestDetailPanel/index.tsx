@@ -214,7 +214,7 @@ const Test = () => {
               },
             },
             update: {
-              [TestFiledKeyMapping.linkItems]: { add: [testEntity.objectId] },
+              [TestFiledKeyMapping.linkItems]: { concat: [testEntity.objectId] },
             },
             handleSuccess: () => {
               refreshDepData();
