@@ -485,7 +485,7 @@ modules:
       route: /panelModule
       defaultActive: true
       baseLineItem: true
-      priority: 99 
+      priority: 99
   adminPage:
     - key: test-config
       resource: main

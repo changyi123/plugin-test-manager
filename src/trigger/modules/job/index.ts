@@ -391,7 +391,7 @@ export const createTestRuns = async (params: ProcessJobParams<BatchCreateTestRun
         },
         update: {
           [TestFiledKeyMapping.linkItems]: {
-            add: [planId],
+            concat: [planId],
           },
         },
       };
@@ -904,7 +904,7 @@ export const addExecutionToPlanWorker = async (
       const updateCaseParams = {
         update: {
           [TestFiledKeyMapping.linkItems]: {
-            add: [planId],
+            concat: [planId],
           },
         },
         fields: {

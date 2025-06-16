@@ -118,7 +118,7 @@ export const generateOfflineReport = async () => {
       templateId: testReport?.reportTemplate?.objectId,
       chartGroupId: testReport?.chartGroup?.objectId,
       name: testReport?.name,
-      slotData: testReport?.slotData
+      slotData: testReport?.slotData,
     };
 
     const res = (await requestCoreApi('POST', '/parse/api/generateReport/generate', params)) as {
@@ -128,7 +128,11 @@ export const generateOfflineReport = async () => {
     return res?.response?.payload;
   };
 
-  const generateFun = exportPdf ? generatePdf : testReportVersion ? generateWordV2 : generateWord;
+  const generateFun = exportPdf
+    ? generatePdf
+    : testReportVersion === 2
+    ? generateWordV2
+    : generateWord;
   const url = await generateFun();
 
   if (url) {

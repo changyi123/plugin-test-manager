@@ -2,6 +2,7 @@ import { keyBy } from 'lodash';
 import { v4 as uuid } from 'uuid';
 
 import Editor from '@/components/common/Editor';
+import { isTestPlanUseEditor } from '@/lib/appEnv';
 
 import { Input } from './fields';
 
@@ -32,17 +33,17 @@ export const StepFieldImpl = [
   {
     key: 'action',
     title: 'stepField.0',
-    type: 'editor',
+    type: isTestPlanUseEditor() ? 'editor' : 'input',
   },
   {
     key: 'result',
     title: 'stepField.1',
-    type: 'editor',
+    type: isTestPlanUseEditor() ? 'editor' : 'input',
   },
   {
     key: 'data',
     title: 'stepField.2',
-    type: 'editor',
+    type: isTestPlanUseEditor() ? 'editor' : 'input',
   },
 ];
 

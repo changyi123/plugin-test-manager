@@ -22,14 +22,13 @@ import { generateSortIndex } from '@/lib/utils/helper';
 import TestPlanList from '@/pages/plan/TestPlanList';
 
 import { usePageContext } from '../hook';
-import Header from './Header';
 import ExecutionList from './ExecutionListNew';
+import Header from './Header';
 import {
+  useExecutionList,
   useGetExecutionLinkCaseRunIds,
   useGetPlanLinkCaseIds,
-  useResizeContainerDOM,
-  useExecutionList,
-  useTreeParams
+  useTreeParams,
 } from './hooks';
 import cx from './index.less';
 import Left from './Left';
@@ -62,7 +61,7 @@ const PlanPageLayout: React.FC<any> = () => {
   const testEntitySelectorRef = useRef<ModelActionType>();
   const [selectValue, setSelectValue] = useState<string[] | undefined>(undefined);
   const [treeType, setTreeType] = React.useState<string | undefined>('repository');
-  const [selectNode, setSelectNode] = React.useState<Record<string, any>>({key: 'root'});
+  const [selectNode, setSelectNode] = React.useState<Record<string, any>>({ key: 'root' });
 
   const [activeType, setActiveType] = useState<'TestPlan' | 'TestExecution'>('TestExecution');
   const [selectedExecution, setSelectedExecution] = useState<Record<string, any> | undefined>(
@@ -76,13 +75,20 @@ const PlanPageLayout: React.FC<any> = () => {
 
   const { query } = useLocation();
   const {
-      refresh: refreshExecutionList,
-      loading: loadingExecutionList,
-      executionList,
-      activeId,
-      setActiveId,
-      setSelectors,
-    } = useExecutionList({ activeType, workspaceKey, planId:selectedTestPlan?.objectId, setExecutionKeys, selectedExecution, setSelectedExecution })
+    refresh: refreshExecutionList,
+    loading: loadingExecutionList,
+    executionList,
+    activeId,
+    setActiveId,
+    setSelectors,
+  } = useExecutionList({
+    activeType,
+    workspaceKey,
+    planId: selectedTestPlan?.objectId,
+    setExecutionKeys,
+    selectedExecution,
+    setSelectedExecution,
+  });
 
   useUpdateEffect(() => {
     if (selectedTestPlan?.objectId) {
@@ -204,7 +210,7 @@ const PlanPageLayout: React.FC<any> = () => {
   const refreshTreeAndScopeTestCase = useCallback(async () => {
     const refreshFn = activeType === 'TestPlan' ? planLinkCaseIdRefresh : scopeTestRunIdsRefresh;
     await refreshFn();
-    pageLeftRef.current.refresh?.();
+    pageLeftRef.current?.refresh?.();
   }, [activeType, planLinkCaseIdRefresh, scopeTestRunIdsRefresh]);
 
   // 创建测试执行任务
@@ -224,7 +230,8 @@ const PlanPageLayout: React.FC<any> = () => {
             createTestExecution(isCheckCreateNext);
           }, 500);
         }
-        executionListRef?.current?.refresh();
+        // executionListRef?.current?.refresh();
+        refreshExecutionList && refreshExecutionList()
         notification.success({
           message: `${t('page.plan.planPageLayout.right.createTestExecutionSuccessMessage.0')}【${
             item.name
@@ -307,7 +314,8 @@ const PlanPageLayout: React.FC<any> = () => {
       });
     }
     await addTestExecutionToPlan(ids);
-    executionListRef?.current.refresh();
+    // executionListRef?.current.refresh();
+    refreshExecutionList && refreshExecutionList()
   }, [addTestExecutionToPlan, executionListRef, t]);
 
   const cancelCallback = useCallback(
@@ -324,7 +332,8 @@ const PlanPageLayout: React.FC<any> = () => {
       setSelectValue([]);
       setTreeType('repository');
       if (!props?.itemIdList?.length) {
-        executionListRef?.current?.refresh();
+        // executionListRef?.current?.refresh();
+        refreshExecutionList && refreshExecutionList()
       }
     },
     [executionListRef],
@@ -334,7 +343,7 @@ const PlanPageLayout: React.FC<any> = () => {
   useListener(PROXIMA_EVENT_KEY.itemBatchCreateSuccess, props => {
     refresh(props);
   });
-  
+
   return (
     <div className={cx('test-plan-page')}>
       {!selectedTestPlan?.objectId ? (
@@ -388,7 +397,6 @@ const PlanPageLayout: React.FC<any> = () => {
                       activeType={activeType}
                       setSelectedExecution={setSelectedExecution}
                       setLoading={setLoading}
-                    
                       refresh={refreshExecutionList}
                       loading={loadingExecutionList}
                       executionList={executionList}
