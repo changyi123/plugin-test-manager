@@ -9,6 +9,11 @@ import { BusinessTable } from '@/components/common/BusinessTable';
 import type { BusinessTableActionType } from '@/components/common/BusinessTable/type';
 import useI18n from '@/lib/hooks/useI18n';
 import _ from 'lodash';
+import {
+  Typography,
+} from 'antd';
+import { openBaseLineViewItemModal } from '@/lib/api/sdk';
+import { goToItemDetailPage } from '@/lib/utils/helper';
 
 const getDefectIds = data =>
   (_.chain(data?.steps) as unknown as any[])
@@ -21,7 +26,7 @@ const getDefectIds = data =>
     .value();
 
 const TestDefect: React.FC = () => {
-  const { testEntity } = useTestConfig();
+  const { testEntity, config } = useTestConfig();
   const actionRef = React.useRef<BusinessTableActionType>();
   const { t } = useI18n();
   const [tableLoading, setTableLoading] = useState(false);
@@ -83,11 +88,30 @@ const TestDefect: React.FC = () => {
         title: 'key',
         key: 'key',
         width: 200,
-        render: (_, record) => {
+        // render: (_, record) => {
+        //   return (
+        //     <OverflowTooltip title={record?.key}>
+        //       {record?.key}
+        //     </OverflowTooltip>
+        //   );
+        // },
+        render(_, item) {
           return (
-            <OverflowTooltip title={record?.key}>
-              {record?.key}
-            </OverflowTooltip>
+            <Typography.Link
+              ellipsis={true}
+              target="_blank"
+              onClick={() => {
+                if (item?.referenceCaseSnapshot && config?.enableCaseSnapshot)
+                  openBaseLineViewItemModal(item?.key, item?.referenceCaseSnapshot);
+                else
+                  goToItemDetailPage({
+                    workspaceKey: item?.workspace?.key,
+                    itemKey: item?.key,
+                  });
+              }}
+            >
+              {item?.key}
+            </Typography.Link>
           );
         },
       },
