@@ -55,7 +55,7 @@ const TestDefect: React.FC = () => {
           _defectIds = [ ..._defectIds, ...result ]
         })
         
-        const { count, items } = await getItemByIQL({ itemId: _defectIds })
+        const { count, items } = await getItemByIQL({ itemId: _defectIds, ...queryParams })
         setTableLoading(false);
         return {
           list:
@@ -149,7 +149,6 @@ const TestDefect: React.FC = () => {
         actionRef={actionRef}
         loading={tableLoading}
         getDataSource={tableDataGetter}
-        showPagination={false}
       />
     </div>
   );
