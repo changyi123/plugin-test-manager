@@ -149,7 +149,9 @@ const ExecutionList: React.FC<ExecutionListProps> = ({
       setActiveId(_objectIdArray[0]);
       tableSelectionToggleEvent.emit(false);
       setSelectedExecution(executionList[0]);
-    } else {
+    } else if(!_.isEmpty(searchValue) && _.isEmpty(executionList)) { // 当搜索任务列表为空时，展示的效果
+      setSelectedExecution((v) => ({ ...v, objectId: '000', name: '' }));
+    } else  {
       setActiveId(null);
       tableSelectionToggleEvent.emit(false);
       setSelectedExecution(null);
