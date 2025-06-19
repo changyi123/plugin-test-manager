@@ -321,7 +321,8 @@
         "warningTips": "当前操作会使全部测试空间类型关联配置类型被覆盖",
         "messageSuccess": "测试管理系统隔离操作成功",
         "enableTestManagerSystemIsolation": "开启测试管理系统隔离",
-        "systemTips": "测试管理系统隔离说明"
+        "systemTips": "测试管理系统隔离说明",
+        "caseDetailExtra": "用例详情独立"
       },
       "wordTemplate": {
         "title": "测试报告 Word 模板管理",
@@ -340,6 +341,10 @@
       "testFieldsSettings": {
         "title": "测试管理相关字段配置",
         "description": "翻译测试管理相关字段"
+      },
+      "generalSettings": {
+        "title": "测试管理通用配置",
+        "description": "测试管理的通用配置"
       },
       "testReportTemplate": {
         "title": "测试报告模板管理",
@@ -552,7 +557,10 @@
           "deleteTips": "该操作会将该测试执行任务删除，是否继续操作？",
           "deleteSuccess": "测试执行任务删除成功",
           "checkTask": "查看任务",
-          "deleteTask": "删除任务"
+          "deleteTask": "删除任务",
+          "removeTips": "该操作会将该测试执行任务移除，是否继续操作？",
+          "removeSuccess": "测试执行任务移除成功",
+          "removeTask": "移除任务"
         },
         "executionStatus": {
           "rate": "通过率"

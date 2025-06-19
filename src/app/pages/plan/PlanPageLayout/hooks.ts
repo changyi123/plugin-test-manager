@@ -2,7 +2,8 @@ import { useRequest, useSize, useUpdateEffect } from 'ahooks';
 import { TestLinkType, TestType } from 'common/constant';
 import { getEnv } from 'common/utils/helper';
 import { isEmpty, omit } from 'lodash';
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
+import { useLocation } from 'react-router-dom';
 
 import { getCasesByStatus, getLinkedTestEntityByQuery, getTestEntityByQuery } from '@/lib/api/item';
 import { TestCaseStatusModel, TestRunDesigneeModel, TestRunExecutorModel } from '@/lib/constants';
@@ -402,3 +403,77 @@ export const useTreeParams = (props: {
 
   return treeParams;
 };
+
+export function useExecutionList({ activeType, workspaceKey, planId, setExecutionKeys, selectedExecution, setSelectedExecution }) {
+  const { query } = useLocation();
+  const [activeId, setActiveId] = useState('');
+  const [selectors, setSelectors] = useState(null);
+  const {
+      refresh,
+      loading,
+      data: executionList,
+  } = useRequest(
+    async () => {
+      if (activeType !== 'TestExecution') {
+        setSelectors(null)
+        return []
+      };
+      const { list } = await getLinkedTestEntityByQuery({
+        query: {
+          workspaceKey: workspaceKey,
+        },
+        limit: 9999,
+        linkType: TestLinkType.ExecutionLinkPlan,
+        sourceIds: [planId],
+        selector: selectors ? [
+          {
+            name: {
+              component: "name",
+              expression: "",
+              fieldId: "name",
+              fieldLabel: [],
+              fieldName: "标题",
+              key: "name",
+              value: selectors,
+            }
+          }
+        ]: selectors,
+        destinationType: TestType.Execution,
+      });
+      setExecutionKeys(list?.map(d => d.id));
+
+      return list;
+    },
+    {
+      refreshDeps: [planId, activeType, selectors],
+    },
+  );
+  // 选中测试执行任务
+  useEffect(() => {
+    let activeId = selectedExecution?.objectId;
+    if (!activeId && executionList?.length) {
+      activeId = executionList?.[0]?.objectId;
+    } else if (!activeId && query?.executionId) {
+      activeId = query?.executionId;
+    }
+
+    if (activeId && executionList?.length) {
+      const selectedExecution = executionList?.find(d => d.objectId === activeId);
+      if (selectedExecution?.linkItems?.includes(planId)) {
+        setActiveId(activeId);
+        setSelectedExecution(selectedExecution);
+      }
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [selectedExecution, executionList, planId]);
+
+  return {
+    refresh,
+    loading,
+    executionList,
+    activeId,
+    setActiveId,
+    selectors,
+    setSelectors,
+  }
+}

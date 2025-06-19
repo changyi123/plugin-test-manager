@@ -15,6 +15,7 @@ import cx from './index.less';
 import IsolatedTestType from './IsolatedTestType';
 import ItemTypeMapping from './ItemTypeMapping';
 import FieldSettings from './MoreConfig/FieldSettings';
+import GeneralSettings from './MoreConfig/GeneralSettings';
 import IsolatedSystem from './MoreConfig/IsolatedSystem';
 import TestConfigInitialization from './MoreConfig/TestConfigInitialization';
 import WordTemplate from './MoreConfig/WordTemplate';
@@ -45,6 +46,13 @@ const MoreConfigPages = [
     title: 'testFieldsSettings',
     component: FieldSettings,
     description: 'testFieldsSettings',
+    isGlobalConfig: true,
+  },
+  {
+    key: 'GeneralSettings',
+    title: 'generalSettings',
+    component: GeneralSettings,
+    description: 'generalSettings',
     isGlobalConfig: true,
   },
 ];

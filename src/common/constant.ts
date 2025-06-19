@@ -64,6 +64,8 @@ export enum TestType {
   CaseSet = 'TestCaseSet',
   /** 测试计划 */
   Plan = 'TestPlan',
+  /** 测试缺陷 */
+  Defect = 'TestDefect',
   /** 测试执行任务 */
   Execution = 'TestExecution',
   TestDefect = 'TestDefect', // 避免大量ts报错
@@ -242,6 +244,7 @@ export const BuiltInItemTypeMapping = {
   [TestType.Plan]: 'test_manager_plan',
   [TestType.Case]: 'test_manager_detail',
   [TestType.Execution]: 'test_manager_execution',
+  [TestType.Defect]: 'test_manager_defect',
 };
 
 /** 开始节点 key */

@@ -48,6 +48,13 @@ const routes = [
     exact: true,
   },
   {
+    path: '/itemDetail',
+    component: React.lazy(
+      () => import(/* webpackChunkName: "route_item_detail" */ '../modules/itemDetail'),
+    ),
+    exact: true,
+  },
+  {
     path: '/beforeItemCreateModule',
     component: React.lazy(
       () =>

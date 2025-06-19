@@ -119,6 +119,7 @@ type BusinessTableProps = TableProps<any> &
     onSuccess?: (data: any, mutate: (data: any) => void) => void;
     cacheKey?: string;
     ignoreInit?: boolean;
+    getContainer?: any;
   };
 
 const BusinessTable: React.FC<BusinessTableProps> = props => {
@@ -150,6 +151,7 @@ const BusinessTable: React.FC<BusinessTableProps> = props => {
     onSuccess,
     cacheKey,
     ignoreInit,
+    getContainer,
     ...restTableProps
   } = props;
 
@@ -252,6 +254,7 @@ const BusinessTable: React.FC<BusinessTableProps> = props => {
         onTableColumnChange={handleTableColumnChange}
         onClose={refresh}
         className={cx('column-setting', 'extra-column-setting', selectionMode ? 'hidden' : null)}
+        getContainer={getContainer}
       />
     );
   }, [

@@ -15,45 +15,49 @@ import useI18n from '@/lib/hooks/useI18n';
 import WordReport from '@/lib/report';
 
 import { usePageContext } from '../../hook';
-import ExecutionList from '../ExecutionList';
+// import ExecutionList from '../ExecutionList';
 import cx from './index.less';
 
-type ExecutionListRef = {
-  refresh?: () => void;
-};
+// type ExecutionListRef = {
+//   refresh?: () => void;
+// };
 
 interface HeaderProps {
   activeType?: string;
   setActiveType?: (val: 'TestPlan' | 'TestExecution') => void;
   selectedExecution?: Record<string, any>;
-  setSelectedExecution?: (val: Record<string, any> | undefined) => void;
+  // setSelectedExecution?: (val: Record<string, any> | undefined) => void;
   refreshExecution?: boolean;
   setRefreshExecution?: (val: boolean) => void;
   createTestExecution?: (val?: boolean) => void;
-  setLoading?: (val: boolean) => void;
+  // setLoading?: (val: boolean) => void;
   planLinkCaseIds?: string[];
-  executionListRef?: React.MutableRefObject<ExecutionListRef>;
+  // executionListRef?: React.MutableRefObject<ExecutionListRef>;
   addExistedTestExecution?: () => void;
   selectorModalRef?: React.MutableRefObject<SelectorActionType>;
+  executionKeys: string[];
+  // setExecutionKeys: (val: Record<string, any> | undefined) => void;
 }
 
 const Header: React.FC<HeaderProps> = ({
   activeType,
   setActiveType,
   selectedExecution,
-  setSelectedExecution,
+  // setSelectedExecution,
   createTestExecution,
   addExistedTestExecution,
-  setLoading,
-  executionListRef,
+  // setLoading,
+  // executionListRef,
   selectorModalRef,
+  executionKeys,
+  // setExecutionKeys,
 }) => {
   const { t } = useI18n();
-  const { workspaceKey, selectedTestPlan, setSelectedTestPlan, tableSelectionToggleEvent } =
+  const { /**workspaceKey,*/ selectedTestPlan, setSelectedTestPlan, tableSelectionToggleEvent } =
     usePageContext();
   const { testExecutionFieldKeys } = useBaseAction();
   const [isReportGenerating, setIsReportGenerating] = React.useState(false);
-  const [executionKeys, setExecutionKeys] = React.useState<string[]>([]);
+  // const [executionKeys, setExecutionKeys] = React.useState<string[]>([]);
 
   const { data: wordTemplate } = useRequest(
     async () => {
@@ -103,6 +107,26 @@ const Header: React.FC<HeaderProps> = ({
     [addExistedTestExecution, createTestExecution, t],
   );
 
+  const renderAddTestExecution = (
+    <div>
+      <Dropdown.Button
+        type="primary"
+        onClick={() => createTestExecution()}
+        icon={<DownOutlined />}
+        dropdownRender={() => itemsList}
+        trigger={['hover']}
+      >
+        {t('common.addTestExecution')}
+      </Dropdown.Button>
+      <TestEntitySelectorModal
+        actionRef={selectorModalRef}
+        title={t('modules.panel.testPlan.testExecutionPanel.modelTitle')}
+        ignoreTestEntityIds={executionKeys}
+        tableFieldsKeys={testExecutionFieldKeys}
+        width={800}
+      />
+    </div>
+  )
   return (
     <>
       <div className={cx('page-header')}>
@@ -136,6 +160,7 @@ const Header: React.FC<HeaderProps> = ({
             </div>
             {wordTemplate ? (
               <div className={cx('tab-extra-action')}>
+                {['TestExecution'].includes(activeType) && selectedExecution?.objectId && renderAddTestExecution}
                 <Button
                   onClick={generateReport}
                   icon={<ExportOutlined />}
@@ -144,11 +169,15 @@ const Header: React.FC<HeaderProps> = ({
                   {t('common.createTestReport')}
                 </Button>
               </div>
-            ) : null}
+            ) : (
+              <div className={cx('tab-extra-action')}>
+                {['TestExecution'].includes(activeType) && selectedExecution?.objectId && renderAddTestExecution}
+              </div>
+            )}
           </div>
         </div>
       </div>
-      {activeType === 'TestExecution' && (
+      {/* {activeType === 'TestExecution' && (
         <div className={cx('action-box')}>
           <ExecutionList
             actionRef={executionListRef}
@@ -160,28 +189,8 @@ const Header: React.FC<HeaderProps> = ({
             setLoading={setLoading}
             setExecutionKeys={setExecutionKeys}
           />
-          {selectedExecution?.objectId && (
-            <div>
-              <Dropdown.Button
-                type="primary"
-                onClick={() => createTestExecution()}
-                icon={<DownOutlined />}
-                dropdownRender={() => itemsList}
-                trigger={['hover']}
-              >
-                {t('common.addTestExecution')}
-              </Dropdown.Button>
-              <TestEntitySelectorModal
-                actionRef={selectorModalRef}
-                title={t('modules.panel.testPlan.testExecutionPanel.modelTitle')}
-                ignoreTestEntityIds={executionKeys}
-                tableFieldsKeys={testExecutionFieldKeys}
-                width={800}
-              />
-            </div>
-          )}
         </div>
-      )}
+      )} */}
     </>
   );
 };

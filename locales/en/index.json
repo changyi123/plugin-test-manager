@@ -315,7 +315,8 @@
         "warningTips": "The current action will cause all test workspace type associated configuration types to be overwritten",
         "messageSuccess": "Test management system isolation operation successful",
         "enableTestManagerSystemIsolation": "Enable test management System isolation",
-        "systemTips": "Test management system isolation description"
+        "systemTips": "Test management system isolation description",
+        "caseDetailExtra": "Test case details are independent"
       },
       "wordTemplate": {
         "title": "Report template",
@@ -334,6 +335,10 @@
       "testFieldsSettings": {
         "title": "Test management related field configuration",
         "description": "Translation test management related fields"
+      },
+      "generalSettings": {
+        "title": "General configuration for test management",
+        "description": "General configuration for test management"
       },
       "testReportTemplate": {
         "title": "Test Report Template Management",
@@ -591,7 +596,10 @@
           "deleteTips": "This operation will delete the test execution task. do you want to continue?",
           "deleteSuccess": "Test execution task deleted successfully",
           "checkTask": " Check tasks",
-          "deleteTask": "Delete task"
+          "deleteTask": "Delete task",
+          "removeTips": "This operation will remove the test execution task. do you want to continue?",
+          "removeSuccess": "Test execution task Removed successfully",
+          "removeTask": "Remove task"
         },
         "executionStatus": {
           "rate": "Pass rate"
