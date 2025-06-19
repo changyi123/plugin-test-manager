@@ -122,8 +122,8 @@ const ReportHeader: React.FC<any> = () => {
     console.info('create test report success!', reportInfo);
     // 生成测试报告离线文档
     enableOfflineReport &&
-      judgeTestReportVersion(TEST_REPORT_VERSION.V0) &&
-      (await generateTestReportOfflineFile(reportInfo?.data?.objectId));
+      judgeTestReportVersion(TEST_REPORT_VERSION.V1) &&
+      (await generateTestReportOfflineFile(reportInfo?.data));
 
     if (reportInfo.status === 'success') {
       const proxima = createProximaSdk();
