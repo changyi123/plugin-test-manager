@@ -1,6 +1,6 @@
 import { useSDK } from '@projectproxima/plugin-sdk';
 import { Result } from 'antd';
-import React, { useMemo } from 'react';
+import React from 'react';
 
 import TestManagerProvider from '@/components/business/TestManagerProvider';
 import { getDevConfig } from '@/devEnv';
@@ -9,6 +9,7 @@ import { useTestConfig } from '@/lib/hooks/useContext';
 import useI18n from '@/lib/hooks/useI18n';
 
 import cx from './index.less';
+import TestCaseSet from './TestCaseSet';
 import TestDetail from './TestDetail';
 import TestExecution from './TestExecution';
 import TestPlan from './TestPlan';
@@ -18,6 +19,7 @@ const TestPanelComponents = {
   [TestType.Plan]: TestPlan,
   [TestType.Case]: TestDetail,
   [TestType.Execution]: TestExecution,
+  [TestType.CaseSet]: TestCaseSet,
 };
 
 const TestPanel = () => {
