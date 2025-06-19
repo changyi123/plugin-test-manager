@@ -2,7 +2,7 @@ app:
   key: test_manager
   uuid: bf73e61c-e15a-4461-a1f7-f940c2009332
   name: test_manager
-  version: "4.38.0"
+  version: "4.38.1"
 modules:
   webtrigger:
     # TODO: Debug 使用，生产环境禁止调用下面的 trigger
@@ -629,6 +629,11 @@ modules:
       description: 测试管理内置字段类型-测试用例库模块（勿删改）
       dataType: text
       resource: test_repository
+    - key: test_reference
+      name: 测试管理内置字段类型-引用
+      description: 测试管理内置字段类型-引用（勿删改）
+      dataType: number
+      resource: test_reference
   proxima:CustomField:
     - key: r_test_manager_reportTemplate
       name: test_report_template
@@ -735,6 +740,36 @@ modules:
       name: test_manager_runMapCaseKey
       description: 测试管理内置字段-测试执行关联的测试用例 key（勿删改）
       type: Text
+    - key: executionCases
+      name: 引用测试用例
+      type: _self:test_reference
+      undeletable: true
+      locked: true
+      description: 测试管理内置字段-测试执行任务引用的测试用例（勿删改）
+    - key: testCases
+      name: 测试用例
+      type: DataQuote
+      undeletable: true
+      locked: true
+      description: 测试管理内置字段-测试用例
+      property:
+        mode: multiple
+    - key: testExecutions
+      name: 测试执行任务
+      type: DataQuote
+      undeletable: true
+      locked: true
+      description: 测试管理内置字段-测试执行任务
+      property:
+        mode: multiple
+    - key: testPlans
+      name: 测试计划
+      type: DataQuote
+      undeletable: true
+      locked: true
+      description: 测试管理内置字段-测试计划
+      property:
+        mode: multiple
   customItemType:
     - key: test_manager_detail
       name: 测试用例
@@ -1141,3 +1176,5 @@ resources:
     path: ./fields/build/test-text
   - key: test_object
     path: ./fields/build/test-object
+  - key: test_reference
+    path: ./fields/build/test-reference

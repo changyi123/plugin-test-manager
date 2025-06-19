@@ -266,6 +266,7 @@ export const createTestRuns = async (params: ProcessJobParams<BatchCreateTestRun
         from: cases,
         fields: {
           [TestFiledKeyMapping.linkItems]: [execution.objectId],
+          [TestFiledKeyMapping.testExecutions]: [execution.objectId],
           [TestFiledKeyMapping.linkType]: TestLinkType.RunLinkExecution,
           [TestFiledKeyMapping.type]: TestType.Run,
           [TestFiledKeyMapping.status]: StartStatusKey,
@@ -278,6 +279,11 @@ export const createTestRuns = async (params: ProcessJobParams<BatchCreateTestRun
           [TestFiledKeyMapping.referenceCase]: {
             copy: 'objectId',
             valueType: 'item',
+          },
+          [TestFiledKeyMapping.testCases]: {
+            copy: 'objectId',
+            valueType: 'item',
+            fieldType: 'DataQuote',
           },
           [TestFiledKeyMapping.runDetail]: {
             copy: TestFiledKeyMapping.detail,
@@ -301,6 +307,40 @@ export const createTestRuns = async (params: ProcessJobParams<BatchCreateTestRun
         },
         getHeaders(),
       );
+    };
+
+    // 更新测试执行任务规划的用例数量
+    const updateExecution = async () => {
+      console.info('batchCreateTestRunV2 updateExecution-getExecutionLinkedRun start');
+      // 统计改测试执行任务关联的测试执行数量
+      const {
+        data: { total: count },
+      } = await iqlRequest<TestRunType>({
+        pagination: { limit: 1 },
+        linkQuery: {
+          sourceIds: execution.objectId,
+          destinationType: TestType.Run,
+          linkType: TestLinkType.RunLinkExecution,
+        },
+        fields: ['id'],
+      });
+      console.info('batchCreateTestRunV2 updateExecution-getExecutionLinkedRun  end');
+
+      const updateExecutions = [
+        {
+          objectId: execution.objectId,
+          executionCases: count,
+        },
+      ];
+
+      console.info(
+        'batchCreateTestRunV2 updateExecution-updateExecutionReferenceCase start',
+        JSON.stringify(updateExecutions),
+      );
+
+      // 更新用例数量
+      await batchUpdateItemsValues(updateExecutions, true);
+      console.info('batchCreateTestRunV2 updateExecution-updateExecutionReferenceCase end');
     };
 
     // 对用例打快照
@@ -393,6 +433,9 @@ export const createTestRuns = async (params: ProcessJobParams<BatchCreateTestRun
           [TestFiledKeyMapping.linkItems]: {
             concat: [planId],
           },
+          [TestFiledKeyMapping.testPlans]: {
+            concat: [planId],
+          },
         },
       };
       return await batchUpdateItemsV2(updateParams);
@@ -411,6 +454,8 @@ export const createTestRuns = async (params: ProcessJobParams<BatchCreateTestRun
         // 根据配置，对测试用例打快照
         await createCaseSnapshot(needPlanCases);
 
+        // 更新测试执行任务规划的用例数量
+        await updateExecution();
         // 更新测试用例上的
         await updateCaseLinkPlan(needPlanCases);
         result.success += needPlanCases.length;
@@ -722,6 +767,9 @@ export const removeCaseFromPlanWorker = async (
           [TestFiledKeyMapping.linkItems]: {
             remove: planId,
           },
+          [TestFiledKeyMapping.testPlans]: {
+            remove: planId,
+          },
         },
         fields: {},
         items: cases,
@@ -867,6 +915,7 @@ export const addExecutionToPlanWorker = async (
         values: {
           [TestFiledKeyMapping.linkType]: TestLinkType.ExecutionLinkPlan,
           [TestFiledKeyMapping.linkItems]: [planId],
+          [TestFiledKeyMapping.testPlans]: [planId],
         },
       },
       items: executionIds,
@@ -904,6 +953,9 @@ export const addExecutionToPlanWorker = async (
       const updateCaseParams = {
         update: {
           [TestFiledKeyMapping.linkItems]: {
+            concat: [planId],
+          },
+          [TestFiledKeyMapping.testPlans]: {
             concat: [planId],
           },
         },

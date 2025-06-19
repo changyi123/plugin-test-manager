@@ -879,12 +879,12 @@ export const batchCopyTestCase = async () => {
       values: dataValuesExceptionHandler(data.values),
       detail: data.detail
         ? {
-          ...data.detail,
-          steps: data.detail?.steps?.map(s => ({
-            ...s,
-            id: uuidv4(),
-          })),
-        }
+            ...data.detail,
+            steps: data.detail?.steps?.map(s => ({
+              ...s,
+              id: uuidv4(),
+            })),
+          }
         : {},
       repository: repository === undefined ? data.repository : repository,
     }));
