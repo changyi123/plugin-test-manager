@@ -93,12 +93,9 @@ export const createdItemLinkType = async () => {
             'createdItemLinkType-sortIndex ------------->',
             needUpdateItemValues.sortIndex,
           );
+          await batchUpdateItemsValues([needUpdateItemValues]);
         }
       }
-    }
-
-    if (needUpdateItemValues) {
-      await batchUpdateItemsValues([needUpdateItemValues]);
     }
 
     // 如果是不是从事项单页创建的，走一下更新逻辑
