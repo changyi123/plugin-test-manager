@@ -16,7 +16,7 @@ const generateSortIndex = (index = 0) => {
 const isTestEntity = testType => Object.values(TestType).includes(testType);
 
 export const createdItemLinkType = async () => {
-  const { item, itemContext, eventExtraData } = global as any;
+  const { item, itemContext } = global as any;
   const ParseBaseQueryOptions = {
     sessionToken: global.sessionToken,
   };
@@ -24,13 +24,6 @@ export const createdItemLinkType = async () => {
 
   const objectId = item.objectId;
   const testType = item.values?.r_test_manager_type;
-
-  if (itemContext) {
-    console.info('itemContext ----------------->', JSON.stringify(itemContext));
-  }
-  if (eventExtraData) {
-    console.info('eventExtraData ----------------->', JSON.stringify(eventExtraData));
-  }
 
   try {
     let needUpdateItemValues;
