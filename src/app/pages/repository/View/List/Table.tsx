@@ -1,4 +1,4 @@
-import { useSDK } from '@giteeteam/plugin-sdk';
+import { useSDK } from '@projectproxima/plugin-sdk';
 import createProximaSdk from '@projectproxima/proxima-sdk-js';
 import { useDrag, useDrop, useMemoizedFn, useRequest } from 'ahooks';
 import { message, notification, Space, Tooltip } from 'antd';

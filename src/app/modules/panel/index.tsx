@@ -1,6 +1,6 @@
-import { useSDK } from '@giteeteam/plugin-sdk';
+import { useSDK } from '@projectproxima/plugin-sdk';
 import { Result } from 'antd';
-import React from 'react';
+import React, { useMemo } from 'react';
 
 import TestManagerProvider from '@/components/business/TestManagerProvider';
 import { getDevConfig } from '@/devEnv';

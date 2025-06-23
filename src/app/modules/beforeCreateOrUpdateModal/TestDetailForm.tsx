@@ -3,7 +3,7 @@ import { Input } from 'antd';
 import { pick } from 'lodash';
 import React from 'react';
 
-import { RepositorySelectorField } from '@/components/business/RepositorySelectorField';
+import RepositorySelectorField from '@/components/business/RepositorySelectorField';
 import TestStep, { ActionType } from '@/components/business/TestStep';
 import { getStepInitialData } from '@/components/business/TestStep/helper';
 import { getAppEnv } from '@/lib/appEnv';
@@ -20,13 +20,12 @@ export type ValueType = {
 };
 
 type TestDetailFormProps = {
-  workspaceKey: string;
   extraData?: Record<string, any>;
   values?: ValueType;
   onChange?: (values: ValueType) => void;
 };
 
-const TestDetailForm: React.FC<TestDetailFormProps> = ({ onChange, values, extraData, workspaceKey }) => {
+const TestDetailForm: React.FC<TestDetailFormProps> = ({ onChange, values, extraData }) => {
   const { t } = useI18n();
   const valuesRef = React.useRef({} as ValueType);
   const actionRef = React.useRef({} as ActionType);
@@ -83,7 +82,6 @@ const TestDetailForm: React.FC<TestDetailFormProps> = ({ onChange, values, extra
         onChange={handleRepositoryKeysSelect}
         className={cx('repository-selector')}
         workspaceId={extraData?.workspaceId}
-        workspaceKey={workspaceKey}
       />
 
       <h6 className={cx('step-title', 'field-label')}>

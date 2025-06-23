@@ -1,4 +1,4 @@
-import { useSDK } from '@giteeteam/plugin-sdk';
+import { useSDK } from '@projectproxima/plugin-sdk';
 import { useListener } from '@projectproxima/proxima-sdk-js';
 import { useDebounceFn, useMemoizedFn, useRequest } from 'ahooks';
 import { Button, Checkbox, Tooltip } from 'antd';
