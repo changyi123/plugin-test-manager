@@ -1,4 +1,4 @@
-import { useSDK } from '@giteeteam/plugin-sdk';
+import { useSDK } from '@projectproxima/plugin-sdk';
 import { useMemoizedFn, useRequest } from 'ahooks';
 import { Button, Steps } from 'antd';
 import { TestType } from 'common/constant';

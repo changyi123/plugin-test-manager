@@ -1,4 +1,4 @@
-import { useSDK } from '@giteeteam/plugin-sdk';
+import { useSDK } from '@projectproxima/plugin-sdk';
 import { TestType } from 'common/constant';
 import React, { useMemo } from 'react';
 

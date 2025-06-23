@@ -1,4 +1,4 @@
-import { useSDK } from '@giteeteam/plugin-sdk';
+import { useSDK } from '@projectproxima/plugin-sdk';
 import { useMemoizedFn } from 'ahooks';
 import { Form, Input, Modal, ModalProps } from 'antd/lib';
 import React, {
@@ -10,7 +10,7 @@ import React, {
   useState,
 } from 'react';
 
-import { RepositorySelectorField } from '@/components/business/RepositorySelectorField';
+import RepositorySelectorField from '@/components/business/RepositorySelectorField';
 import useI18n from '@/lib/hooks/useI18n';
 import EventBus from '@/lib/utils/eventBus';
 

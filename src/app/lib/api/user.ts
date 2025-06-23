@@ -1,4 +1,4 @@
-import { useSDK } from '@giteeteam/plugin-sdk';
+import { useSDK } from '@projectproxima/plugin-sdk';
 import useSWR, { SWRResponse } from 'swr';
 
 import Parse from '@/lib/parse';

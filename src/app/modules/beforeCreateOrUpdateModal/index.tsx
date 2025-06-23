@@ -1,8 +1,8 @@
-import { useSDK } from '@giteeteam/plugin-sdk';
 import { store } from '@nebulare/data';
+import { useSDK } from '@projectproxima/plugin-sdk';
 import { useRequest } from 'ahooks';
 import { get } from 'lodash';
-import React, { useEffect } from 'react';
+import React from 'react';
 
 import { getDevConfig } from '@/devEnv';
 import { getItemTypeById, getWorkspaceById } from '@/lib/api/proxima';
@@ -27,22 +27,10 @@ const BeforeCreateOrUpdateModal = () => {
   const workspaceMappingCacheRef = React.useRef({});
   const itemTypeMappingCacheRef = React.useRef({});
 
-  const [currentModalValues, setCurrentModalValues] = React.useState<{
-    workspaceKey: string;
-    itemTypeKey: string;
-  }>({
+  const [currentModalValues, setCurrentModalValues] = React.useState({
     workspaceKey: context?.workspaceKey ?? getDevConfig().workspaceKey,
     itemTypeKey: '',
   });
-
-  useEffect(() => {
-    if (context?.workspaceKey) {
-      setCurrentModalValues(prevState => ({
-        ...prevState,
-        workspaceKey: context.workspaceKey,
-      }));
-    }
-  }, [context?.workspaceKey]);
 
   const { data: itemTypeMappingDict } = useRequest(
     async () => {
@@ -125,10 +113,7 @@ const BeforeCreateOrUpdateModal = () => {
       [CREATE_ITEM_STORE_FIELD_KEY]: values,
     });
     setTestDetailValues(values);
-    window?.QiankunProps?.handleItemContextChange?.({
-      ...values,
-      autoCreateTestCase: true,
-    });
+    window?.QiankunProps?.handleItemContextChange?.(values);
   };
 
   return isCreateModal && testDetailFormVisible ? (
@@ -136,7 +121,6 @@ const BeforeCreateOrUpdateModal = () => {
       onChange={handleDetailFormChange}
       extraData={storeValues?.extraData}
       values={testDetailValues}
-      workspaceKey={currentModalValues?.workspaceKey}
     />
   ) : null;
 };

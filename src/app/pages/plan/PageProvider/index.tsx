@@ -1,4 +1,4 @@
-import { useSDK } from '@giteeteam/plugin-sdk';
+import { useSDK } from '@projectproxima/plugin-sdk';
 import { useEventEmitter } from 'ahooks';
 import { EventEmitter } from 'ahooks/lib/useEventEmitter';
 import { noop } from 'lodash';
