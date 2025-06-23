@@ -21,7 +21,7 @@ type RepositorySelectorInputProps = {
   workspaceKey?: string;
 } & SelectProps;
 
-const RepositorySelectorInput: React.FC<RepositorySelectorInputProps> = props => {
+export const RepositorySelectorField: React.FC<RepositorySelectorInputProps> = props => {
   const { t } = useI18n();
   const {
     workspaceId,
@@ -290,5 +290,3 @@ const RepositorySelectorInput: React.FC<RepositorySelectorInputProps> = props =>
     />
   );
 };
-
-export default RepositorySelectorInput;
