@@ -1,6 +1,6 @@
 import './index.global.less';
 
-import { ProximaSDK } from '@projectproxima/plugin-sdk';
+import { ProximaSDK } from '@giteeteam/plugin-sdk';
 import React from 'react';
 import ReactDOM from 'react-dom';
 

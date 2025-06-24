@@ -1,5 +1,5 @@
 /* eslint-disable react-hooks/exhaustive-deps */
-import { useSDK } from '@projectproxima/plugin-sdk';
+import { useSDK } from '@giteeteam/plugin-sdk';
 import createProximaSdk from '@projectproxima/proxima-sdk-js';
 import { useDrop, useReactive } from 'ahooks';
 import { Button, Dropdown, Input, message, Modal, notification, Tree } from 'antd';

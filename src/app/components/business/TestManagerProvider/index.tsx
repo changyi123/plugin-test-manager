@@ -673,6 +673,7 @@ const TestManagerProvider: React.FC<RepositoryDataProviderProps> = ({
               type,
               workspaceId: workspace?.objectId,
               messageKey: messageKey,
+              skipTestCaseCreate: true,
             },
             isTestDefect
               ? {
