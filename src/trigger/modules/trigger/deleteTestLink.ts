@@ -8,7 +8,11 @@ import {
   TestType,
 } from '../../../common/constant';
 import { buildResponse } from '../../lib/apiUtil';
-import { batchDeleteItems, batchUpdateItemsValues } from '../../lib/batchRequest';
+import {
+  batchDeleteItems,
+  batchUpdateItemsValues,
+  updateExecutionCases,
+} from '../../lib/batchRequest';
 import { iqlRequest } from '../../lib/iqlRequest';
 
 export const deleteTestLink = async () => {
@@ -19,6 +23,8 @@ export const deleteTestLink = async () => {
   const itemType = item.values.r_test_manager_type;
 
   const tasks = [];
+
+  let fn;
 
   try {
     // 测试用例删除时需要删除引用的测试执行，所以先获得用例引用的执行
@@ -36,20 +42,36 @@ export const deleteTestLink = async () => {
             ...IQLRequiredFieldKeys,
             TestFiledKeyMapping.referenceCaseSnapshot,
             TestFiledKeyMapping.referenceCase,
+            TestFiledKeyMapping.linkItems,
           ],
         });
+
+        console.info('deleteTestLink ---testRuns', JSON.stringify(testRuns));
 
         const deleteIds =
           testRuns?.filter(i => !i.referenceCaseSnapshot)?.map(item => item.objectId) ?? [];
         const updateIds =
           testRuns?.filter(i => i.referenceCaseSnapshot)?.map(item => item.objectId) ?? [];
 
+        const executionIdSet = new Set();
+        testRuns
+          ?.filter(i => !i.referenceCaseSnapshot)
+          ?.forEach(item => {
+            const executionId = item?.linkItems?.[0];
+            if (executionId) {
+              executionIdSet.add(executionId);
+            }
+          });
+
+        console.info('deleteTestLink executionIds', JSON.stringify([...executionIdSet]));
+
         return {
           deleteIds,
           updateIds,
+          executionIdSet,
         };
       };
-      const { deleteIds, updateIds } = await getReferencedTestRunIds();
+      const { deleteIds, updateIds, executionIdSet } = await getReferencedTestRunIds();
       if (deleteIds?.length) {
         tasks.push(batchDeleteItems(deleteIds));
       }
@@ -63,6 +85,11 @@ export const deleteTestLink = async () => {
           ),
           true,
         );
+      }
+      if (executionIdSet.size) {
+        fn = async () => {
+          await updateExecutionCases([...executionIdSet]);
+        };
       }
     }
 
@@ -130,6 +157,8 @@ export const deleteTestLink = async () => {
 
     if (tasks.length) {
       await Promise.all(tasks);
+
+      typeof fn === 'function' && (await fn());
       return buildResponse('delete success');
     }
     return buildResponse('no data');

@@ -52,9 +52,9 @@ export const handleSelector = selector => {
     const data = pick(systemSelector, SYSTEM_FIELD.Status)?.[SYSTEM_FIELD.Status];
     selectors[SYSTEM_FIELD.Status] = data
       ? {
-        ...data,
-        value: data?.value?.map(d => d.value),
-      }
+          ...data,
+          value: data?.value?.map(d => d.value),
+        }
       : {};
   }
 
@@ -63,10 +63,10 @@ export const handleSelector = selector => {
     const data = pick(customSelector, RepositoryModel)?.[RepositoryModel];
     selectors[RepositoryModel] = data
       ? {
-        ...data,
-        component: 'Dropdown',
-        fieldName: 'test_manager_repository',
-      }
+          ...data,
+          component: 'Dropdown',
+          fieldName: 'test_manager_repository',
+        }
       : {};
   }
 
@@ -75,9 +75,9 @@ export const handleSelector = selector => {
     const data = pick(customSelector, TestRunDesigneeModel)?.[TestRunDesigneeModel];
     selectors[TestRunDesigneeModel] = data
       ? {
-        ...data,
-        fieldName: TestRunDesigneeModel,
-      }
+          ...data,
+          fieldName: TestRunDesigneeModel,
+        }
       : {};
   }
 
@@ -86,9 +86,9 @@ export const handleSelector = selector => {
     const data = pick(customSelector, TestRunExecutorModel)?.[TestRunExecutorModel];
     selectors[TestRunExecutorModel] = data
       ? {
-        ...data,
-        fieldName: TestRunExecutorModel,
-      }
+          ...data,
+          fieldName: TestRunExecutorModel,
+        }
       : {};
   }
 
@@ -97,9 +97,9 @@ export const handleSelector = selector => {
     const data = pick(customSelector, TestCaseStatusModel)?.[TestCaseStatusModel];
     selectors[TestCaseStatusModel] = data
       ? {
-        ...data,
-        fieldName: TestCaseStatusModel,
-      }
+          ...data,
+          fieldName: TestCaseStatusModel,
+        }
       : {};
   }
 
@@ -116,8 +116,8 @@ export const getTestEntityByQuery = async (
   props:
     | QueryTestEntityPayload
     | {
-      selector?: SearchSelectors | string;
-    },
+        selector?: SearchSelectors | string;
+      },
   handleQuery?: (val: any) => any,
 ) => {
   props = handleQuery ? handleQuery(props) : props;
@@ -161,8 +161,8 @@ export const getLinkedTestEntityByQuery = async (
   props:
     | QueryLinkedTestEntityPayload
     | {
-      selector?: SearchSelectors;
-    },
+        selector?: SearchSelectors;
+      },
   handleQuery?: (val: any) => any,
 ) => {
   props = handleQuery ? handleQuery(props) : props;
@@ -821,3 +821,14 @@ export async function fetchBatchProgress(batchId: string): Promise<{
 }> {
   return fetch.get('/parse/api/items/batch/progress/' + batchId);
 }
+
+// 批量更新测试执行任务的用例数量
+export const batchUpdateExecutionCases = async (executionIds: string[]) => {
+  const {
+    data: { data },
+  } = await fetch.post(`${pluginWebTriggerBaseUrl}/api-batch-update-execution-cases`, {
+    executionIds,
+    sessionToken: getSessionToken(),
+  });
+  return data;
+};

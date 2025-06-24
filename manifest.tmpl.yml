@@ -116,6 +116,8 @@ modules:
       function: api-batch-remove-bug-function
     - key: api-copy-folder
       function: api-copy-folder-function
+    - key: api-batch-update-execution-cases
+      function: api-batch-update-execution-cases-function
     # 数据统计
     - key: api-stats-test-plan
       function: api-stats-test-plan-function
@@ -402,7 +404,9 @@ modules:
     - key: api-copy-folder-function
       handler: api.batchCopyFolder
       timeout: 300000
-
+    - key: api-batch-update-execution-cases-function
+      handler: api.batchUpdateExecutionCases
+      timeout: 300000
     # api stats
     - key: api-stats-test-plan-function
       handler: query.testPlanStats
@@ -768,6 +772,14 @@ modules:
       undeletable: true
       locked: true
       description: 测试管理内置字段-测试计划
+      property:
+        mode: multiple
+    - key: testDefects
+      name: 测试缺陷
+      type: DataQuote
+      undeletable: true
+      locked: true
+      description: 测试管理内置字段-测试缺陷
       property:
         mode: multiple
   customItemType:

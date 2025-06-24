@@ -26,6 +26,7 @@ import { SystemFieldKeys } from '@/components/common/BusinessTable/hook';
 import type { BusinessTableActionType } from '@/components/common/BusinessTable/type';
 import Field from '@/components/common/Field';
 import {
+  batchUpdateExecutionCases,
   getCasesByStatus,
   getLinkedTestEntityByQuery,
   getTestCaseStats,
@@ -740,8 +741,17 @@ const TestEntityList: React.FC<TestEntityListProps> = ({
     [mutateStatusEvent, selectedTestPlan?.objectId, statusesConfig, t],
   );
 
+  // 更新测试执行任务规划的用例数量
+  const updateExecution = async executionId => {
+    console.info('updateExecution--', executionId);
+    if (!executionId) {
+      return;
+    }
+    await batchUpdateExecutionCases([executionId]);
+  };
+
   /** 根据列表记录删除测试执行 */
-  const deleteTestRunByIds = useMemoizedFn(testRunIds => {
+  const deleteTestRunByIds = useMemoizedFn((testRunIds, executionId) => {
     const enable = getAppEnv('CREATE_EXECUTION_DEFAULT_NAME_CONFIG')?.enable;
 
     actionConfirm(
@@ -761,6 +771,7 @@ const TestEntityList: React.FC<TestEntityListProps> = ({
           handleSuccess: () => {
             setTableLoading(false);
             setTimeout(() => {
+              updateExecution(executionId);
               addAndDeleteRefresh();
               actionRef.current?.refresh();
             }, 500);
@@ -951,7 +962,8 @@ const TestEntityList: React.FC<TestEntityListProps> = ({
                 style={{ marginLeft: 10 }}
                 disabled={getCreatePermission(TestType.Case)}
                 onClick={async () => {
-                  deleteTestRunByIds([record.id]);
+                  console.info('--record', record);
+                  deleteTestRunByIds([record.id], selectedExecution?.objectId);
                 }}
               >
                 {t('common.remove')}
@@ -969,6 +981,7 @@ const TestEntityList: React.FC<TestEntityListProps> = ({
       mutateStatusEvent,
       config,
       t,
+      selectedExecution?.objectId,
     ],
   );
 
@@ -1104,7 +1117,7 @@ const TestEntityList: React.FC<TestEntityListProps> = ({
         return;
       }
       const testRunIds = getTestRunIds();
-      deleteTestRunByIds(testRunIds);
+      deleteTestRunByIds(testRunIds, selectedExecution?.objectId);
     };
 
     // 更新测试执行人
@@ -1181,6 +1194,7 @@ const TestEntityList: React.FC<TestEntityListProps> = ({
     mutateStatusEvent,
     deleteTestRunByIds,
     t,
+    selectedExecution?.objectId,
   ]);
 
   tableSelectionToggleEvent.useSubscription(visible => {

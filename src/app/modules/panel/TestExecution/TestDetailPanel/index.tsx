@@ -30,7 +30,13 @@ import TestRunModal, {
   ActionType as TestRunModalActionType,
 } from '@/components/business/TestRunModal';
 import { useTestTypeScreenFieldKeys } from '@/components/common/BusinessTable/hook';
-import { getLinkedTestEntityByQuery, getTestEntityByQuery, getUpdateParams, updateTestStatus } from '@/lib/api/item';
+import {
+  batchUpdateExecutionCases,
+  getLinkedTestEntityByQuery,
+  getTestEntityByQuery,
+  getUpdateParams,
+  updateTestStatus,
+} from '@/lib/api/item';
 import { openBaseLineViewItemModal } from '@/lib/api/sdk';
 import { getAppEnv } from '@/lib/appEnv';
 import { TestLinkType, TestType } from '@/lib/constants';
@@ -225,6 +231,7 @@ const Test = () => {
       await deleteV1WithProcess({
         ids: testRunIds,
         handleSuccess: () => {
+          batchUpdateExecutionCases([testEntity?.objectId]);
           refreshDepData();
           message.success(t('common.deleteSuccess'));
         },
@@ -233,7 +240,7 @@ const Test = () => {
         },
       });
     },
-    [getCreatePermission, refreshDepData, t],
+    [getCreatePermission, refreshDepData, t, testEntity?.objectId],
   );
 
   // table column 数据
