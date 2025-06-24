@@ -1,4 +1,4 @@
-import { useSDK } from '@projectproxima/plugin-sdk';
+import { useSDK } from '@giteeteam/plugin-sdk';
 import { clearCache, useMemoizedFn, useRequest } from 'ahooks';
 import { pick } from 'lodash';
 import React from 'react';

@@ -11,7 +11,7 @@ import { useCurrentTestConfig, useDataContext } from '../hooks';
 
 const { ItemIcon } = components.Components.Common;
 
-import { useSDK } from '@projectproxima/plugin-sdk';
+import { useSDK } from '@giteeteam/plugin-sdk';
 
 import { savePanelDisplayConditions } from '@/lib/api/common';
 import { judgeTestReportVersion, TEST_REPORT_VERSION } from '@/lib/appEnv';

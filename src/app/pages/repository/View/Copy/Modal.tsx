@@ -1,9 +1,9 @@
-import { useSDK } from '@projectproxima/plugin-sdk';
+import { useSDK } from '@giteeteam/plugin-sdk';
 import { useMemoizedFn } from 'ahooks';
 import { Form, Modal, ModalProps } from 'antd/lib';
 import React, { useCallback, useState } from 'react';
 
-import RepositorySelectorField from '@/components/business/RepositorySelectorField';
+import { RepositorySelectorField } from '@/components/business/RepositorySelectorField';
 import WorkspaceSelector from '@/components/business/TestEntitySelectorModal/WorkspaceSelector';
 import useI18n from '@/lib/hooks/useI18n';
 import { CopyTestCaseV2PayloadTo } from '@/lib/types/Test';
