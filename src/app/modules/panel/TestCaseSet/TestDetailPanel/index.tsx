@@ -1,15 +1,18 @@
+import { DownOutlined } from '@ant-design/icons';
 import createProximaSdk, { useListener } from '@projectproxima/proxima-sdk-js';
 import { useMemoizedFn } from 'ahooks';
-import { Button, Dropdown, Menu, message, notification, Popconfirm, Typography } from 'antd';
+import { Button, message, notification, Popconfirm, Typography } from 'antd';
 import { keyBy } from 'lodash';
 import React, { useCallback, useEffect, useMemo, useState } from 'react';
 
 import { updateItemsWithProcess } from '@/components/business/BatchResult/hooks';
+import DropDownButton from '@/components/business/DropDownButton';
 import PanelTable, { ActionType } from '@/components/business/PanelTable';
 import RenderRepository from '@/components/business/RenderRepository';
 import TestEntitySelectorModal, {
   ActionType as SelectorActionType,
 } from '@/components/business/TestEntitySelectorModal';
+import OverflowTooltip from '@/components/common/OverflowTooltip';
 import { getTestEntityByQuery } from '@/lib/api/item';
 import { TestFiledKeyMapping, TestType } from '@/lib/constants';
 import { useBaseAction, useTestConfig } from '@/lib/hooks/useContext';
@@ -210,42 +213,39 @@ const Test = () => {
     });
   }, [t, testEntity.objectId, refreshDepData]);
 
-  /**
-   * 添加测试用例
-   */
-  const menuClick = useCallback(
-    async e => {
-      const key = e.key;
-      if (key === 'addNewTestCase') {
-        await handleCreateCase();
-        return;
-      }
-      if (key === 'addHaveTestCase') {
-        await addExistTestCase();
-      }
-    },
-    [addExistTestCase, handleCreateCase],
-  );
-
-  // 添加测试用例菜单m
+  // 添加测试计划菜单
   const menuList = useMemo(() => {
-    return (
-      <Menu onClick={e => menuClick(e)}>
-        <Menu.Item key="addNewTestCase">
-          {t('modules.panel.testCaseSet.testAddPanel.newTestCase')}
-        </Menu.Item>
-        <Menu.Item key="addHaveTestCase">
-          {t('modules.panel.testCaseSet.testAddPanel.addHaveTestCase')}
-        </Menu.Item>
-      </Menu>
-    );
-  }, [menuClick, t]);
+    return [
+      {
+        title: t('modules.panel.testCaseSet.testAddPanel.addHaveTestCase'),
+        disabled: !getCreatePermission(TestType.Case),
+        async onClick() {
+          await addExistTestCase();
+        },
+      },
+      {
+        title: t('modules.panel.testCaseSet.testAddPanel.newTestCase'),
+        disabled: !getCreatePermission(TestType.Case),
+        async onClick() {
+          await handleCreateCase();
+        },
+      },
+    ];
+  }, [
+    addExistTestCase,
+    handleCreateCase,
+    createItemUseModal,
+    refreshDepData,
+    getCreatePermission,
+    testEntity.objectId,
+    t,
+  ]);
 
   // table column 数据
   const tableColumns = React.useMemo(() => {
     return [
       {
-        title: t('modules.panel.testExecution.testDetailPanel.itemKey'),
+        title: t('modules.panel.testCaseSet.testDetailPanel.itemKey'),
         key: 'key',
         width: 170,
         render(_, item) {
@@ -269,22 +269,27 @@ const Test = () => {
         },
       },
       {
-        title: t('modules.panel.testExecution.testDetailPanel.itemName'),
+        title: t('modules.panel.testCaseSet.testDetailPanel.itemName'),
         key: 'name',
+        width: 300,
         render(_, record) {
           const name = record?.name;
 
-          return <Typography.Text ellipsis={{ tooltip: name }}>{name}</Typography.Text>;
+          return (
+            <OverflowTooltip maxline={1} title={name}>
+              {name}
+            </OverflowTooltip>
+          );
         },
       },
       {
         key: 'repositoryGroup',
         title: t('page.plan.testEntityList.repositoryGroup'),
-        sorter: {
-          compare: (a, b) => {
-            return +new Date(a.createdAt) - +new Date(b.createdAt);
-          },
-        },
+        // sorter: {
+        //   compare: (a, b) => {
+        //     return +new Date(a.createdAt) - +new Date(b.createdAt);
+        //   },
+        // },
         width: 200,
         render(_, rowData) {
           return <RenderRepository repository={rowData?.repository} />;
@@ -336,13 +341,10 @@ const Test = () => {
 
       <PanelTable
         renderActions={() => (
-          <Dropdown
-            disabled={getCreatePermission(TestType.Case)}
-            dropdownRender={() => menuList}
-            placement="bottomLeft"
-          >
-            <Button type="primary">{t('modules.panel.testCaseSet.testAddPanel.modelTitle')}</Button>
-          </Dropdown>
+          <DropDownButton menuList={menuList}>
+            {t('modules.panel.testCaseSet.testAddPanel.modelTitle')}
+            <DownOutlined />
+          </DropDownButton>
         )}
         loading={loading}
         actionRef={tableActionRef}

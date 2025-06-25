@@ -2,7 +2,7 @@ import { useAntdTable, useSafeState } from 'ahooks';
 import { Button, Checkbox, Popconfirm, Table, Tooltip } from 'antd';
 import { TableProps } from 'antd/lib/table';
 import { difference, uniqBy } from 'lodash';
-import React, { useEffect } from 'react';
+import React from 'react';
 
 import { DeleteIcon } from '@/icons';
 import useI18n from '@/lib/hooks/useI18n';
@@ -42,12 +42,6 @@ const PanelTable: React.FC<PanelTableProps> = props => {
 
   const [selectedRowKeys, setSelectedRowKeys] = useSafeState([]);
   const [batchSelect, setBatchSelect] = useSafeState(false);
-  const [ready, setReady] = useSafeState(false);
-
-  useEffect(() => {
-    const timer = requestAnimationFrame(() => setReady(true));
-    return () => cancelAnimationFrame(timer);
-  }, []);
 
   const { tableProps, refresh } = useAntdTable(
     ({ current, pageSize }) => {
@@ -189,41 +183,45 @@ const PanelTable: React.FC<PanelTableProps> = props => {
           ) : null}
           {batchSelect && hasArrayItem(actionMenuList) && hasArrayItem(selectedRowKeys) ? (
             <div className={cx('actions')}>
-              {actionMenuList.map((action, index) =>
-                action?.key !== 'delete' ? (
-                  <>
-                    {typeof action?.content === 'function' ? (
-                      <span className={cx('action-item')}>{action?.content(selectedRowKeys)}</span>
-                    ) : (
-                      <span
-                        className={cx('action-item', 'action-item-delete')}
-                        onClick={() => action?.onClick(selectedRowKeys)}
-                      >
-                        {action?.content}
-                      </span>
-                    )}
-                  </>
-                ) : (
-                  <Popconfirm
-                    overlayClassName="global-popconfirm"
-                    key={index}
-                    placement="right"
-                    getPopupContainer={getRootContainer}
-                    title={`
+              {actionMenuList.map((action, index) => (
+                <>
+                  {action?.key !== 'delete' ? (
+                    <>
+                      {typeof action?.content === 'function' ? (
+                        <span className={cx('action-item')}>
+                          {action?.content(selectedRowKeys)}
+                        </span>
+                      ) : (
+                        <span
+                          className={cx('action-item', 'action-item-delete')}
+                          onClick={() => action?.onClick(selectedRowKeys)}
+                        >
+                          {action?.content}
+                        </span>
+                      )}
+                    </>
+                  ) : (
+                    <Popconfirm
+                      overlayClassName="global-popconfirm"
+                      key={index}
+                      placement="right"
+                      getPopupContainer={getRootContainer}
+                      title={`
                    ${t('components.business.panelTable.selectConfirmTips.0')}
                     ${action.content} 
                    ${t('components.business.panelTable.selectConfirmTips.1')}`}
-                    onConfirm={() => action?.onClick(selectedRowKeys)}
-                    okText={t('common.confirm')}
-                    cancelText={t('common.cancel')}
-                  >
-                    <a className={cx('action-item', 'action-item-delete')}>
-                      {' '}
-                      <DeleteIcon className={cx('icon')} /> {action.content}
-                    </a>
-                  </Popconfirm>
-                ),
-              )}
+                      onConfirm={() => action?.onClick(selectedRowKeys)}
+                      okText={t('common.confirm')}
+                      cancelText={t('common.cancel')}
+                    >
+                      <a className={cx('action-item', 'action-item-delete')}>
+                        {' '}
+                        <DeleteIcon className={cx('icon')} /> {action.content}
+                      </a>
+                    </Popconfirm>
+                  )}
+                </>
+              ))}
             </div>
           ) : null}
         </div>
@@ -234,24 +232,22 @@ const PanelTable: React.FC<PanelTableProps> = props => {
           {typeof renderActions === 'function' ? <>{renderActions()}</> : null}
         </div>
       </div>
-      {ready ? (
-        <Table
-          {...tableProps}
-          {...restTableProps}
-          scroll={scroll}
-          pagination={{
-            ...tableProps.pagination,
-            size: 'small',
-            showTotal(total) {
-              return `${t('common.tableTotal.0')} ${total} ${t('common.tableTotal.1')}`;
-            },
-            pageSizeOptions: ['10', '30', '50'],
-            showSizeChanger: true,
-          }}
-          rowSelection={rowSelection}
-          columns={tableColumnsProp}
-        />
-      ) : null}
+      <Table
+        {...tableProps}
+        {...restTableProps}
+        scroll={scroll}
+        pagination={{
+          ...tableProps.pagination,
+          size: 'small',
+          showTotal(total) {
+            return `${t('common.tableTotal.0')} ${total} ${t('common.tableTotal.1')}`;
+          },
+          pageSizeOptions: ['10', '30', '50'],
+          showSizeChanger: true,
+        }}
+        rowSelection={rowSelection}
+        columns={tableColumnsProp}
+      />
     </div>
   );
 };

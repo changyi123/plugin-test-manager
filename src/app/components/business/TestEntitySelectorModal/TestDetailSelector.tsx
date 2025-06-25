@@ -274,6 +274,14 @@ const TestDetailSelector: React.FC<TestDetailSelectorProps> = props => {
         setPreviewCaseSetId('');
       }
     },
+    onSelectAll: (selected, selectedRows) => {
+      if (selected) {
+        setSelectedRowKeys(selectedRows.map(item => item.id));
+      } else {
+        setSelectedRowKeys([]);
+      }
+      setPreviewCaseSetId('');
+    },
   };
 
   const onCaseSetRow = useCallback(record => {

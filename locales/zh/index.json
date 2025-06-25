@@ -918,6 +918,8 @@
       },
       "testCaseSet": {
         "testDetailPanel": {
+          "itemKey": "key",
+          "itemName": "标题",
           "modelTitle": ["新建测试执行任务（已选", "条用例）"],
           "addCaseToPlanSuccess": "个测试用例添加到测试计划中",
           "addCaseToPlanSuccessTips": [
