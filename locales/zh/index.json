@@ -16,9 +16,9 @@
     "haveDelete": "已删除",
     "forbiddenActive": "已禁用",
     "pageTitle": {
-      "repository": "测试用例",
+      "repository": "测试用例库",
       "report": "测试报告",
-      "task": "测试执行任务",
+      "task": "测试任务",
       "plan": "测试计划"
     },
     "whiteCaseRule": "状态不属于“{{statusNames}}”，不允许规划",
