@@ -33,6 +33,10 @@ const TestTypes = [
     type: TestType.Execution,
     title: 'testExecution',
   },
+  {
+    type: TestType.CaseSet,
+    title: 'testCaseSet',
+  },
 ];
 
 const ItemTypeMapping = () => {
@@ -122,6 +126,11 @@ const ItemTypeMapping = () => {
 
   // 保存
   const handleSave = async () => {
+    const validItemTypeMapArr = Object.values(itemTypeMapping).filter(Boolean);
+    if (validItemTypeMapArr?.length < testTypes?.length) {
+      return message.error(t('page.config.itemTypeMapping.pleaseSelectAllTypes'));
+    }
+
     await testConfig?.save({
       itemTypeMap: itemTypeMapping,
     });

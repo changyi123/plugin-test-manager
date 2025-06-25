@@ -36,6 +36,7 @@ const MENU_MAP = {
   TEST_REPORT: 'test-report', // 测试报告
   TEST_REPOSITORY: 'test-repository', // 测试用例库
   TEST_STATS_REPORT: 'test-stats-report', // 测试统计
+  TEST_CASE_SET: 'test-case-set', // 测试用例库
 };
 
 export const runGiteeMenus = async () => {
@@ -90,6 +91,7 @@ export const runGiteeMenus = async () => {
       { pageKey: MENU_MAP.TEST_PLAN, langKey: 'plan' },
       { pageKey: MENU_MAP.TEST_TASK, langKey: 'task' },
       { pageKey: MENU_MAP.TEST_REPOSITORY, langKey: 'repository' },
+      { pageKey: MENU_MAP.TEST_CASE_SET, langKey: 'testcaseset' },
       enableTestReport && { pageKey: MENU_MAP.TEST_REPORT, langKey: 'report' },
     ]
       .filter(Boolean)

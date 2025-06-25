@@ -23,6 +23,7 @@ type PanelTableProps = TableProps<any> & {
     key: string;
     onClick: (selectedRowKeys) => void;
   }>;
+  onSuccess?: (data, mutate) => void;
 };
 
 const PanelTable: React.FC<PanelTableProps> = props => {
@@ -34,6 +35,7 @@ const PanelTable: React.FC<PanelTableProps> = props => {
     renderActions,
     allSelectableRowKeys,
     scroll,
+    onSuccess,
     ...restTableProps
   } = props;
   // 全量的 row 数据
@@ -43,14 +45,19 @@ const PanelTable: React.FC<PanelTableProps> = props => {
   const [selectedRowKeys, setSelectedRowKeys] = useSafeState([]);
   const [batchSelect, setBatchSelect] = useSafeState(false);
 
-  const { tableProps, refresh } = useAntdTable(
+  const { tableProps, refresh, mutate } = useAntdTable(
     ({ current, pageSize }) => {
       return getDataSource({
         offset: (current - 1) * pageSize,
         limit: pageSize,
       });
     },
-    { defaultPageSize: 10 },
+    {
+      defaultPageSize: 10,
+      onSuccess: data => {
+        onSuccess?.(data, mutate);
+      },
+    },
   );
 
   React.useEffect(() => {

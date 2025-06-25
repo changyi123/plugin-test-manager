@@ -7,8 +7,7 @@ import React, { useMemo } from 'react';
 import DebounceSelect from '@/components/common/DebounceSelect';
 import { getAllTestConfigs } from '@/lib/api/common';
 import { getItemByIQL } from '@/lib/api/proxima';
-import { TestType } from '@/lib/constants';
-import { TestTypeNameMapping } from '@/lib/constants';
+import { TestType, TestTypeNameMapping } from '@/lib/constants';
 import { useTestConfig } from '@/lib/hooks/useContext';
 import useI18n from '@/lib/hooks/useI18n';
 import EventBus from '@/lib/utils/eventBus';
@@ -52,6 +51,8 @@ type ModelBtn = {
 export type TestEntitySelectorProps = {
   title?: string;
   planId?: string;
+  caseSetId?: string;
+  isPlanForTestSet?: boolean; // 当为true时候，查询用例的时候会把用例关联的用例集给查出来，然后用来判断该用例是否可以选中
   width?: number;
   testType?: TestType;
   placeholder?: string;
@@ -82,6 +83,8 @@ const TestEntitySelector: React.FC<TestEntitySelectorProps> = props => {
     afterClose,
     onCancel,
     getContainer,
+    caseSetId,
+    isPlanForTestSet = false,
   } = props;
   const [visible, setVisible] = useSafeState(false);
   const debounceSelectContainerRef = React.useRef();
@@ -419,6 +422,8 @@ const TestEntitySelector: React.FC<TestEntitySelectorProps> = props => {
         isWorkspaceIsolate={isolateTestType.includes(TestType.Case)}
         onTestDetailSelect={testDetails => setSelectedTestDetails(testDetails ?? [])}
         planId={planId}
+        caseSetId={caseSetId}
+        isPlanForTestSet={isPlanForTestSet}
         treeType={treeType}
         setTreeType={setTreeType}
         showDefaultRange={showDefaultRange}
@@ -544,5 +549,5 @@ const TestEntitySelector: React.FC<TestEntitySelectorProps> = props => {
     </Modal>
   );
 };
-
+TestEntitySelector.displayName = 'TestEntitySelectorModal';
 export default React.memo(TestEntitySelector);

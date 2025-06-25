@@ -17,16 +17,18 @@ import { useLocation } from 'react-router-dom';
 
 import AddFilterIcon from '@/icons/svg/add-filter.svg';
 import { getTestConfig } from '@/lib/api/common';
+import { getTestEntityByQuery } from '@/lib/api/item';
 import { openFieldValuePopover, useOpenFilterPopover } from '@/lib/api/sdk';
 import { getCurrentUserSetting } from '@/lib/api/userSetting';
-import { CurrentWorkspaceConfigStorageKey } from '@/lib/constants';
 import {
+  CurrentWorkspaceConfigStorageKey,
   FILTER_EXPRESSIONS,
   getExtendFields,
   ItemUserTypeComponentKey,
   RepositoryModel,
   SelectorCurrentUserValue,
   TestCaseStatusModel,
+  TestSetModel,
   TestType,
   UserTypeSelectorFieldKeys,
 } from '@/lib/constants';
@@ -62,6 +64,7 @@ interface FilterSearchProps {
   // 默认筛选iql
   defaultIql?: string;
   hiddenSearchInput?: boolean; // 是否隐藏搜索框
+  disableComponent?: boolean; // 是否禁用组件
   initSelector?: Selectors; // 初始selector
   selectTagId?: string; // 筛选id
 }
@@ -132,6 +135,7 @@ const FilterSearch: React.ForwardRefRenderFunction<FilterRefMethod, FilterSearch
     hiddenSearchInput,
     initSelector,
     selectTagId = 'filter-search-selector',
+    disableComponent = false,
   },
   ref,
 ) => {
@@ -411,6 +415,23 @@ const FilterSearch: React.ForwardRefRenderFunction<FilterRefMethod, FilterSearch
     });
   }, []);
 
+  // todo 查询这个空间下的用例集
+  const extendFetchTestSet = useCallback(async () => {
+    return (
+      await getTestEntityByQuery({
+        query: {
+          workspaceKey: workspaceKey,
+          type: TestType.CaseSet,
+        },
+        fields: ['id', 'name'],
+        notConcatField: true,
+      })
+    )?.list?.map(item => ({
+      value: item.objectId,
+      label: item.name,
+    }));
+  }, [globalTestConfig, t]);
+
   const extendFetch = useCallback(async () => {
     const query = new Parse.Query(Repository);
     query.equalTo('workspaceKey', workspace?.key);
@@ -469,6 +490,11 @@ const FilterSearch: React.ForwardRefRenderFunction<FilterRefMethod, FilterSearch
       }
       if (fieldId === TestCaseStatusModel) {
         (props as any).fetchMethod = () => getStatusOptions();
+      }
+
+      // todo 查询空间下所有的用例集
+      if (fieldId === TestSetModel) {
+        (props as any).fetchMethod = () => extendFetchTestSet();
       }
 
       if (isDate(data.key)) {
@@ -550,12 +576,14 @@ const FilterSearch: React.ForwardRefRenderFunction<FilterRefMethod, FilterSearch
           onChange={onChangeInput}
           placeholder={t('components.common.filterSearch.screenPlaceholder')}
           value={search}
+          disabled={disableComponent}
         />
       )}
       {showDefaultRange && defaultIqlProp && (
         <Checkbox
           style={{ lineHeight: '28px' }}
           checked={useDefaultRange}
+          disabled={disableComponent}
           onChange={e => {
             setUseDefaultRange(e.target.checked);
             handleSearch();
@@ -574,6 +602,7 @@ const FilterSearch: React.ForwardRefRenderFunction<FilterRefMethod, FilterSearch
             active={item?.active}
             data={item}
             selectTagId={selectTagId}
+            disabled={disableComponent}
             onClick={data => {
               const backup = cloneDeep(data);
               backup.value = generateFieldValue(backup);
@@ -591,6 +620,7 @@ const FilterSearch: React.ForwardRefRenderFunction<FilterRefMethod, FilterSearch
           id={filterId || storageKey || 'filter-btn'}
           icon={<AddFilterIcon className={cx('filter-tag-icon')} />}
           className={cx('filter-tag-btn')}
+          disabled={disableComponent}
           onClick={() => {
             openFilterPopover({
               selectors,

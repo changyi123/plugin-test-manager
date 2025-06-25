@@ -21,6 +21,8 @@ interface VirtualScrollListProps {
   current?: number;
   selectCaseIdsSet?: Set<string>;
   ignoreTestDetailIdsSet?: Set<string>;
+  isPlanForTestSet?: boolean;
+  testSetId?: string;
   disabledIdsSet?: Set<string>;
   setSelectCaseIdsSet?: (val?: Set<string>) => void;
   setCurrent?: (val: number) => void;
@@ -42,6 +44,8 @@ const VirtualScrollList: React.FC<VirtualScrollListProps> = props => {
     setCurrent,
     validateCaseStatus,
     loading,
+    testSetId,
+    isPlanForTestSet = false,
   } = props;
   const { t } = useI18n();
   const { groupArray, groups, totalCount } = useGetVirtualScrollList(group, current);
@@ -130,11 +134,13 @@ const VirtualScrollList: React.FC<VirtualScrollListProps> = props => {
             }}
             disabled={
               ignoreTestDetailIdsSet?.has(items?.[index]?.id) ||
-              disabledIdsSet?.has(items?.[index]?.id)
+              disabledIdsSet?.has(items?.[index]?.id) ||
+              (isPlanForTestSet && (items?.[index]?.testSet || []).includes(testSetId))
             }
             checked={
               selectCaseIdsSet?.has(items?.[index]?.id) ||
-              ignoreTestDetailIdsSet?.has(items?.[index]?.id)
+              ignoreTestDetailIdsSet?.has(items?.[index]?.id) ||
+              (isPlanForTestSet && (items?.[index]?.testSet || []).includes(testSetId))
             }
           >
             <Tooltip

@@ -48,6 +48,7 @@ export const TestTypeNameMapping = {
   [TestType.Report]: 'testReport',
   [TestType.Run]: 'testRun',
   [TestType.TestDefect]: 'testDefect',
+  [TestType.CaseSet]: 'testCaseSet', // 不能修改，这个地方是为了国际化
 };
 
 // 内置三种类型标识
@@ -56,6 +57,7 @@ export const BuiltinItemTypeMapping = {
   [TestType.Plan]: 'test_manager_plan',
   [TestType.Execution]: 'test_manager_execution',
   [TestType.Report]: 'test_manager_report',
+  [TestType.CaseSet]: 'test_manager_caseset',
 };
 
 /** 本地存储前缀 */
@@ -488,6 +490,7 @@ export const TestRunDesigneeModel = `${appKey}_designee`;
 export const TestRunExecutorModel = `${appKey}_executor`;
 export const TestExecutionModel = `${appKey}_Execution`;
 export const TestPlanModel = `${appKey}_Plan`;
+export const TestSetModel = `${appKey}_referenceSet`;
 
 export const getExtendFields = t => [
   {
@@ -500,6 +503,18 @@ export const getExtendFields = t => [
       objectId: RepositoryModel,
       key: RepositoryModel,
       name: t('common.testRepository'),
+    },
+  },
+  {
+    key: TestSetModel,
+    name: '测试用例集',
+    objectId: TestSetModel,
+    fieldType: {
+      isExtend: true,
+      dataType: 'object',
+      objectId: TestSetModel,
+      key: TestSetModel,
+      name: '测试用例集',
     },
   },
   {
