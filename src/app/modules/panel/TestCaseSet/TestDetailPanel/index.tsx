@@ -218,14 +218,14 @@ const Test = () => {
     return [
       {
         title: t('modules.panel.testCaseSet.testAddPanel.addHaveTestCase'),
-        disabled: !getCreatePermission(TestType.Case),
+        // disabled: !getCreatePermission(TestType.Case),
         async onClick() {
           await addExistTestCase();
         },
       },
       {
         title: t('modules.panel.testCaseSet.testAddPanel.newTestCase'),
-        disabled: !getCreatePermission(TestType.Case),
+        // disabled: !getCreatePermission(TestType.Case),
         async onClick() {
           await handleCreateCase();
         },
