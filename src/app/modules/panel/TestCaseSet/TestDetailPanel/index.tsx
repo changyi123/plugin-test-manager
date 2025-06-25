@@ -3,7 +3,7 @@ import createProximaSdk, { useListener } from '@projectproxima/proxima-sdk-js';
 import { useMemoizedFn } from 'ahooks';
 import { Button, message, notification, Popconfirm, Typography } from 'antd';
 import { keyBy } from 'lodash';
-import React, { useCallback, useEffect, useMemo, useState } from 'react';
+import React, { useCallback, useMemo, useState } from 'react';
 
 import { updateItemsWithProcess } from '@/components/business/BatchResult/hooks';
 import DropDownButton from '@/components/business/DropDownButton';
@@ -47,8 +47,6 @@ const Test = () => {
   const [loading, setLoading] = useState(false);
   const testEntitySelectorRef = React.useRef<SelectorActionType>();
 
-  const [allTestEntities, setAllTestEntities] = useState([]);
-
   //  获取用例集下全部用例
   const testCaseTableDataGetter = useFnHookTriggerFn(
     useCallback(
@@ -81,26 +79,12 @@ const Test = () => {
   const statusesConfig = useMemo(() => {
     return keyBy(globalTestConfig?.statuses ?? [], 'key');
   }, [globalTestConfig]);
+  const [allTestEntityIds, setAllTestEntityIds] = useState();
 
-  // 所有的测试执行
-  const allTestEntityIds = React.useMemo(
-    () => allTestEntities.map(entity => entity.id),
-    [allTestEntities],
-  );
-
-  const getAllRelTestEntities = useCallback(async () => {
-    const { list, total } = await testCaseTableDataGetter({
-      offset: 0,
-      limit: 99999,
-      // select: ['referenceCase', 'status', 'id'],
-    });
-    setAllTestEntities(list);
-    return { list, total };
-  }, [testCaseTableDataGetter, setAllTestEntities]);
-
-  useEffect(() => {
-    getAllRelTestEntities();
-  }, []);
+  const onSuccess = useMemoizedFn(async data => {
+    const { list = [] } = data ?? {};
+    setAllTestEntityIds(list.map(i => i.objectId));
+  });
 
   const refreshDepData = React.useCallback(
     async (eventKey?: string) => {
@@ -218,14 +202,14 @@ const Test = () => {
     return [
       {
         title: t('modules.panel.testCaseSet.testAddPanel.addHaveTestCase'),
-        disabled: !getCreatePermission(TestType.Case),
+        // disabled: !getCreatePermission(TestType.Case),
         async onClick() {
           await addExistTestCase();
         },
       },
       {
         title: t('modules.panel.testCaseSet.testAddPanel.newTestCase'),
-        disabled: !getCreatePermission(TestType.Case),
+        // disabled: !getCreatePermission(TestType.Case),
         async onClick() {
           await handleCreateCase();
         },
@@ -317,14 +301,7 @@ const Test = () => {
       },
     ];
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [
-    testEntity?.linkItems,
-    refreshDepData,
-    allTestEntities,
-    removeTestCaseFromSet,
-    statusesConfig,
-    config,
-  ]);
+  }, [testEntity?.linkItems, refreshDepData, removeTestCaseFromSet, statusesConfig, config]);
   return (
     <div className={cx('test')}>
       <TestEntitySelectorModal
@@ -342,7 +319,7 @@ const Test = () => {
       <PanelTable
         renderActions={() => (
           <DropDownButton menuList={menuList}>
-            {t('modules.panel.testCaseSet.testAddPanel.modelTitle')}
+            12312{t('modules.panel.testCaseSet.testAddPanel.modelTitle')}
             <DownOutlined />
           </DropDownButton>
         )}
@@ -361,6 +338,7 @@ const Test = () => {
         rowKey="objectId"
         columns={tableColumns}
         getDataSource={testCaseTableDataGetter}
+        onSuccess={onSuccess}
       />
     </div>
   );
