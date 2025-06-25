@@ -319,7 +319,7 @@ const Test = () => {
       <PanelTable
         renderActions={() => (
           <DropDownButton menuList={menuList}>
-            12312{t('modules.panel.testCaseSet.testAddPanel.modelTitle')}
+            {t('modules.panel.testCaseSet.testAddPanel.modelTitle')}
             <DownOutlined />
           </DropDownButton>
         )}
