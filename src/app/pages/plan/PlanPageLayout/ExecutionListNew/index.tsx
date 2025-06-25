@@ -170,8 +170,21 @@ const ExecutionList: React.FC<ExecutionListProps> = ({
         showInput
         allowClear
         className={cx('fold-search')}
+        searchIconClick={true}
         onSearch={() => {
-          setSelectors(searchValue);
+          setSelectors([
+            {
+              name: {
+                component: 'name',
+                expression: '',
+                fieldId: 'name',
+                fieldLabel: [],
+                fieldName: '标题',
+                key: 'name',
+                value: searchValue,
+              },
+            },
+          ]);
         }}
         onChange={v => setSearchValue(v)}
         value={searchValue}

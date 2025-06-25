@@ -3,6 +3,7 @@ import classnames from 'classnames';
 import React from 'react';
 
 import useI18n from '@/lib/hooks/useI18n';
+import { getEditorOrStringText } from '@/lib/utils/helper';
 
 import { StepFieldProps } from '../type';
 
@@ -97,7 +98,7 @@ const Input: React.ForwardRefRenderFunction<
       placeholder={placeholder ?? t('components.business.testStep.pleaseInput')}
       className={classnames('test-step-field', 'input', isHover && 'hover', className)}
     >
-      {value}
+      {getEditorOrStringText(value)}
     </div>
   );
 };

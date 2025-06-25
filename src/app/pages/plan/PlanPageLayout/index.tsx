@@ -314,7 +314,8 @@ const PlanPageLayout: React.FC<any> = () => {
       });
     }
     await addTestExecutionToPlan(ids);
-    executionListRef?.current.refresh();
+    // executionListRef?.current.refresh();
+    refreshExecutionList && refreshExecutionList()
   }, [addTestExecutionToPlan, executionListRef, t]);
 
   const cancelCallback = useCallback(
@@ -331,7 +332,8 @@ const PlanPageLayout: React.FC<any> = () => {
       setSelectValue([]);
       setTreeType('repository');
       if (!props?.itemIdList?.length) {
-        executionListRef?.current?.refresh();
+        // executionListRef?.current?.refresh();
+        refreshExecutionList && refreshExecutionList()
       }
     },
     [executionListRef],
@@ -378,32 +380,30 @@ const PlanPageLayout: React.FC<any> = () => {
                 </Spin>
               </PageLayout.NoData>
             )}
-            {selectedExecution?.objectId && (
+            {['TestPlan'].includes(activeType) && (
               <PageLayout.Left>
-                <>
-                  {['TestPlan'].includes(activeType) && (
-                    <Left
-                      actionRef={pageLeftRef}
-                      treeParams={treeParams}
-                      activeType={activeType}
-                      onFolderSelect={node => setSelectNode(node)}
-                    />
-                  )}
-                  {['TestExecution'].includes(activeType) && (
-                    <ExecutionList
-                      actionRef={executionListRef}
-                      activeType={activeType}
-                      setSelectedExecution={setSelectedExecution}
-                      setLoading={setLoading}
-                      refresh={refreshExecutionList}
-                      loading={loadingExecutionList}
-                      executionList={executionList}
-                      activeId={activeId}
-                      setActiveId={setActiveId}
-                      setSelectors={setSelectors}
-                    />
-                  )}
-                </>
+                <Left
+                  actionRef={pageLeftRef}
+                  treeParams={treeParams}
+                  activeType={activeType}
+                  onFolderSelect={node => setSelectNode(node)}
+                />
+              </PageLayout.Left>
+            )}
+            {selectedExecution?.objectId && ['TestExecution'].includes(activeType) && (
+              <PageLayout.Left>
+                <ExecutionList
+                  actionRef={executionListRef}
+                  activeType={activeType}
+                  setSelectedExecution={setSelectedExecution}
+                  setLoading={setLoading}
+                  refresh={refreshExecutionList}
+                  loading={loadingExecutionList}
+                  executionList={executionList}
+                  activeId={activeId}
+                  setActiveId={setActiveId}
+                  setSelectors={setSelectors}
+                />
               </PageLayout.Left>
             )}
             {(activeType === 'TestPlan' || selectedExecution?.objectId) && (

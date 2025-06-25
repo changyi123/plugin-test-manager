@@ -159,6 +159,14 @@ const SupportAppEnv = {
     defaultValue: false,
     transformer: value => value,
   },
+  ENABLED_TESTPLAN_USE_EDITOR: {
+    defaultValue: false,
+    transformer: value => value,
+  },
+  alias: {
+    defaultValue: {},
+    transformer: value => value,
+  },
   ENABLE_JSON_IMPORT: {
     defaultValue: false,
     transformer: value => value,
@@ -192,4 +200,8 @@ export function judgeCaseSnapshot(testConfig) {
   return getAppEnv('ENABLED_CASE_SNAPSHOT')
     ? testConfig?.enableCaseSnapshot
     : getAppEnv('DEFAULT_ENABLED_CASE_SNAPSHOT');
+}
+
+export function isTestPlanUseEditor() {
+  return getAppEnv('ENABLED_TESTPLAN_USE_EDITOR');
 }

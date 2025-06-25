@@ -1,4 +1,4 @@
-import { useSDK } from '@projectproxima/plugin-sdk';
+import { useSDK } from '@giteeteam/plugin-sdk';
 import { LibraryProvider as AppsLibraryProvider } from 'apps-team-components-v1';
 import { hooks } from 'proxima-sdk';
 import React, { useMemo } from 'react';
