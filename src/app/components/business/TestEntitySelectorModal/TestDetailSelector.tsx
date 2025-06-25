@@ -287,6 +287,7 @@ const TestDetailSelector: React.FC<TestDetailSelectorProps> = props => {
   const onCaseSetRow = useCallback(record => {
     return {
       onClick: () => {
+        eval('debugger');
         setPreviewCaseSetId(record.id);
       }, // 点击行
     };
