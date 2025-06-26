@@ -1215,6 +1215,14 @@
           "stepName": "步骤名称"
         }
       },
+      "testBatchUpateModel": {
+        "chooseUpateVersion": "选择更新版本",
+        "batchUpateExeCase": "批量更新执行用例",
+        "msgUpateVersion": "请选择更新版本",
+        "batchCreateVersion": "批量创建版本",
+        "versionName": "版本名称",
+        "placeholderVersionName": "请输入版本名称"
+      },
       "testStep": {
         "stepField": ["步骤", "预期", "数据", "准备数据"],
         "hasCircularInheritance": "与测试用例【{{testCaseName}}】存在循环继承",

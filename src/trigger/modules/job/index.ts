@@ -38,7 +38,7 @@ import {
   updateProcessBar,
 } from '../../lib/helper';
 import { iqlRequest } from '../../lib/iqlRequest';
-import { CASESNAPSHOT_TYPE } from '@/lib/constants';
+import { CASESNAPSHOT_TYPE } from '../../lib/constants';
 
 type TestRunType = TestEntity<TestType.Run>;
 type ProcessJobParams<T> = T & {

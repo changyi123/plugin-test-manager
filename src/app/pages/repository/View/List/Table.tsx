@@ -47,6 +47,7 @@ import CopyButton from '../Copy/Button';
 import cx from './Table.less';
 import TableCellTestDetailForm from '@/modules/beforeCreateOrUpdateModal/TableCellTestDetailForm';
 import { featureFlags, SupportFeatureFlags } from '@/lib/appEnv';
+import TestBatchCreateVersionnModal, { TestBatchCreateVersionModalActionRef } from '@/components/business/TestBatchCreateVersionModal';
 
 const proxima = createProximaSdk();
 
@@ -212,6 +213,7 @@ const TestDetailTable: React.FC<TestDetailTableProps> = props => {
 
   const tableActionRef = React.useRef<BusinessTableActionType>();
   const repositorySelectorRef = React.useRef<RepositorySelectorActionType>();
+  const testBatchCreateVersionModalActionRef = React.useRef<TestBatchCreateVersionModalActionRef>();
   // // 缓存用例库数据，用于监听用例库修改后刷新表格所属模块
   // useGetWorkspaceRepository(workspaceKey);
   const { data: currentUser } = useCurrentUser();
@@ -430,6 +432,14 @@ const TestDetailTable: React.FC<TestDetailTableProps> = props => {
       tableActionRef.current.refresh();
     };
 
+    const batchCreateVersion = async () => {
+      const getTestRunIds = () => tableActionRef.current.selectedRowKeys;
+      const _testRunIds: string[] = getTestRunIds() || [];
+      await testBatchCreateVersionModalActionRef.current.open({
+        testRunIds: _testRunIds,
+        tableData: tableActionRef.current.dataSource
+      });
+    }
     return [
       <span
         className={cx('action')}
@@ -479,6 +489,9 @@ const TestDetailTable: React.FC<TestDetailTableProps> = props => {
       >
         <DeleteIcon className={cx('icon')} /> {t('common.delete')}
       </span>,
+      <span className={cx(!hasRowSelected && 'disabled')} key="batchCreateVersion" onClick={() => hasRowSelected && batchCreateVersion()}>
+        {t('components.business.testBatchUpateModel.batchCreateVersion')}
+      </span>
     ];
   }, [
     hasRowSelected,
@@ -668,6 +681,7 @@ const TestDetailTable: React.FC<TestDetailTableProps> = props => {
         onHasRowSelected={setHasRowSelected}
         onSelectionCancel={onSelectionCancel}
         loading={externalDataLoading || tableLoading}
+        selectionMode={true}
         selectionActionNodes={selectionActionNodes}
         handleFilterField={handleFilterField}
         queryDeps={queryDeps}
@@ -687,6 +701,16 @@ const TestDetailTable: React.FC<TestDetailTableProps> = props => {
         }}
       />
       <RepositorySelector actionRef={repositorySelectorRef} />
+      
+      {/* 批量创建版本 */}
+      <TestBatchCreateVersionnModal
+        actionRef={testBatchCreateVersionModalActionRef}
+        refresh = {() => {
+          // 刷新依赖数据
+          tableActionRef.current.resetSelectedRowKeys();
+          tableActionRef.current.refresh();
+        }} 
+      />  
     </>
   );
 };

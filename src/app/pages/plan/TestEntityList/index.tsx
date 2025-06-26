@@ -20,6 +20,7 @@ import TestRunModal, {
   ActionType as TestRunModalActionType,
   VERSION,
 } from '@/components/business/TestRunModal';
+import TestBatchUpdateExeModal, { TestBatchUpateModalActionRef } from '@/components/business/TestBatchUpdateExeModal'
 import UserCell from '@/components/business/UserCell';
 import { BusinessTable } from '@/components/common/BusinessTable';
 import { SystemFieldKeys } from '@/components/common/BusinessTable/hook';
@@ -121,6 +122,7 @@ const TestEntityList: React.FC<TestEntityListProps> = ({
 
   const actionRef = React.useRef<BusinessTableActionType>();
   const testRunModalActionRef = React.useRef<TestRunModalActionType>();
+  const testBatchUpateModalActionRef = React.useRef<TestBatchUpateModalActionRef>(); // 批量更新执行用例
   const userData = useUserCellUserDataProp(workspaceKey);
   const { canExecuteTestRun, canAssignTestRun } = useTestRunActionAuth({ workspaceKey });
   const { data: currentUser } = useCurrentUser();
@@ -928,6 +930,16 @@ const TestEntityList: React.FC<TestEntityListProps> = ({
           return <span>{record?.executeCount ?? 0}</span>;
         },
       },
+      {
+        key: 'caseVersion',
+        title: '用例版本',
+        width: 120,
+        overflowEllipsis: false,
+        // shouldCellUpdate: (record, prevRecord) => record.quoteCount !== prevRecord.quoteCount,
+        // render(_, rowData) {
+        //   return <span>{rowData.quoteCount}</span>;
+        // },
+      },
       //  最新执行人
       {
         key: 'executor',
@@ -1198,7 +1210,26 @@ const TestEntityList: React.FC<TestEntityListProps> = ({
       });
     };
 
+    // 批量更新执行用例
+    const batchUpdateExeCases = async() => {
+      const _testRunIds: string[] = getTestRunIds() || [];
+      await testBatchUpateModalActionRef.current.open({
+        testRunIds: _testRunIds,
+        tableData: actionRef.current.dataSource
+      });
+    }
+
     const canDesigneeSelect = canAssignTestRun();
+
+    const handleBatchUpateExeCase = () => {
+      if (config?.caseSnapshot?.enableCaseExeUpdate) {
+        return (
+          <span className={cx(!hasRowSelected && 'disabled')} key="batchUpdateExeCases" onClick={() => hasRowSelected && batchUpdateExeCases()}>
+            {t('components.business.testBatchUpateModel.batchUpateExeCase')}
+          </span>
+        )
+      }
+    }
     return [
       <Tooltip
         key="assignee"
@@ -1234,6 +1265,7 @@ const TestEntityList: React.FC<TestEntityListProps> = ({
       <span className={cx('danger')} key="delete" onClick={() => hasRowSelected && deleteTestRun()}>
         <DeleteOutlined /> {t('common.remove')}
       </span>,
+      handleBatchUpateExeCase()
     ];
   }, [
     canAssignTestRun,
@@ -1245,10 +1277,11 @@ const TestEntityList: React.FC<TestEntityListProps> = ({
     mutateStatusEvent,
     deleteTestRunByIds,
     t,
+    config?.caseSnapshot?.enableCaseExeUpdate,
   ]);
 
   tableSelectionToggleEvent.useSubscription(visible => {
-    actionRef.current.toggleSelection(visible);
+    // actionRef.current.toggleSelection(visible);
     actionRef.current.resetSelectedRowKeys();
   });
 
@@ -1340,7 +1373,7 @@ const TestEntityList: React.FC<TestEntityListProps> = ({
           }}
         />
       ) : (
-        //  测试计划--测试执行任务
+        // 测试计划--测试执行任务
         <BusinessTable
           className={cx(`${tableSelectionVisible ? 'batch-action' : ''}`)}
           titleCellOption={{
@@ -1359,6 +1392,7 @@ const TestEntityList: React.FC<TestEntityListProps> = ({
             'createdAt',
             'executor',
             'executeTime',
+            'caseVersion'
           ]}
           privateColumnKey={[
             'repositoryGroup',
@@ -1367,6 +1401,7 @@ const TestEntityList: React.FC<TestEntityListProps> = ({
             'executor',
             'designee',
             'executeTime',
+            'caseVersion'
           ]}
           rowKey="objectId"
           columns={executionColumns}
@@ -1376,6 +1411,7 @@ const TestEntityList: React.FC<TestEntityListProps> = ({
           getDataSource={executionTableDataGetter}
           onHasRowSelected={setHasRowSelected}
           allSelectableRowKeys={runRowKeys}
+          selectionMode={true}
           selectionActionNodes={InnerTableSelectionActionNodes}
           onSelectionCancel={() => tableSelectionToggleEvent.emit(false)}
           handleFilterField={handleFilterField}
@@ -1385,9 +1421,19 @@ const TestEntityList: React.FC<TestEntityListProps> = ({
               return cx('expandedRowClassName')
             },
             expandedRowRender: record => {
+              const handleUpdateExe = async() => {
+                const _testRunIds: string[] = [record?.objectId]
+                await testBatchUpateModalActionRef.current.open({
+                  testRunIds: _testRunIds,
+                  tableData: actionRef.current.dataSource
+                });
+              }
               return (
                 <div className={cx('form')}>
-                  <TableCellTestDetailFormReadOnly values={record?.runDetail ?? {}} />
+                  <TableCellTestDetailFormReadOnly
+                    values={record?.runDetail ?? {}}
+                    extraElement={config?.caseSnapshot?.enableCaseExeUpdate && <h6 style={{ fontSize: '14px', color: '#0c62ff', cursor: 'pointer' }} onClick={() => handleUpdateExe()}>更新用例</h6>}
+                  />
                 </div>
               )
             },
@@ -1402,6 +1448,15 @@ const TestEntityList: React.FC<TestEntityListProps> = ({
           selectedTestPlanId={selectedTestPlan?.objectId}
         />
       )}
+      {/* 批量更新执行用例 */}
+      <TestBatchUpdateExeModal
+        actionRef={testBatchUpateModalActionRef}
+        refresh = {() => {
+          // 刷新依赖数据
+          actionRef.current.refresh();
+          mutateStatusEvent.emit('refreshExecutionStatus');
+        }} 
+      />
     </div>
   );
 };

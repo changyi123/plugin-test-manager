@@ -19,6 +19,7 @@ import { SystemFieldKeys } from '@/components/common/BusinessTable/hook';
 import FilterSearch from '@/components/common/FilterSearch';
 import { getFilterFields } from '@/components/common/FilterSearch/utils';
 import {
+  CASESNAPSHOT_TYPE,
   getExtendFields,
   RepositoryModel,
   TestFiledKeyMapping,
@@ -34,6 +35,7 @@ import TestEntityList from '../../TestEntityList';
 import ExecutionStatus from '../ExecutionStatus';
 import { useSetTableHeight } from './hooks';
 import { useLocation } from 'react-router-dom';
+import { useTestConfig } from '@/lib/hooks/useContext';
 import cx from './index.less';
 
 interface RightProps {
@@ -72,6 +74,7 @@ const Right: React.FC<RightProps> = props => {
     tableSelectionToggleEvent,
     workspaceKey,
   } = usePageContext();
+  const { config } = useTestConfig();
   const proxima = createProximaSdk();
   const { getCreatePermission, testCaseFieldKeys } = useBaseAction();
   const { t } = useI18n();
@@ -109,7 +112,7 @@ const Right: React.FC<RightProps> = props => {
   }, [selectedTestPlan?.objectId]);
 
   const addTestExecutionDetail = useCallback(async () => {
-    const { selectedData: caseIds } = await testEntitySelectorRef.current.open();
+    const { selectedData: caseIds, caseVersion } = await testEntitySelectorRef.current.open();
     if (caseIds?.length === 0) {
       return notification.warning({
         message: t('page.plan.planPageLayout.right.notSelectMessage'),
@@ -127,6 +130,7 @@ const Right: React.FC<RightProps> = props => {
       await createTestRunWithProcess({
         execution: selectedExecution as any,
         caseIds,
+        caseVersion,
         workspace: selectedExecution?.workspace as any,
         planId: selectedExecution?.linkItems?.[0],
         handleSuccess: async () => {
@@ -304,6 +308,7 @@ const Right: React.FC<RightProps> = props => {
           title={t('page.plan.planPageLayout.right.caseSelectModelTitle')}
           showDefaultRange
           testType={TestType.Case}
+          enableCaseVersion={[CASESNAPSHOT_TYPE.NO_BUILDVERSION_SELVERSION].includes(config?.caseSnapshot?.type) && activeType === 'TestExecution'}
           actionRef={testEntitySelectorRef}
           afterClose={() => refreshTreeAndScopeTestCase?.()}
           ignoreTestEntityIds={activeType === 'TestPlan' ? planLinkCaseIds : runLinkCaseIds}

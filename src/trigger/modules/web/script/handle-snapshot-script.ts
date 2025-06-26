@@ -10,7 +10,7 @@ import {
 import { buildResponse, getReqInfoFromVMRuntime } from '../../../lib/apiUtil';
 import { batchUpdateItemsValues } from '../../../lib/batchRequest';
 import { operateSnapshots } from '../../../lib/coreApi';
-import { CASESNAPSHOT_TYPE } from '@/lib/constants';
+import { CASESNAPSHOT_TYPE } from '../../../lib/constants';
 
 const RUN_BASE_IQL = `${BuiltinFieldNameMapping.type} = ${TestType.Run} and ${BuiltinFieldNameMapping.referenceCaseSnapshot} is null`;
 

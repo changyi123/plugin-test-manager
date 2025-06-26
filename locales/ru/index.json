@@ -1086,7 +1086,8 @@
         "latest": "Последний",
         "itemDeleted": "Элемент был удален",
         "noLinkItem": "Текущий каталог не связан с тест-кейсом",
-        "notHaveCase": "В текущем репозитории тест-кейсов нет тест-кейсов"
+        "notHaveCase": "В текущем репозитории тест-кейсов нет тест-кейсов",
+        "caseVersion": "Варианты использования"
       },
       "testManagerProvider": {
         "tips": "Подсказки",
@@ -1175,6 +1176,14 @@
           "stepNumber": "Номер шага",
           "stepName": "имя шага"
         }
+      },
+      "testBatchUpateModel": {
+        "chooseUpateVersion": "Выбор обновленной версии",
+        "batchUpateExeCase": "Обновлять примеры внедрения оптом",
+        "msgUpateVersion": "Выберите обновленную версию",
+        "batchCreateVersion": "Серийное создание версий",
+        "versionName": "Название версии",
+        "placeholderVersionName": "Пожалуйста, введите имя версии"
       },
       "testStep": {
         "stepField": ["Шаг", "?->Ожидал", "Данные"],

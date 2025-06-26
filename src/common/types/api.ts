@@ -258,6 +258,8 @@ export type BatchCreateTestRunV2Payload = {
   caseIds: string[];
   /** 空间 id key */
   workspace: { objectId: string; key: string };
+  /** 规划用例时选择用例版本 */ 
+  caseVersion?: Record<string, string>
 };
 export type BatchCreateTestRunV2ProcessParams = ProcessApiParams<BatchCreateTestRunV2Payload>;
 

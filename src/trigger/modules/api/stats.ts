@@ -32,7 +32,7 @@ import {
   statisticsRunFromCase,
   statisticsRunFromPlan,
 } from '../../lib/statistics';
-import { CASESNAPSHOT_TYPE } from '@/lib/constants';
+import { CASESNAPSHOT_TYPE } from '../../lib/constants';
 
 type TestRunEntityType = TestEntity<TestType.Run>;
 type TestCaseEntityType = TestEntity<TestType.Case>;

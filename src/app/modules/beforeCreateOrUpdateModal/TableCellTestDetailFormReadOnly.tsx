@@ -13,9 +13,10 @@ export type ValueType = {
 
 type TestDetailFormProps = {
   values?: ValueType;
+  extraElement?: React.ReactElement
 };
 
-const TableCellTestDetailFormReadOnly: React.FC<TestDetailFormProps> = ({ values }) => {
+const TableCellTestDetailFormReadOnly: React.FC<TestDetailFormProps> = ({ values, extraElement }) => {
   const { t } = useI18n();
   const [textArea, setTextArea] = useState<string>()
   const [steps, setSteps] = useState<Step[]>([])
@@ -38,7 +39,10 @@ const TableCellTestDetailFormReadOnly: React.FC<TestDetailFormProps> = ({ values
         <span className={cx('step-title', 'field-label')} style={{ fontWeight: 500 }}>{t('common.precondition')}: </span>
         <span className={cx('precondition-readonly-text')}>{textArea || t('common.nothing')}</span>
       </div>
-      <h6 className={cx('step-title', 'field-label')}>{t('common.testStep')}</h6>
+      <div className={cx('step-title-wrap')}>
+        <h6 className={cx('step-title', 'field-label')}>{t('common.testStep')}</h6> 
+        {extraElement}
+      </div>
       <Table columns={columns} dataSource={steps || []} pagination={false} size='small' />
     </div>
   );

@@ -1,13 +1,59 @@
 :root {
   .group-virtuoso {
     div:nth-child(1) {
-      z-index: 2 !important;
+      z-index: 999999 !important;
     }
 
     .detail-list-box {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
       padding: 9px 16px;
+      height: 40px;
       background-color: #f4f6f8;
+      :global {
+        .ant-checkbox-wrapper {
+          width: calc(100% - 100px);
+        }
+        .ant-checkbox-wrapper > span:nth-child(2) {
+          width: calc(100% - 20px);
+        }
+      }
+      .name, .path-box {
+        display: block;
+        overflow: hidden;
+        white-space: nowrap;
+        text-overflow: ellipsis;
+        width: 100%;
+      }
+      .path {
+        font-size: 12px;
+        color: #848c9f;
+      }
+      .cur-name {
+        font-size: 12px;
+        font-weight: bold;
+        margin-left: 4px;
+        color: #091940;
+      }
+    }
 
+    .detail-list {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      height: 50px;
+      padding: 8.5px 16px;
+      border-bottom: 1px solid #f4f6f8;
+      color: #213053;
+      :global {
+        .ant-checkbox-wrapper {
+          width: calc(100% - 100px);
+        }
+        .ant-checkbox-wrapper > span:nth-child(2) {
+          width: calc(100% - 20px);
+        }
+      }
       .name {
         display: block;
         overflow: hidden;
@@ -15,39 +61,6 @@
         text-overflow: ellipsis;
         max-width: 450px;
       }
-
-      .path {
-        flex: 1;
-        overflow: hidden;
-        white-space: nowrap;
-        text-overflow: ellipsis;
-        max-width: 300px;
-        font-size: 12px;
-        color: #848c9f;
-      }
-
-      .path-box {
-        display: flex;
-
-        .cur-name {
-          display: block;
-          font-size: 12px;
-          font-weight: bold;
-          margin-left: 4px;
-          color: #091940;
-          max-width: 120px;
-          overflow: hidden;
-          white-space: nowrap;
-          text-overflow: ellipsis;
-        }
-      }
-    }
-
-    .detail-list {
-      padding: 8.5px 16px;
-      border-bottom: 1px solid #f4f6f8;
-      color: #213053;
-
       .title {
         display: block;
         overflow: hidden;

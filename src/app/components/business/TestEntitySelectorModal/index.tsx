@@ -67,6 +67,7 @@ export type TestEntitySelectorProps = {
   afterClose?: () => void;
   onCancel?: () => void;
   getContainer?: () => HTMLElement;
+  enableCaseVersion?: boolean; // 是否展示用例版本
 };
 
 const TestEntitySelector: React.FC<TestEntitySelectorProps> = props => {
@@ -85,6 +86,7 @@ const TestEntitySelector: React.FC<TestEntitySelectorProps> = props => {
     getContainer,
     caseSetId,
     isPlanForTestSet = false,
+    enableCaseVersion = false,
   } = props;
   const [visible, setVisible] = useSafeState(false);
   const debounceSelectContainerRef = React.useRef();
@@ -96,6 +98,8 @@ const TestEntitySelector: React.FC<TestEntitySelectorProps> = props => {
   const isTestDefectType = testType === TestType.TestDefect;
   // 测试类型名
   const testTypeName = t(`common.${TestTypeNameMapping[testType]}`);
+
+  const [versionMapKeySelected, setVersionMapKeySelected] = React.useState({})
 
   const [modelProps, setModelProps] = useSafeState<ModelProps | undefined>(undefined);
 
@@ -299,7 +303,7 @@ const TestEntitySelector: React.FC<TestEntitySelectorProps> = props => {
         eventBusRef.current.disposer = eventBusRef.current.register(
           AddExistedTestEventType,
           data => {
-            const { selectedData, treeType, planId } = data;
+            const { selectedData, treeType, planId, caseVersion } = data;
             const messageData = JSON.stringify(selectedData);
             if (PreviousMessageData === messageData) return;
             PreviousMessageData = messageData;
@@ -308,8 +312,9 @@ const TestEntitySelector: React.FC<TestEntitySelectorProps> = props => {
                 ? {
                     selectedData,
                     treeType,
+                    caseVersion,
                   }
-                : selectedData,
+                : { selectedData, caseVersion },
             );
             // 下一轮事件循环取消锁
             setTimeout(() => {
@@ -335,10 +340,10 @@ const TestEntitySelector: React.FC<TestEntitySelectorProps> = props => {
     }
 
     typeof props.onSelect === 'function' && props.onSelect(selectedData);
-
-    eventBusRef.current.dispatch(AddExistedTestEventType, { selectedData, treeType, planId });
+    eventBusRef.current.dispatch(AddExistedTestEventType, { selectedData, treeType, planId, caseVersion: versionMapKeySelected });
     setSelectValue(isSingleMode ? undefined : []);
     setVisible(false);
+    setVersionMapKeySelected({})
   }, [
     selectedTestDetails,
     testType,
@@ -350,6 +355,7 @@ const TestEntitySelector: React.FC<TestEntitySelectorProps> = props => {
     setVisible,
     selectValue,
     needFillValue,
+    versionMapKeySelected,
   ]);
 
   const filterOptions = React.useCallback(
@@ -428,6 +434,9 @@ const TestEntitySelector: React.FC<TestEntitySelectorProps> = props => {
         setTreeType={setTreeType}
         showDefaultRange={showDefaultRange}
         validateCaseStatus
+        enableCaseVersion={enableCaseVersion}
+        versionMapKeySelected={versionMapKeySelected}
+        setVersionMapKeySelected={setVersionMapKeySelected}
       />
     );
   }, [
@@ -439,6 +448,9 @@ const TestEntitySelector: React.FC<TestEntitySelectorProps> = props => {
     planId,
     treeType,
     showDefaultRange,
+    enableCaseVersion,
+    versionMapKeySelected,
+    setVersionMapKeySelected,
   ]);
 
   const ModalFooterNode = React.useMemo(() => {

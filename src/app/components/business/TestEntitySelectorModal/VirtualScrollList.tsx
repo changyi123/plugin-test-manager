@@ -1,15 +1,18 @@
 import { Checkbox, Empty, Tooltip } from 'antd';
-import { clone, pullAll } from 'lodash';
-import React, { useCallback, useMemo } from 'react';
+import _, { clone, pullAll } from 'lodash';
+import React, { useCallback, useMemo, useState } from 'react';
 import { GroupedVirtuoso } from 'react-virtuoso';
 
 import OverflowTooltip from '@/components/common/OverflowTooltip';
 import emptyImg from '@/icons/svg/empty-data.png';
 import useI18n from '@/lib/hooks/useI18n';
 import { getRootContainer } from '@/lib/utils/helper';
+import fetch from '@/lib/utils/fetch';
 
 import { filterIgnoreTestCaseId, getCheckedByType, handleGroupPath } from './helper';
 import { useCasePlanRule, useGetGroupNodeId, useGetVirtualScrollList } from './hooks';
+
+import CusDropdown from '@/components/business/TestEntitySelectorModal/CusDropdown';
 import cx from './VirtualScrollList.less';
 
 interface VirtualScrollListProps {
@@ -28,6 +31,9 @@ interface VirtualScrollListProps {
   setCurrent?: (val: number) => void;
   validateCaseStatus?: boolean;
   loading?: boolean;
+  enableCaseVersion?: boolean;
+  versionMapKeySelected?: Record<string, string>;
+  setVersionMapKeySelected?: any
 }
 
 const VirtualScrollList: React.FC<VirtualScrollListProps> = props => {
@@ -46,13 +52,35 @@ const VirtualScrollList: React.FC<VirtualScrollListProps> = props => {
     loading,
     testSetId,
     isPlanForTestSet = false,
+    enableCaseVersion = false,
+    versionMapKeySelected,
+    setVersionMapKeySelected
   } = props;
   const { t } = useI18n();
   const { groupArray, groups, totalCount } = useGetVirtualScrollList(group, current);
-  const items = useMemo(() => [...caseListMap.values()].flat(), [caseListMap]);
+  const [versionMapKey, setVersionMapKey] = useState({})
+  
+  const handleItemsLinkKeys = useCallback(async(_items) => {
+    const _keys = _.uniq(_.map(_items, 'key'))
+    const res = await fetch.post('/parse/api/search', {
+      iql:`'key' in ${JSON.stringify(_keys)} and 'baseLineSources' in ['BaseLineItemVersion'] order by createdAt desc`,
+      size: 9999,
+      includeHiddenItem: true
+    });
+    const _newArr = _.map(_.get(res, 'data.payload.items', []), (_case) => _.pick(_case, ['key', 'id', 'itemId', 'values.baseLineItemVersion.name']))
+    const _arrLableKey = _.map(_newArr, (_case) => ({ label:  _case?.values?.baseLineItemVersion?.name, value: _case.id, itemId: _case?.itemId, itemKey: _case?.key}))
+    const _versionMapKey = _.groupBy(_arrLableKey, 'itemKey')
+    setVersionMapKey(_versionMapKey)
+  }, [])
+
+  const items = useMemo(() => {
+    const _items = [...caseListMap.values()].flat()
+    handleItemsLinkKeys(_items)
+    return _items
+  }, [caseListMap]);
+
   const { groupNodeMap } = useGetGroupNodeId(group, allCaseIds);
   const { getToolTipFun } = useCasePlanRule(validateCaseStatus);
-
   const groupContent = useCallback(
     index => {
       const nodeCaseIds = groupNodeMap?.get(groups?.[index]?.key) ?? [];
@@ -103,6 +131,7 @@ const VirtualScrollList: React.FC<VirtualScrollListProps> = props => {
           >
             <PathDom name={pathName} />
           </Checkbox>
+          {enableCaseVersion && <div>用例版本</div>}
         </div>
       );
     },
@@ -114,6 +143,7 @@ const VirtualScrollList: React.FC<VirtualScrollListProps> = props => {
       selectCaseIdsSet,
       disabledIdsSet,
       setSelectCaseIdsSet,
+      enableCaseVersion,
     ],
   );
 
@@ -151,6 +181,21 @@ const VirtualScrollList: React.FC<VirtualScrollListProps> = props => {
               {items?.[index]?.name}
             </Tooltip>
           </Checkbox>
+          {enableCaseVersion && <CusDropdown
+            disabled={
+              ignoreTestDetailIdsSet?.has(items?.[index]?.id) ||
+              disabledIdsSet?.has(items?.[index]?.id) || !_.toArray(selectCaseIdsSet).includes(items?.[index]?.id)
+            }
+            option={versionMapKey[items?.[index]?.key] || []}
+            value={versionMapKeySelected[items?.[index]?.id] || '-'}
+            onChange={(v) =>  {
+              const _obj = {}
+              _obj[items?.[index]?.id] = v
+              setVersionMapKeySelected((_v) => {
+                return { ..._v, ..._obj }
+              })
+            }}
+          />}
         </div>
       );
     },
@@ -161,6 +206,9 @@ const VirtualScrollList: React.FC<VirtualScrollListProps> = props => {
       items,
       selectCaseIdsSet,
       setSelectCaseIdsSet,
+      enableCaseVersion,
+      versionMapKeySelected,
+      setVersionMapKeySelected,
     ],
   );
 

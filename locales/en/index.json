@@ -1178,6 +1178,14 @@
           "stepName": "Step name"
         }
       },
+      "testBatchUpateModel": {
+        "chooseUpateVersion": "Select the updated version",
+        "batchUpateExeCase": "Cas d’utilisation d’exécution de mise à jour en masse",
+        "msgUpateVersion": "Please select the updated version",
+        "batchCreateVersion": "Batch create versions",
+        "versionName": "Version name",
+        "placeholderVersionName": "Please enter the version name"
+      },
       "testStep": {
         "stepField": ["Step", "Expected", "Data", "Data"],
         "hasCircularInheritance": "The test case: [{{testCaseName}}] has a circular inheritance",
@@ -1208,7 +1216,8 @@
         "removeSearch": "Remove search item",
         "addSearch": " Add search item",
         "checkAllPages": "Select all",
-        "checkCurrentPage": "Select all on this page"
+        "checkCurrentPage": "Select all on this page",
+        "caseVersion": "Use case version"
       },
       "filterSearch": {
         "screenPlaceholder": "Please enter the search term keyword",
