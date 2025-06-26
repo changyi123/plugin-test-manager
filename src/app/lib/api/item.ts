@@ -24,6 +24,7 @@ import {
   TestFiledKeyMapping,
   TestRunDesigneeModel,
   TestRunExecutorModel,
+  TestSetModel,
   TestType,
 } from '../constants';
 import { BaseTestEntity, CopyTestCasePayload, Status, TestEntity } from '../types/Test';
@@ -66,6 +67,18 @@ export const handleSelector = selector => {
           ...data,
           component: 'Dropdown',
           fieldName: 'test_manager_repository',
+        }
+      : {};
+  }
+
+  if (has(customSelector, TestSetModel)) {
+    // 处理测试用例库筛选字段
+    const data = pick(customSelector, TestSetModel)?.[TestSetModel];
+    selectors[TestSetModel] = data
+      ? {
+          ...data,
+          component: 'Dropdown',
+          fieldName: TestSetModel,
         }
       : {};
   }

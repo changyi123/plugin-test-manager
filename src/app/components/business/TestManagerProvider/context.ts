@@ -68,6 +68,7 @@ export type BaseActionContextType = {
   getCreatePermission?: (val: string) => boolean;
   testPlanFieldKeys?: string[];
   testCaseFieldKeys?: string[];
+  testCaseSetFieldKeys?: string[];
   testExecutionFieldKeys?: string[];
   testReportFieldKeys?: string[];
   globalTestConfig: any;

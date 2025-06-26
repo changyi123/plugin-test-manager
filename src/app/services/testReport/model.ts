@@ -923,7 +923,7 @@ const TestReport = Parse.Object.extend('test_manager_TestReport', {
     const reportTemplateConfig = templateReportData.templateConfig;
 
     // 获取模板关联的 chart 数据
-    const chartGroupId = reportTemplateChartGroup.objectId;
+    const chartGroupId = reportTemplateChartGroup?.objectId;
     const chartDataList = await new Parse.Query(Chart)
       .equalTo('chartGroup', chartGroupId)
       .findAll({ json: true });

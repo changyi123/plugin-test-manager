@@ -91,7 +91,7 @@ const BatchResult: React.ForwardRefRenderFunction<BatchResultRefMethod, IProgres
 
   const hasFail = useMemo(() => batchResult?.fail > 0, [batchResult?.fail]);
 
-  if (!visible) return null;
+  if (!visible || props.hideNotification) return null;
 
   return (
     <>

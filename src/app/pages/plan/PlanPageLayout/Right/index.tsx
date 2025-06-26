@@ -45,7 +45,7 @@ interface RightProps {
   selectNode?: Record<string, unknown>;
   showRepoDropDown?: boolean;
   treeParams?: QueryLinkedTestEntityPayload;
-  /** 目录被选中 */
+    /** 目录被选中 */
   onFolderSelect?: (node?: any) => void;
 }
 
@@ -219,10 +219,10 @@ const Right: React.FC<RightProps> = props => {
     >
       <div className={cx('right-box-dropdown-text')}>
         <div className={cx('right-box-text')}>{selectNode?.name || t('common.allTestCase')}</div>
-        <DownOutlined style={{ color: '#b4bac6' }} />
+        <DownOutlined style={{ color: '#b4bac6' }}/>
       </div>
     </Dropdown>
-  );
+  )
   return (
     <div className={cx('right-box')}>
       <div data-element-id="test-manager-execution-table-header" className={cx('box-header')}>

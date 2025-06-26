@@ -4,7 +4,9 @@ import isEqual from 'lodash/isEqual';
 
 import { TestConfigClassName, TestType } from '../../../common/constant';
 import { buildResponse } from '../../lib/apiUtil';
-import { batchUpdateItemsValues } from '../../lib/batchRequest';
+import { batchUpdateItems, batchUpdateItemsValues } from '../../lib/batchRequest';
+import { buildTestEntityLinkData } from '../../lib/helper';
+import { testEntityFieldTypeValidator } from '../../lib/validator';
 
 const generateSortIndex = (index = 0) => {
   return Math.floor(Date.now() / 1000) * 10e5 + index * 1000;
@@ -14,7 +16,7 @@ const generateSortIndex = (index = 0) => {
 const isTestEntity = testType => Object.values(TestType).includes(testType);
 
 export const createdItemLinkType = async () => {
-  const { item } = global as any;
+  const { item, itemContext } = global as any;
   const ParseBaseQueryOptions = {
     sessionToken: global.sessionToken,
   };
@@ -24,6 +26,7 @@ export const createdItemLinkType = async () => {
   const testType = item.values?.r_test_manager_type;
 
   try {
+    let needUpdateItemValues;
     if (!item.values.r_test_manager_type) {
       console.info('createdItemLinkType ----------------->', JSON.stringify(item));
 
@@ -67,7 +70,7 @@ export const createdItemLinkType = async () => {
 
       if (!isTestEntity(testType)) {
         // 不存在测试实体需要判断是否需要新建
-        const needUpdateItemValues = { objectId } as any;
+        needUpdateItemValues = { objectId } as any;
         if (itemTypeMap) {
           const testEntityType = findKey(itemTypeMap, val => isEqual(val, itemType));
           if (!testEntityType) {
@@ -83,12 +86,45 @@ export const createdItemLinkType = async () => {
             'createdItemLinkType-sortIndex ------------->',
             needUpdateItemValues.sortIndex,
           );
-
           await batchUpdateItemsValues([needUpdateItemValues]);
         }
-        return buildResponse('created success');
       }
     }
+
+    // 如果是不是从事项单页创建的，走一下更新逻辑
+    if (itemContext?.test_manager?.autoCreateTestCase) {
+      const _data = itemContext.test_manager;
+      if (_data) {
+        const data = [
+          {
+            objectId: item.objectId,
+            type: 'TestCase',
+            repository: _data.repository,
+            detail: {
+              precondition: _data.precondition,
+              steps: _data.steps,
+            },
+            sortIndex: generateSortIndex(1),
+          },
+        ];
+
+        try {
+          // 需要更新的事项
+          const needUpdateItemData = await buildTestEntityLinkData(data as any); // 校验需要保存的参数
+          needUpdateItemData.forEach(testEntityFieldTypeValidator);
+          await batchUpdateItems(needUpdateItemData);
+        } catch (e) {
+          console.info('validate error: skipTestCaseCreate');
+        }
+      }
+    } else {
+      console.info('skipTestCaseCreate');
+    }
+
+    if (needUpdateItemValues) {
+      return buildResponse('created success');
+    }
+
     return buildResponse('have test entity');
   } catch (error) {
     return buildResponse(error);

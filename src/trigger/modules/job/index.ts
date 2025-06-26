@@ -975,21 +975,25 @@ export const addExecutionToPlanWorker = async (
       }
     };
 
-    if (withProcess)
-      await execWithProcess({
-        processId,
-        execFunc: addRunToPlan,
-        list: runs,
-        getDesc: () => JSON.stringify(result),
-        batchSize: itemsV2BatchSize,
-        getBatchRecord: () => false,
-      });
-    else
-      await batchExecFunction({
-        list: runs,
-        fun: addRunToPlan,
-        batchSize: itemsV2BatchSize,
-      });
+    if (runs?.length) {
+      if (withProcess)
+        await execWithProcess({
+          processId,
+          execFunc: addRunToPlan,
+          list: runs,
+          getDesc: () => JSON.stringify(result),
+          batchSize: itemsV2BatchSize,
+          getBatchRecord: () => false,
+        });
+      else
+        await batchExecFunction({
+          list: runs,
+          fun: addRunToPlan,
+          batchSize: itemsV2BatchSize,
+        });
+    } else {
+      await updateProcessBar(processId, 100, JSON.stringify(result));
+    }
 
     return buildResponse(result);
   } catch (err) {

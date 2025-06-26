@@ -55,6 +55,8 @@ type ProcessSwap<T> = T & {
   actionType?: ACTION_TYPE_ENUM;
   title?: string;
   key?: string;
+  hideNotification?: boolean;
+  zIndex?: number;
 };
 
 export async function createTestRunWithProcess(props: ProcessSwap<BatchCreateTestRunV2Payload>) {
@@ -128,6 +130,8 @@ export async function execWithProcess(
     actionType,
     handleSuccess: originHandleSuccess,
     handleFail,
+    hideNotification = false,
+    zIndex,
     ...params
   } = props;
 
@@ -248,15 +252,23 @@ export async function execWithProcess(
       processBarKey,
       handleSuccess,
       handleFail,
+      hideNotification,
     };
 
-    info({
+    const infoConfig = {
       title: propsTitle || title,
       content: <BatchResult {...batchResultParams} />,
       getContainer: getRootContainer,
       footer: null,
       closable: true,
-    });
+      zIndex,
+    };
+    //  todo 批量当单个处理时候，隐藏通知，在外面处理成功或者失败的逻辑
+    if (zIndex === undefined) {
+      delete infoConfig.zIndex;
+    }
+
+    info(infoConfig);
   } catch (e) {
     handleFail?.(e);
   }

@@ -1,5 +1,5 @@
 import { themeConfig } from '@giteeteam/apps-team-theme';
-import { PluginSDKContext } from '@projectproxima/plugin-sdk';
+import { PluginSDKContext } from '@giteeteam/plugin-sdk';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { ConfigProvider, Empty, message, notification } from 'antd';
 import type { ThemeConfig } from 'antd/lib';

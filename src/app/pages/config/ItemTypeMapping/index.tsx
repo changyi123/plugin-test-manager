@@ -11,7 +11,7 @@ import { useCurrentTestConfig, useDataContext } from '../hooks';
 
 const { ItemIcon } = components.Components.Common;
 
-import { useSDK } from '@projectproxima/plugin-sdk';
+import { useSDK } from '@giteeteam/plugin-sdk';
 
 import { savePanelDisplayConditions } from '@/lib/api/common';
 import { judgeTestReportVersion, TEST_REPORT_VERSION } from '@/lib/appEnv';
@@ -32,6 +32,10 @@ const TestTypes = [
   {
     type: TestType.Execution,
     title: 'testExecution',
+  },
+  {
+    type: TestType.CaseSet,
+    title: 'testCaseSet',
   },
 ];
 
@@ -122,6 +126,11 @@ const ItemTypeMapping = () => {
 
   // 保存
   const handleSave = async () => {
+    const validItemTypeMapArr = Object.values(itemTypeMapping).filter(Boolean);
+    if (validItemTypeMapArr?.length < testTypes?.length) {
+      return message.error(t('page.config.itemTypeMapping.pleaseSelectAllTypes'));
+    }
+
     await testConfig?.save({
       itemTypeMap: itemTypeMapping,
     });

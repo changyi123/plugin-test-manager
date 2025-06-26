@@ -9,6 +9,11 @@ const routes = [
     exact: true,
   },
   {
+    path: '/caseset',
+    component: React.lazy(() => import(/* webpackChunkName: "route_caseset" */ '../pages/caseset')),
+    exact: true,
+  },
+  {
     path: '/report',
     component: React.lazy(() => import(/* webpackChunkName: "route_report" */ '../pages/report')),
     exact: true,
@@ -25,7 +30,7 @@ const routes = [
   },
   {
     path: '/task',
-    component: React.lazy(() => import(/* webpackChunkName: "route_plan" */ '../pages/task')),
+    component: React.lazy(() => import(/* webpackChunkName: "route_task" */ '../pages/task')),
     exact: true,
   },
   {

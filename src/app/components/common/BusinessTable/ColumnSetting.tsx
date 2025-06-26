@@ -78,6 +78,10 @@ const ColumnSetting: React.FC<ColumnSettingProps> = props => {
     if (titleCellOption.testType === TestType.Case) {
       return testCaseFieldKeys;
     }
+    // todo 这个可能需要改造，但是没找到具体配置的位置
+    if (titleCellOption.testType === TestType.CaseSet) {
+      return testCaseFieldKeys;
+    }
     if (
       titleCellOption.testType === TestType.Report &&
       judgeTestReportVersion([TEST_REPORT_VERSION.V2])
@@ -486,5 +490,5 @@ const ColumnSetting: React.FC<ColumnSettingProps> = props => {
     </>
   );
 };
-
+ColumnSetting.displayName = 'ColumnSetting';
 export default ColumnSetting;
