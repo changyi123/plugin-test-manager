@@ -107,6 +107,11 @@
   resolved "https://registry.npmmirror.com/@emotion/unitless/-/unitless-0.7.5.tgz#77211291c1900a700b8a78cfafda3160d76949ed"
   integrity sha512-OWORNpfjMsSSUBVrRBVGECkhWcULOAJz9ZW8uK9qgxD+87M7jHRcvh/A96XXNhXTLmKcoYSQtBEX7lHMO7YRwg==
 
+"@giteeteam/proxima-sdk-js@^0.7.1":
+  version "0.7.1"
+  resolved "https://registry.npmmirror.com/@giteeteam/proxima-sdk-js/-/proxima-sdk-js-0.7.1.tgz#a215f8f72b5ec3647eafaa88a92aab26ae402860"
+  integrity sha512-fLE3bpfXoxMTyqkdIsFmO9ulR/HFJLmeOTM54Cjn+RNMuy6JDTzArl6AzeImqYZ8G0EKiH44NO3+ggl6mMQGPA==
+
 "@isaacs/cliui@^8.0.2":
   version "8.0.2"
   resolved "https://registry.npmmirror.com/@isaacs/cliui/-/cliui-8.0.2.tgz#b37667b7bc181c168782259bab42474fbf52b550"
