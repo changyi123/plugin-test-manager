@@ -118,6 +118,8 @@ modules:
       function: api-copy-folder-function
     - key: api-batch-update-execution-cases
       function: api-batch-update-execution-cases-function
+    - key: api-update-all-execution-cases
+      function: api-update-all-execution-cases-function
     # 数据统计
     - key: api-stats-test-plan
       function: api-stats-test-plan-function
@@ -407,6 +409,9 @@ modules:
     - key: api-batch-update-execution-cases-function
       handler: api.batchUpdateExecutionCases
       timeout: 300000
+    - key: api-update-all-execution-cases-function
+      handler: api.updateAllExecutionCases
+      timeout: 7200000
     # api stats
     - key: api-stats-test-plan-function
       handler: query.testPlanStats

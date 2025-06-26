@@ -26,6 +26,7 @@ export {
   batchLinkBugsToRun,
   batchRemoveBugsWithRun,
   batchUpdateExecutionCases,
+  updateAllExecutionCases,
   retry,
 } from './modules/api/batch';
 

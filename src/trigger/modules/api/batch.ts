@@ -1524,3 +1524,38 @@ export const batchUpdateExecutionCases = async () => {
 
   return updateExecutionCases(executionIds);
 };
+
+// 全量更新测试执行任务规划的用例数
+export const updateAllExecutionCases = async () => {
+  const executionIds = await getAllEntity({
+    query: {
+      type: TestType.Execution,
+    },
+  });
+
+  console.info('updateAllExecutionCases executionIds length', executionIds.length);
+
+  const queue = [];
+  const size = 500;
+  let index = 0;
+
+  for (let i = 0; i < executionIds.length; i += size) {
+    index++;
+    queue.push({
+      index,
+      executionIds: executionIds.slice(i, i + size),
+    });
+  }
+
+  console.info(`updateAllExecutionCases 合计 ${index} 批次`);
+
+  for (const item of queue) {
+    console.info(`updateAllExecutionCases ${item.index} 批次`, JSON.stringify(item.executionIds));
+
+    await updateExecutionCases(item.executionIds);
+
+    console.info(`updateAllExecutionCases ${item.index} 批次更新完成`);
+  }
+
+  console.info('updateAllExecutionCases-- complete');
+};

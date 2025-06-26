@@ -304,6 +304,7 @@ export async function updateExecutionCases(executionIds) {
 
     await bulkUpdateItems({
       updates,
+      parseContext: { skipCheckItemHandler: true },
     });
 
     return buildResponse(executionIds);
