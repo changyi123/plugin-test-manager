@@ -964,7 +964,7 @@
           "addTestExecution": "添加测试执行任务",
           "notSelectMessage": "未选择测试执行任务",
           "createReport": "创建测试报告",
-          "newTestCase": "新测试用例",
+          "newTestCase": "新建测试用例",
           "addHaveTestCase": "已有测试用例",
           "addCaseBySetCase": "用例集合中的用例"
         }
