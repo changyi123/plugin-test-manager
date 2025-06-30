@@ -7,6 +7,7 @@ import {
   IQLUsefulFieldKeys,
   SystemField,
   TestFiledKeyMapping,
+  TestLinkType,
 } from '../../common/constant';
 import { TestEntityLinkActionData } from '../../common/types/common';
 import { iqlRequest } from './iqlRequest';
@@ -70,6 +71,16 @@ export const buildTestEntityLinkData = async (data: TestEntityLinkActionData[]) 
 
     console.info(JSON.stringify(originalTestEntityMapping), 'originalTestEntityMapping');
 
+    const updateDataQuote = (isCaseOrExecution, originalLinkType, processedLinkData) => {
+      // 如果为用例或者执行任务时，需要同步更新测试计划引用字段
+      if (isCaseOrExecution) {
+        processedLinkData.testPlans = processedLinkData.linkItems;
+      } else if (originalLinkType === TestLinkType.RunLinkExecution) {
+        // 测试执行，同步更新测试执行任务引用字段
+        processedLinkData.testExecutions = processedLinkData.linkItems;
+      }
+    };
+
     needUpdateItemData = data
       .map(item => {
         const { linkItems, objectId } = item;
@@ -82,9 +93,15 @@ export const buildTestEntityLinkData = async (data: TestEntityLinkActionData[]) 
 
           const { action, value } = linkItems as any;
           const processedLinkData = { linkItems: value } as any;
+          const isCaseOrExecution = [
+            TestLinkType.CaseLinkPlan,
+            TestLinkType.ExecutionLinkPlan,
+          ].includes(originalLinkType);
           if (action === 'delete') {
             const linkItems = difference(originalLinkItems, value);
             processedLinkData.linkItems = linkItems?.length ? linkItems : [];
+            updateDataQuote(isCaseOrExecution, originalLinkType, processedLinkData);
+
             if (originalLinkType && !linkItems?.length) {
               processedLinkData.linkType = null;
             }
@@ -92,6 +109,7 @@ export const buildTestEntityLinkData = async (data: TestEntityLinkActionData[]) 
             console.info(value, originalLinkItems, 'add linkItems');
             if (value.every(i => originalLinkItems.includes(i))) return;
             processedLinkData.linkItems = Array.from(new Set([].concat(originalLinkItems, value)));
+            updateDataQuote(isCaseOrExecution, originalLinkType, processedLinkData);
           }
 
           return {

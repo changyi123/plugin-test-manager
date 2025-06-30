@@ -559,7 +559,6 @@ const TestEntityList: React.FC<TestEntityListProps> = ({
             action: 'delete',
             value: [planId],
           },
-          testPlans: (d.testPlans || []).filter(id => id !== planId),
           caseStatus: omit(d.caseStatus ?? {}, [planId]),
         })),
       );

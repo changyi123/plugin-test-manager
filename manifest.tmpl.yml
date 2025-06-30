@@ -782,6 +782,7 @@ modules:
       description: 测试管理内置字段-测试用例
       property:
         mode: multiple
+        showDataNumber: Y
     - key: testExecutions
       name: 测试执行任务
       type: DataQuote
@@ -790,6 +791,7 @@ modules:
       description: 测试管理内置字段-测试执行任务
       property:
         mode: multiple
+        showDataNumber: Y
     - key: testPlans
       name: 测试计划
       type: DataQuote
@@ -798,6 +800,7 @@ modules:
       description: 测试管理内置字段-测试计划
       property:
         mode: multiple
+        showDataNumber: Y
     - key: testDefects
       name: 测试缺陷
       type: DataQuote
@@ -806,6 +809,7 @@ modules:
       description: 测试管理内置字段-测试缺陷
       property:
         mode: multiple
+        showDataNumber: Y
   customItemType:
     - key: test_manager_detail
       name: 测试用例

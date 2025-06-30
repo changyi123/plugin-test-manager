@@ -256,7 +256,6 @@ const PlanPageLayout: React.FC<any> = () => {
               action: 'add',
               value: [extraData?.planId],
             },
-            testPlans: [extraData?.planId],
             sortIndex: generateSortIndex(),
           },
         ]);
