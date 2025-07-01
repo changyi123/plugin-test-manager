@@ -29,7 +29,7 @@ const TestTaskList: React.FC<any> = ({ listRef }) => {
   const { t } = useI18n();
   const actionRef = React.useRef<BusinessTableActionType>();
 
-  const { createItemUseModal, testExecutionFieldKeys } = useBaseAction();
+  const { createItemUseModal, testCaseSetFieldKeys } = useBaseAction();
   const { workspaceKey, selectedTestCaseSet, setTestCaseSet } = usePageContext();
 
   const [selectors, setSelectors] = useState([{}, {}]);
@@ -44,11 +44,11 @@ const TestTaskList: React.FC<any> = ({ listRef }) => {
     () =>
       [
         workspaceKey,
-        ...(testExecutionFieldKeys || []),
+        ...(testCaseSetFieldKeys || []),
         JSON.stringify(selectors),
         selectedTestCaseSet?.objectId,
       ].join('_'),
-    [workspaceKey, testExecutionFieldKeys, selectors, selectedTestCaseSet?.objectId],
+    [workspaceKey, testCaseSetFieldKeys, selectors, selectedTestCaseSet?.objectId],
   );
 
   const handleCreateCaseSet = async () => {
@@ -287,7 +287,7 @@ const TestTaskList: React.FC<any> = ({ listRef }) => {
             workspaceKey={workspaceKey}
             className={cx('test-manager-filter')}
             ref={detailSearchRef}
-            fields={getFilterFields([].concat(SystemFieldKeys, testExecutionFieldKeys))}
+            fields={getFilterFields([].concat(SystemFieldKeys, testCaseSetFieldKeys))}
             extendFields={[]}
             onSearch={setSelectors}
             testType={TestType.Execution}
