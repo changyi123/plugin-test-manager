@@ -299,15 +299,8 @@ const TestTaskList: React.FC<any> = ({ listRef }) => {
           workspaceKey,
           testType: TestType.CaseSet,
         }}
-        defaultColumnKey={[
-          'status',
-          'caseCount',
-          'assignee',
-          'createdAt',
-          'createdBy',
-          'caseStatus',
-        ]}
-        privateColumnKey={['caseCount', 'caseStatus', 'runCount']}
+        defaultColumnKey={['createdBy', 'yonglijiText', 'content']}
+        privateColumnKey={[]}
         rowKey="objectId"
         useColumnSetting
         columns={columns}
