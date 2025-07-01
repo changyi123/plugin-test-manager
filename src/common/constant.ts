@@ -60,6 +60,8 @@ export enum TestType {
   Run = 'TestRun',
   /** 测试用例 */
   Case = 'TestCase',
+  /** 测试用例集 */
+  CaseSet = 'TestCaseSet',
   /** 测试计划 */
   Plan = 'TestPlan',
   /** 测试缺陷 */
@@ -105,6 +107,7 @@ export const TestFieldTypeKeyMapping = {
   status: 'r_test_manager_es_text_keyword',
   linkItems: 'r_test_manager_es_array_keyword',
   plan: 'Text.keyword',
+  testSet: 'r_test_manager_referenceSet',
 };
 
 /** 测试管理自定义字段 key 映射 */
@@ -133,6 +136,7 @@ export const TestFiledKeyMapping = {
   detail: 'r_test_manager_detail',
   runDetail: 'r_test_manager_runDetail',
   comment: 'r_test_manager_comment',
+  testSet: 'r_test_manager_referenceSet',
 } as const;
 
 export const NotValidatorFiledKeyMapping = {
@@ -161,6 +165,7 @@ export const BuiltinFieldNameMapping = {
   executeCount: 'test_manager_executeCount',
   executeTime: 'r_test_manager_executeTime',
   caseRun: 'test_manager_caseRun',
+  testSet: 'r_test_manager_referenceSet',
   plan: 'test_manager_plan',
 
   // 不需要拼接

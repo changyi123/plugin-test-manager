@@ -377,6 +377,7 @@ export interface IBatchUpdateParams {
   notificationUrl?: string;
   timeout?: number;
   asynchronous?: boolean;
+  hideNotification?: boolean;
 }
 export type BatchUpdateProcessParams = ProcessApiParams<IBatchUpdateParams>;
 

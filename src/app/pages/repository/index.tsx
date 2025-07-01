@@ -1,4 +1,4 @@
-import { useSDK } from '@projectproxima/plugin-sdk';
+import { useSDK } from '@giteeteam/plugin-sdk';
 import { useRequest } from 'ahooks';
 import { cloneDeep } from 'lodash';
 import React from 'react';

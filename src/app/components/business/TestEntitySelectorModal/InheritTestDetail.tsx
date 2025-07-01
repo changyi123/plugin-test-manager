@@ -34,6 +34,8 @@ type InheritTestDetailProps = {
   onTestDetailSelect?: (testDetails) => void;
   selectValue?: string[];
   planId?: string;
+  caseSetId?: string;
+  isPlanForTestSet?: boolean;
   treeType?: string;
   showDefaultRange?: boolean;
   setTreeType?: (val: string) => void;

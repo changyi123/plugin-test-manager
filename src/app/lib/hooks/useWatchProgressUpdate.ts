@@ -8,6 +8,7 @@ export interface IProgressBarUpdateProps {
   processBarKey: string;
   handleSuccess?: (msg?: string) => void;
   handleFail?: (error?: Error) => void;
+  hideNotification?: boolean;
 }
 
 interface IProgressBarUpdateReturn {

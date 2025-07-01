@@ -1,4 +1,4 @@
-import { useSDK } from '@projectproxima/plugin-sdk';
+import { useSDK } from '@giteeteam/plugin-sdk';
 import { Result } from 'antd';
 import { t } from 'i18next';
 import React from 'react';
