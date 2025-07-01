@@ -11,6 +11,17 @@ import React, { useCallback, useEffect, useMemo, useState } from 'react';
 import { DragDropContext, Draggable, Droppable } from 'react-beautiful-dnd';
 
 import OverflowTooltip from '@/components/common/OverflowTooltip';
+
+// 下面方法应该放在 useFieldsWithFieldCellProps 这个函数里面处理，但是怕影响太大，所以先放着这里兜底
+function getValue(object, key) {
+  const customeFileldKeys = Object.values(TestFiledKeyMapping);
+  const index = customeFileldKeys.findIndex(item => item === key);
+  if (index > -1) {
+    const propertyKey = Object.keys(TestFiledKeyMapping)[index];
+    return object?.[propertyKey];
+  }
+  return object?.values?.[key];
+}
 import {
   AddSearch,
   DeleteIcon,
@@ -20,7 +31,7 @@ import {
   Setting,
 } from '@/icons';
 import { judgeTestReportVersion, TEST_REPORT_VERSION } from '@/lib/appEnv';
-import { TABLE_EXCLUDE_FIELDS, TestType } from '@/lib/constants';
+import { TABLE_EXCLUDE_FIELDS, TestFiledKeyMapping, TestType } from '@/lib/constants';
 import { useBaseAction } from '@/lib/hooks/useContext';
 import useI18n from '@/lib/hooks/useI18n';
 import { useFieldsWithFieldCellProps } from '@/lib/hooks/useProxima';
@@ -143,11 +154,15 @@ const ColumnSetting: React.FC<ColumnSettingProps> = props => {
         const { text, ...restTableCellProps } = fieldCellsPropDict[field.key] ?? {};
         if (!text || !itemData) return '-';
 
-        const textValue =
+        let textValue =
           !filedKeyText.includes(field.fieldType.key) && Array.isArray(text(itemData))
             ? text(itemData).map(d => d?.objectId ?? d)
             : text(itemData);
 
+        if (!textValue) {
+          textValue = getValue(record, field.key);
+          console.info('text 1234', textValue);
+        }
         const itemId = itemData.caseId || itemData.objectId || itemData.id;
 
         // 状态组件使用新版组件
