@@ -908,7 +908,9 @@ export const addExecutionToPlanWorker = async (
           },
         },
         fields: {
-          [TestFiledKeyMapping.linkType]: TestLinkType.CaseLinkPlan,
+          values: {
+            [TestFiledKeyMapping.linkType]: TestLinkType.CaseLinkPlan,
+          },
         },
         items: caseIds,
         asynchronous: false,
