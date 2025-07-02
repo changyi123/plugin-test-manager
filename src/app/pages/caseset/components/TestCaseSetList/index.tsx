@@ -1,6 +1,7 @@
 import { useMemoizedFn, useRequest } from 'ahooks';
 import { Button, message, notification, Space } from 'antd';
 import { uniq } from 'lodash';
+import _ from 'lodash';
 import { components } from 'proxima-sdk';
 import React, { useCallback, useMemo, useRef, useState } from 'react';
 
@@ -11,7 +12,7 @@ import FilterSearch from '@/components/common/FilterSearch';
 import { getFilterFields } from '@/components/common/FilterSearch/utils';
 import { BusinessTable } from '@/components/dynamicComponents';
 import { EditIcon } from '@/icons';
-import { deleteTestEntity, getTestEntityByQuery } from '@/lib/api/item';
+import { deleteTestEntity, getStatsTestSet, getTestEntityByQuery } from '@/lib/api/item';
 import { useCurrentUser } from '@/lib/api/user';
 import { getCurrentUserSetting, saveUserSetting } from '@/lib/api/userSetting';
 import { SystemField, TestFiledKeyMapping, TestType } from '@/lib/constants';
@@ -117,9 +118,27 @@ const TestTaskList: React.FC<any> = ({ listRef }) => {
     [queryDeps],
   );
 
-  const onSuccess = useMemoizedFn(async data => {
-    const { list = [] } = data ?? {};
+  const onSuccess = useMemoizedFn(async (data, mutate) => {
+    const { list = [], total } = data ?? {};
     setCanSelectCaseIds(list.map(i => i.objectId));
+    if (!list.length) return;
+
+    const stats = await getStatsTestSet({
+      testSetIds: list.map(d => d.objectId),
+      select: ['caseCount'],
+    });
+
+    mutate({
+      total,
+      list: _.chain(list)
+        .map(testSet => {
+          return {
+            ...testSet,
+            ...stats?.[testSet.objectId],
+          };
+        })
+        .value(),
+    });
   });
 
   const { data: currentFields } = useRequest(
@@ -179,12 +198,12 @@ const TestTaskList: React.FC<any> = ({ listRef }) => {
       },
     },
     {
-      key: 'runCount',
+      key: 'caseCount',
       title: t('components.business.testPlanList.planCaseCount'),
       align: 'right',
       width: 100,
       render(_, rowData) {
-        return <span>{rowData?.runCount}</span>;
+        return <span>{rowData?.caseCount}</span>;
       },
     },
     {
