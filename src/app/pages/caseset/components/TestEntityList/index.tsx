@@ -6,10 +6,13 @@ import { useRequest } from 'ahooks';
 import { message, notification } from 'antd';
 import { TestFiledKeyMapping, TestType } from 'common/constant';
 import { isEmpty } from 'lodash';
-import React, { useCallback, useEffect, useState } from 'react';
+import React, { useCallback, useEffect, useRef, useState } from 'react';
 
 import { updateItemsWithProcess } from '@/components/business/BatchResult/hooks';
 import RenderRepository from '@/components/business/RenderRepository';
+import TestEntitySelectorModal, {
+  ActionType as ModelActionType,
+} from '@/components/business/TestEntitySelectorModal';
 import UserCell from '@/components/business/UserCell';
 import { BusinessTable } from '@/components/common/BusinessTable';
 import type { BusinessTableActionType } from '@/components/common/BusinessTable/type';
@@ -19,7 +22,7 @@ import { useCurrentUser } from '@/lib/api/user';
 import { getCurrentUserSetting, saveUserSetting } from '@/lib/api/userSetting';
 import useI18n from '@/lib/hooks/useI18n';
 import { useUserCellUserDataProp } from '@/lib/hooks/useProxima';
-import { actionConfirm, openItemViewScreen } from '@/lib/utils/helper';
+import { actionConfirm, getTestManagerContainer, openItemViewScreen } from '@/lib/utils/helper';
 import { selectorToIql } from '@/lib/utils/iql';
 import { getRepositoryQuery } from '@/lib/utils/tree';
 
@@ -117,7 +120,6 @@ const TestEntityList: React.FC<TestEntityListProps> = ({
     useCallback(
       async queryParams => {
         const filterSelectors = selectorToIql(handleSelector(selectors));
-        console.info('filterSelectors', filterSelectors);
         const { list, total } = await getTestEntityByQuery({
           query: {
             workspaceKey: workspaceKey,
@@ -146,6 +148,9 @@ const TestEntityList: React.FC<TestEntityListProps> = ({
       setTableLoading(false);
     },
   );
+
+  const testSetEntitySelectorRef = useRef<ModelActionType>();
+  const [selectedTestSetIds, setSelectedTestSetIds] = useState([]);
 
   useEffect(() => {
     const [systemSelectors] = selectors ?? [];
@@ -329,6 +334,69 @@ const TestEntityList: React.FC<TestEntityListProps> = ({
     ];
   }, [removeTestCaseFromSet, t]);
 
+  // 获取用例集下面的测试用例
+  const getALlTestCaseByTestSetIds = useCallback(
+    async (testSetIds, selectCaseIds) => {
+      let iql = `'测试用例集' in [${testSetIds.map(id => `'${id}'`).join(',')}]`;
+      if (selectCaseIds?.length) {
+        iql += ` and 'id'  in [${selectCaseIds.map(id => `'${id}'`).join(',')}]`;
+      }
+      const { list, total } = await getTestEntityByQuery({
+        query: {
+          workspaceKey: workspaceKey,
+          type: TestType.Case,
+          repository: selectNode ? getRepositoryQuery(selectNode)?.repository : '',
+        },
+        onlySelectId: true,
+        selector: iql,
+      });
+      return {
+        list,
+        total,
+      };
+    },
+    [workspaceKey, selectNode],
+  );
+
+  // 按照用例集维度去移除用例
+  const batchRemoveByTestSet = useMemoizedFn(async () => {
+    //  如果没有用例，则置灰
+    const hasData = actionRef.current?.dataSource?.length;
+    if (!hasData) {
+      return notification.warning({
+        message: t('common.noData'),
+      });
+    }
+    setSelectedTestSetIds([]);
+    let testsets = [];
+    // todo 下面这个方法可以做一下性能优化，减少返回的字段。
+    const { list } = await testCaseTableDataGetter({
+      offset: 0,
+      limit: 99999,
+      onlyReturnId: true,
+    });
+    list.forEach(item => {
+      if (Array.isArray(item.testSet)) {
+        testsets.push(...(item.testSet || []).flat());
+      } else {
+        testsets.push(item.testSet);
+      }
+      testsets = [...new Set(testsets)];
+    });
+    setSelectedTestSetIds(testsets);
+    const testSetIds = await testSetEntitySelectorRef.current.open();
+    if (!testSetIds.length) {
+      return notification.warning({
+        message: t('modules.panel.testDetail.testCaseSetPanel.notSelectMessage'),
+      });
+    }
+    const { list: caseIds } = await getALlTestCaseByTestSetIds(
+      testSetIds,
+      list.map(item => item.objectId),
+    );
+    removeTestCaseFromSet(caseIds);
+  });
+
   // 全部用例批量操作
   const selectionActionNodes = React.useMemo(() => {
     const handleDelete = () => {
@@ -377,6 +445,13 @@ const TestEntityList: React.FC<TestEntityListProps> = ({
 
       <span className={cx('danger')} key="delete" onClick={() => hasRowSelected && handleDelete()}>
         <DeleteOutlined /> {t('common.remove')}
+      </span>,
+      <span
+        className={cx('danger', 'cursor-point')}
+        key="delete"
+        onClick={() => batchRemoveByTestSet()}
+      >
+        <DeleteOutlined /> {t('common.batchRemoveByTestSet')}
       </span>,
     ];
   }, [userData, hasRowSelected, t, workspaceKey, addAndDeleteRefresh]);
@@ -427,6 +502,14 @@ const TestEntityList: React.FC<TestEntityListProps> = ({
         selectionActionNodes={selectionActionNodes}
         onSelectionCancel={() => tableSelectionToggleEvent.emit(false)}
         handleFilterField={handleFilterField}
+      />
+      <TestEntitySelectorModal
+        title={t('common.batchRemoveByTestSetTitle')}
+        actionRef={testSetEntitySelectorRef}
+        testType={TestType.CaseSet}
+        ignoreTestEntityIds={[]}
+        includesIds={selectedTestSetIds}
+        getContainer={getTestManagerContainer}
       />
     </div>
   );

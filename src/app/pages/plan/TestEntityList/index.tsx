@@ -4,7 +4,12 @@ import { useListener } from '@projectproxima/proxima-sdk-js';
 import createProximaSdk from '@projectproxima/proxima-sdk-js';
 import { useMemoizedFn, useRequest } from 'ahooks';
 import { Button, message, notification, Tooltip } from 'antd';
-import { TestFiledKeyMapping, TestLinkType, TestType } from 'common/constant';
+import {
+  BuiltinFieldNameMapping,
+  TestFiledKeyMapping,
+  TestLinkType,
+  TestType,
+} from 'common/constant';
 import dayjs from 'dayjs';
 import { isEmpty, isEqual, keyBy, omit, pick } from 'lodash';
 import React, { useCallback, useEffect, useRef, useState } from 'react';
@@ -16,6 +21,9 @@ import {
 } from '@/components/business/BatchResult/hooks';
 import RenderRepository from '@/components/business/RenderRepository';
 import { StatusBadge } from '@/components/business/Status';
+import TestEntitySelectorModal, {
+  ActionType as SelectorActionType,
+} from '@/components/business/TestEntitySelectorModal';
 import TestRunModal, {
   ActionType as TestRunModalActionType,
   VERSION,
@@ -44,7 +52,7 @@ import useI18n from '@/lib/hooks/useI18n';
 import { useUserCellUserDataProp } from '@/lib/hooks/useProxima';
 import { useCanExecuteTestRunIdSequence, useTestRunActionAuth } from '@/lib/hooks/useTest';
 import { checkRunStatus } from '@/lib/utils/checkRunStatus';
-import { actionConfirm, openItemViewScreen } from '@/lib/utils/helper';
+import { actionConfirm, getTestManagerContainer, openItemViewScreen } from '@/lib/utils/helper';
 import { getTestCaseStatusModelValue, handleCustomerSelector } from '@/lib/utils/iql';
 import { getRepositoryQuery } from '@/lib/utils/tree';
 
@@ -109,6 +117,8 @@ const TestEntityList: React.FC<TestEntityListProps> = ({
   const { t } = useI18n();
   const proxima = createProximaSdk();
   const { config } = useTestConfig();
+  const [testsetIds] = useState([]);
+  const selectorModalRef = useRef<SelectorActionType>();
   const { getCreatePermission, testCaseFieldKeys, globalTestConfig } = useBaseAction();
 
   const actionRef = React.useRef<BusinessTableActionType>();
@@ -173,6 +183,8 @@ const TestEntityList: React.FC<TestEntityListProps> = ({
   const testPlanTableDataGetter = useFnHookTriggerFn(
     useCallback(
       async queryParams => {
+        // onlyReturnId 这个地方是为了全量查询用例下面有哪些用例集，为了性能。所以只返回需要的id, 以及对应测试用例集
+        const { onlyReturnId = false } = queryParams;
         if (
           !selectNode?.key ||
           !workspaceKey ||
@@ -199,7 +211,7 @@ const TestEntityList: React.FC<TestEntityListProps> = ({
 
         // 查询测试用例
         query.repository = getRepositoryQuery(selectNode, showType)?.repository;
-        const { list: testDetails, total } = await getLinkedTestEntityByQuery({
+        const params = {
           query: {
             workspaceKey: workspaceKey,
             type: TestType.Case,
@@ -211,8 +223,18 @@ const TestEntityList: React.FC<TestEntityListProps> = ({
           destinationType: TestType.Case,
           fields: [].concat(SystemFieldKeys, testCaseFieldKeys ?? []),
           selector,
-        });
+        };
+        if (onlyReturnId) {
+          params.fields = [TestFiledKeyMapping.testSet];
+        }
+        const { list: testDetails, total } = await getLinkedTestEntityByQuery(params);
 
+        if (onlyReturnId) {
+          return {
+            list: testDetails,
+            total: total,
+          };
+        }
         // 查询统计数据
         const stats = await getTestCaseStats({
           planId: selectedTestPlan.objectId,
@@ -251,7 +273,7 @@ const TestEntityList: React.FC<TestEntityListProps> = ({
     },
   );
 
-  const getTableDataByFilterRun = async params => {
+  const getTableDataByFilterRun = useMemoizedFn(async params => {
     const {
       workspaceKey,
       executionLinkRunIds,
@@ -262,6 +284,7 @@ const TestEntityList: React.FC<TestEntityListProps> = ({
       caseFieldKeys,
       selectNode,
       showType,
+      onlyReturnId = false,
     } = params;
 
     // 先筛选测试执行后查询测试用例
@@ -274,17 +297,19 @@ const TestEntityList: React.FC<TestEntityListProps> = ({
       sourceIds: [executionId],
       destinationType: TestType.Run,
       limit: 99999,
-      select: [
-        'id',
-        'referenceCase',
-        'referenceCaseSnapshot',
-        'designee',
-        'executor',
-        'sortIndex',
-        'status',
-        'executeCount',
-        'executeTime',
-      ],
+      select: onlyReturnId
+        ? ['id', 'referenceCase']
+        : [
+            'id',
+            'referenceCase',
+            'referenceCaseSnapshot',
+            'designee',
+            'executor',
+            'sortIndex',
+            'status',
+            'executeCount',
+            'executeTime',
+          ],
       selector: [{}, filterRunSelector],
     });
 
@@ -300,39 +325,44 @@ const TestEntityList: React.FC<TestEntityListProps> = ({
         id: [...runCaseMap.keys()],
         ...repository,
       },
-      fields: caseFieldKeys ?? [],
+      fields: onlyReturnId ? ['id', BuiltinFieldNameMapping.testSet] : caseFieldKeys ?? [],
       selector,
       ...queryParams,
     });
 
-    return {
-      list: cases?.map(c => {
-        const runData = pick(runCaseMap.get(c.id), [
-          'id',
-          'referenceCase',
-          'referenceCaseSnapshot',
-          'designee',
-          'executor',
-          'status',
-          'executeCount',
-          'executeTime',
-        ]);
+    return onlyReturnId
+      ? {
+          list: cases,
+          total,
+        }
+      : {
+          list: cases?.map(c => {
+            const runData = pick(runCaseMap.get(c.id), [
+              'id',
+              'referenceCase',
+              'referenceCaseSnapshot',
+              'designee',
+              'executor',
+              'status',
+              'executeCount',
+              'executeTime',
+            ]);
 
-        return {
-          ...c,
-          ...runData,
-          status: c.workflowStatus,
-          runStatus: runData.status,
-          runId: runData.id,
-          caseId: c.id,
-          objectId: runData.id,
-          id: runData.id,
-          repository: c.repository,
+            return {
+              ...c,
+              ...runData,
+              status: c.workflowStatus,
+              runStatus: runData.status,
+              runId: runData.id,
+              caseId: c.id,
+              objectId: runData.id,
+              id: runData.id,
+              repository: c.repository,
+            };
+          }),
+          total,
         };
-      }),
-      total,
-    };
-  };
+  });
   const getTableDataByFilterCase = async params => {
     const {
       workspaceKey,
@@ -408,6 +438,14 @@ const TestEntityList: React.FC<TestEntityListProps> = ({
       runCaseMap.set(config?.enableCaseSnapshot ? d.referenceCaseSnapshot : d.referenceCase, d);
     });
 
+    // onlyReturnId 说明只返回测试执行就可以
+    if (params.onlyReturnId) {
+      return {
+        list: runs,
+        total,
+      };
+    }
+
     return {
       list: cases?.map(c => {
         const runData = pick(runCaseMap.get(c.id), [
@@ -450,8 +488,16 @@ const TestEntityList: React.FC<TestEntityListProps> = ({
         !selectNode?.key ||
         activeType === 'TestPlan' ||
         !testCaseFieldKeys
-      )
+      ) {
+        // console.info(
+        //   selectedExecution?.objectId,
+        //   executionLinkRunIds?.length,
+        //   selectNode?.key,
+        //   activeType,
+        //   testCaseFieldKeys,
+        // );
         return EmptyListData;
+      }
 
       const caseFieldKeys = [].concat(SystemFieldKeys, testCaseFieldKeys ?? []);
       const [systemSelectors, customSelector] = selectors;
@@ -971,10 +1017,35 @@ const TestEntityList: React.FC<TestEntityListProps> = ({
     ],
   );
 
+  // 获取用例集下面的测试用例
+  const getALlTestCaseByTestSetIds = useCallback(
+    async (testSetIds, selectIds = []) => {
+      let iql = `'测试用例集' in [${testSetIds.map(id => `'${id}'`).join(',')}]`;
+      if (selectIds?.length) {
+        iql += ` and id in [${selectIds.map(id => `'${id}'`).join(',')}]`;
+      }
+      const { list, total } = await getTestEntityByQuery({
+        query: {
+          workspaceKey: workspaceKey,
+          type: TestType.Case,
+          repository: selectNode ? getRepositoryQuery(selectNode)?.repository : '',
+        },
+        onlySelectId: true,
+        selector: iql,
+      });
+      return {
+        list,
+        total,
+      };
+    },
+    [workspaceKey, selectNode],
+  );
+
+  const [selectedTestSetIds, setSelectedTestSetIds] = useState([]);
   // 全部用例批量操作
   const selectionActionNodes = React.useMemo(() => {
-    const handleDelete = () => {
-      if (hasRowSelected) {
+    const handleDelete = (isdeleteByTestSet = false, caseIdsInTestSet = []) => {
+      if (hasRowSelected || isdeleteByTestSet) {
         actionConfirm(
           {
             title: t('common.tip'),
@@ -989,8 +1060,12 @@ const TestEntityList: React.FC<TestEntityListProps> = ({
           async () => {
             // @TODO update V2 remove case from plan
             setTableLoading(true);
+            let caseIds = actionRef.current.selectedRowKeys ?? [];
+            if (isdeleteByTestSet) {
+              caseIds = caseIdsInTestSet;
+            }
             await removeCaseFromPlanWithProcess({
-              caseIds: actionRef.current.selectedRowKeys ?? [],
+              caseIds: caseIds,
               planId: selectedTestPlan?.objectId,
               handleSuccess: () => {
                 setTimeout(() => {
@@ -1007,6 +1082,49 @@ const TestEntityList: React.FC<TestEntityListProps> = ({
           },
         );
       }
+    };
+
+    // 按照用例集维度去移除用例
+    const batchRemoveByTestSet = async () => {
+      //  如果没有用例，则置灰
+      const hasData = actionRef.current?.dataSource?.length;
+      if (!hasData) {
+        return notification.warning({
+          message: t('common.noData'),
+        });
+      }
+      setSelectedTestSetIds([]);
+      let testsets = [];
+      // todo 下面这个方法可以做一下性能优化，减少返回的字段。
+      const { list } = await testPlanTableDataGetter({
+        offset: 0,
+        limit: 99999,
+        onlyReturnId: true,
+      });
+      list.forEach(item => {
+        if (Array.isArray(item.testSet)) {
+          testsets.push(...(item.testSet || []).flat());
+        } else {
+          testsets.push(item.testSet);
+        }
+
+        testsets = [...new Set(testsets)];
+      });
+      setSelectedTestSetIds(testsets);
+
+      const testSetIds = await selectorModalRef.current.open();
+      if (!testSetIds.length) {
+        return notification.warning({
+          message: t('modules.panel.testDetail.testCaseSetPanel.notSelectMessage'),
+        });
+      }
+      // 按照用例集id查询所有相关的用例，然后按照用例id
+
+      const { list: list1 } = await getALlTestCaseByTestSetIds(
+        testSetIds,
+        list.map(item => item.id),
+      );
+      handleDelete(true, list1);
     };
 
     // 更新负责人
@@ -1049,6 +1167,13 @@ const TestEntityList: React.FC<TestEntityListProps> = ({
 
       <span className={cx('danger')} key="delete" onClick={() => hasRowSelected && handleDelete()}>
         <DeleteOutlined /> {t('common.remove')}
+      </span>,
+      <span
+        className={cx('danger', 'cursor-point')}
+        key="delete"
+        onClick={() => batchRemoveByTestSet()}
+      >
+        <DeleteOutlined /> {t('common.batchRemoveByTestSet')}
       </span>,
     ];
   }, [userData, hasRowSelected, t, workspaceKey, addAndDeleteRefresh, selectedTestPlan?.objectId]);
@@ -1097,13 +1222,81 @@ const TestEntityList: React.FC<TestEntityListProps> = ({
       });
     };
 
-    const deleteTestRun = () => {
+    const deleteTestRun = (isDeleteByTestSet = false, caseIdsInTestSet = false) => {
       if (getCreatePermission(TestType.Case)) {
         message.error(t('page.plan.testEntityList.deleteItemTips'));
         return;
       }
-      const testRunIds = getTestRunIds();
+      const testRunIds = isDeleteByTestSet ? caseIdsInTestSet : getTestRunIds();
       deleteTestRunByIds(testRunIds);
+    };
+
+    // 按照用例集维度去移除用例
+    const batchRemoveByTestSet = async () => {
+      //  如果没有用例，则置灰
+      const hasData = actionRef.current?.dataSource?.length;
+      if (!hasData) {
+        return notification.warning({
+          message: t('common.noData'),
+        });
+      }
+      setSelectedTestSetIds([]);
+      let testsets = [];
+      // todo 下面这个方法可以做一下性能优化，减少返回的字段。
+      const { list } = await executionTableDataGetter({
+        offset: 0,
+        limit: 99999,
+        onlyReturnId: true,
+      });
+      list.forEach(item => {
+        if (Array.isArray(item.testSet)) {
+          testsets.push(...(item.testSet || []).flat());
+        } else {
+          testsets.push(item.testSet);
+        }
+
+        testsets = [...new Set(testsets)];
+      });
+      setSelectedTestSetIds(testsets);
+      const testSetIds = await selectorModalRef.current.open();
+      if (!testSetIds.length) {
+        return notification.warning({
+          message: t('modules.panel.testDetail.testCaseSetPanel.notSelectMessage'),
+        });
+      }
+      // 按照用例集id查询所有相关的用例，然后按照用例id
+
+      const { list: list1 } = await getALlTestCaseByTestSetIds(
+        testSetIds,
+        list.map(item => item.id),
+      );
+
+      const [systemSelectors, customSelector] = selectors;
+      const filterCaseSelector = omit(customSelector, [
+        TestRunDesigneeModel,
+        TestRunExecutorModel,
+        TestCaseStatusModel,
+      ]);
+      const { list: runs } = await getTableDataByFilterCase({
+        workspaceKey,
+        runLinkCaseIds: list1,
+        // runLinkSnapshotIds, // todo 这个东西需要搞明白是为什么
+        executionId: selectedExecution.objectId,
+        selector: [systemSelectors, filterCaseSelector],
+        queryParams: {
+          offset: 0,
+          limit: 999999,
+        },
+        caseFieldKeys: [TestFiledKeyMapping.testSet],
+        selectNode,
+        showType,
+        onlyReturnId: true,
+      });
+
+      deleteTestRun(
+        true,
+        runs.map(item => item.id),
+      );
     };
 
     // 更新测试执行人
@@ -1169,6 +1362,13 @@ const TestEntityList: React.FC<TestEntityListProps> = ({
       <span className={cx('danger')} key="delete" onClick={() => hasRowSelected && deleteTestRun()}>
         <DeleteOutlined /> {t('common.remove')}
       </span>,
+      <span
+        className={cx('danger', 'cursor-point')}
+        key="delete"
+        onClick={() => batchRemoveByTestSet()}
+      >
+        <DeleteOutlined /> {t('common.batchRemoveByTestSet')}
+      </span>,
     ];
   }, [
     canAssignTestRun,
@@ -1179,7 +1379,9 @@ const TestEntityList: React.FC<TestEntityListProps> = ({
     selectedTestPlan?.objectId,
     mutateStatusEvent,
     deleteTestRunByIds,
+    actionRef.current?.dataSource,
     t,
+    selectedTestSetIds,
   ]);
 
   tableSelectionToggleEvent.useSubscription(visible => {
@@ -1311,6 +1513,14 @@ const TestEntityList: React.FC<TestEntityListProps> = ({
           selectedTestPlanId={selectedTestPlan?.objectId}
         />
       )}
+      <TestEntitySelectorModal
+        title={t('common.batchRemoveByTestSetTitle')}
+        actionRef={selectorModalRef}
+        testType={TestType.CaseSet}
+        ignoreTestEntityIds={testsetIds}
+        includesIds={selectedTestSetIds}
+        getContainer={getTestManagerContainer}
+      />
     </div>
   );
 };

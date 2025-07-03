@@ -162,7 +162,7 @@ const TestTaskList: React.FC<any> = ({ listRef }) => {
 
   const columns: any[] = [
     {
-      width: 300,
+      width: 220,
       key: 'title',
       fixed: true,
       isSystem: true,
@@ -201,7 +201,7 @@ const TestTaskList: React.FC<any> = ({ listRef }) => {
       key: 'caseCount',
       title: t('components.business.testPlanList.planCaseCount'),
       align: 'right',
-      width: 100,
+      width: 70,
       render(_, rowData) {
         return <span>{rowData?.caseCount}</span>;
       },
@@ -318,8 +318,8 @@ const TestTaskList: React.FC<any> = ({ listRef }) => {
           workspaceKey,
           testType: TestType.CaseSet,
         }}
-        defaultColumnKey={['createdBy', 'yonglijiText', 'content']}
-        privateColumnKey={[]}
+        defaultColumnKey={['createdBy', 'yonglijiText', 'caseCount']}
+        privateColumnKey={['caseCount']}
         rowKey="objectId"
         useColumnSetting
         columns={columns}
