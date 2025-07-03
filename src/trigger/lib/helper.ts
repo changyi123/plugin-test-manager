@@ -93,10 +93,20 @@ export const buildTestEntityLinkData = async (data: TestEntityLinkActionData[]) 
 
           const { action, value } = linkItems as any;
           const processedLinkData = { linkItems: value } as any;
+
+          const currentLinkType = originalLinkType || (item as any).linkType;
           const isCaseOrExecution = [
             TestLinkType.CaseLinkPlan,
             TestLinkType.ExecutionLinkPlan,
-          ].includes(originalLinkType);
+          ].includes(currentLinkType);
+
+          console.info(
+            '-----originalLinkType',
+            originalLinkType,
+            isCaseOrExecution,
+            (item as any).linkType,
+            currentLinkType,
+          );
           if (action === 'delete') {
             const linkItems = difference(originalLinkItems, value);
             processedLinkData.linkItems = linkItems?.length ? linkItems : [];

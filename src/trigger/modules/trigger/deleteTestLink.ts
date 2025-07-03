@@ -54,14 +54,12 @@ export const deleteTestLink = async () => {
           testRuns?.filter(i => i.referenceCaseSnapshot)?.map(item => item.objectId) ?? [];
 
         const executionIdSet = new Set();
-        testRuns
-          ?.filter(i => !i.referenceCaseSnapshot)
-          ?.forEach(item => {
-            const executionId = item?.linkItems?.[0];
-            if (executionId) {
-              executionIdSet.add(executionId);
-            }
-          });
+        testRuns?.forEach(item => {
+          const executionId = item?.linkItems?.[0];
+          if (executionId) {
+            executionIdSet.add(executionId);
+          }
+        });
 
         console.info('deleteTestLink executionIds', JSON.stringify([...executionIdSet]));
 
