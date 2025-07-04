@@ -16,9 +16,9 @@
     "haveDelete": "已删除",
     "forbiddenActive": "已禁用",
     "pageTitle": {
-      "repository": "测试用例",
+      "repository": "测试用例库",
       "report": "测试报告",
-      "task": "测试执行任务",
+      "task": "测试任务",
       "plan": "测试计划",
       "testCaseSet": "测试用例集"
     },
@@ -615,6 +615,8 @@
     "repository": {
       "list": "列表",
       "minder": "脑图",
+      "expandAllCases": "展开全部用例详情",
+      "collapseAllCases": "收起全部用例详情",
       "folderTree": {
         "repositoryName": "模块名称",
         "placeholder": "请输入模块名",

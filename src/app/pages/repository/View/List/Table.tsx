@@ -16,7 +16,7 @@ import RepositorySelector, {
   ActionType as RepositorySelectorActionType,
 } from '@/components/business/RepositorySelector';
 import UserCell from '@/components/business/UserCell';
-import type { BusinessTableActionType } from '@/components/common/BusinessTable/type';
+import type { BusinessTableActionType, EnableCacheEpandedRowKeys } from '@/components/common/BusinessTable/type';
 import { BusinessTable } from '@/components/dynamicComponents';
 import {
   DeleteIcon,
@@ -45,6 +45,8 @@ import { SearchSelectors, selectorToIql } from '@/lib/utils/iql';
 import { UNGROUPED_FOLDER_KEY } from '../../constant';
 import CopyButton from '../Copy/Button';
 import cx from './Table.less';
+import TableCellTestDetailForm from '@/modules/beforeCreateOrUpdateModal/TableCellTestDetailForm';
+import { featureFlags, SupportFeatureFlags } from '@/lib/appEnv';
 
 const proxima = createProximaSdk();
 
@@ -184,6 +186,7 @@ type TestDetailTableProps = {
   breadcrumbs?: string[];
   repository?: Record<string, any>;
   selector?: SearchSelectors | string;
+  enableCacheEpandedRowKeys?: EnableCacheEpandedRowKeys
 };
 
 const TestDetailTable: React.FC<TestDetailTableProps> = props => {
@@ -200,8 +203,10 @@ const TestDetailTable: React.FC<TestDetailTableProps> = props => {
     repository,
     selector,
     breadcrumbs,
+    enableCacheEpandedRowKeys,
   } = props;
   const { t } = useI18n();
+  const enableRepositoryTableStep = featureFlags(SupportFeatureFlags.ENABLE_REPOSITORY_TABLE_STEP);
   const externalDataLoading =
     typeof externalDataLoadingProp === 'boolean' ? externalDataLoadingProp : false;
 
@@ -537,7 +542,19 @@ const TestDetailTable: React.FC<TestDetailTableProps> = props => {
         },
         render(_, rowData) {
           const folderKey = rowData?.repository ?? UNGROUPED_FOLDER_KEY;
-
+          if (enableRepositoryTableStep) {
+            return (
+              <span
+                className="test-case-title"
+                data-drawer-handle-target
+                data-element-id="row-title"
+                style={{ cursor: 'pointer' }}
+              >
+                {rowData?.name}
+              </span>
+            );
+          }
+          
           return (
             <>
               <RowDragBox
@@ -612,7 +629,7 @@ const TestDetailTable: React.FC<TestDetailTableProps> = props => {
               >
                 <a>{t('common.copy')}</a>
               </CopyButton>
-              <a onClick={() => deleteTestDetail(rowData)}>{t('common.delete')}</a>
+              <a onClick={() => deleteTestDetail(rowData)} style={{ color: 'red' }}>{t('common.delete')}</a>
             </Space>
           );
         },
@@ -655,6 +672,19 @@ const TestDetailTable: React.FC<TestDetailTableProps> = props => {
         handleFilterField={handleFilterField}
         queryDeps={queryDeps}
         virtualSelectAll
+        enableCacheEpandedRowKeys={enableCacheEpandedRowKeys}
+        expandable={enableRepositoryTableStep && {
+          expandedRowClassName: () => {
+            return cx('expandedRowClassName')
+          },
+          expandedRowRender: record => {
+            return (
+              <div className={cx('form')}>
+                <TableCellTestDetailForm values={record?.detail ?? {}} objectId={record?.objectId}/>
+              </div>
+            )
+          },
+        }}
       />
       <RepositorySelector actionRef={repositorySelectorRef} />
     </>
