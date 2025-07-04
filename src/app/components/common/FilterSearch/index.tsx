@@ -419,7 +419,7 @@ const FilterSearch: React.ForwardRefRenderFunction<FilterRefMethod, FilterSearch
     return (
       await getTestEntityByQuery({
         query: {
-          workspaceKey: workspaceKey,
+          workspaceKey: workspace?.key,
           type: TestType.CaseSet,
         },
         fields: ['id', 'name'],
@@ -430,7 +430,7 @@ const FilterSearch: React.ForwardRefRenderFunction<FilterRefMethod, FilterSearch
       value: item.objectId,
       label: item.name,
     }));
-  }, [globalTestConfig, t]);
+  }, [globalTestConfig, t, workspace?.key]);
 
   const extendFetch = useCallback(async () => {
     const query = new Parse.Query(Repository);
