@@ -1,6 +1,7 @@
 import { useMemoizedFn, useRequest } from 'ahooks';
 import { Button, message, notification, Space } from 'antd';
 import { uniq } from 'lodash';
+import _ from 'lodash';
 import { components } from 'proxima-sdk';
 import React, { useCallback, useMemo, useRef, useState } from 'react';
 
@@ -11,7 +12,7 @@ import FilterSearch from '@/components/common/FilterSearch';
 import { getFilterFields } from '@/components/common/FilterSearch/utils';
 import { BusinessTable } from '@/components/dynamicComponents';
 import { EditIcon } from '@/icons';
-import { deleteTestEntity, getTestEntityByQuery } from '@/lib/api/item';
+import { deleteTestEntity, getStatsTestSet, getTestEntityByQuery } from '@/lib/api/item';
 import { useCurrentUser } from '@/lib/api/user';
 import { getCurrentUserSetting, saveUserSetting } from '@/lib/api/userSetting';
 import { SystemField, TestFiledKeyMapping, TestType } from '@/lib/constants';
@@ -29,7 +30,7 @@ const TestTaskList: React.FC<any> = ({ listRef }) => {
   const { t } = useI18n();
   const actionRef = React.useRef<BusinessTableActionType>();
 
-  const { createItemUseModal, testExecutionFieldKeys } = useBaseAction();
+  const { createItemUseModal, testCaseSetFieldKeys } = useBaseAction();
   const { workspaceKey, selectedTestCaseSet, setTestCaseSet } = usePageContext();
 
   const [selectors, setSelectors] = useState([{}, {}]);
@@ -44,11 +45,11 @@ const TestTaskList: React.FC<any> = ({ listRef }) => {
     () =>
       [
         workspaceKey,
-        ...(testExecutionFieldKeys || []),
+        ...(testCaseSetFieldKeys || []),
         JSON.stringify(selectors),
         selectedTestCaseSet?.objectId,
       ].join('_'),
-    [workspaceKey, testExecutionFieldKeys, selectors, selectedTestCaseSet?.objectId],
+    [workspaceKey, testCaseSetFieldKeys, selectors, selectedTestCaseSet?.objectId],
   );
 
   const handleCreateCaseSet = async () => {
@@ -117,9 +118,27 @@ const TestTaskList: React.FC<any> = ({ listRef }) => {
     [queryDeps],
   );
 
-  const onSuccess = useMemoizedFn(async data => {
-    const { list = [] } = data ?? {};
+  const onSuccess = useMemoizedFn(async (data, mutate) => {
+    const { list = [], total } = data ?? {};
     setCanSelectCaseIds(list.map(i => i.objectId));
+    if (!list.length) return;
+
+    const stats = await getStatsTestSet({
+      testSetIds: list.map(d => d.objectId),
+      select: ['caseCount'],
+    });
+
+    mutate({
+      total,
+      list: _.chain(list)
+        .map(testSet => {
+          return {
+            ...testSet,
+            ...stats?.[testSet.objectId],
+          };
+        })
+        .value(),
+    });
   });
 
   const { data: currentFields } = useRequest(
@@ -143,7 +162,7 @@ const TestTaskList: React.FC<any> = ({ listRef }) => {
 
   const columns: any[] = [
     {
-      width: 300,
+      width: 220,
       key: 'title',
       fixed: true,
       isSystem: true,
@@ -179,12 +198,12 @@ const TestTaskList: React.FC<any> = ({ listRef }) => {
       },
     },
     {
-      key: 'runCount',
+      key: 'caseCount',
       title: t('components.business.testPlanList.planCaseCount'),
       align: 'right',
-      width: 100,
+      width: 70,
       render(_, rowData) {
-        return <span>{rowData?.runCount}</span>;
+        return <span>{rowData?.caseCount}</span>;
       },
     },
     {
@@ -287,7 +306,7 @@ const TestTaskList: React.FC<any> = ({ listRef }) => {
             workspaceKey={workspaceKey}
             className={cx('test-manager-filter')}
             ref={detailSearchRef}
-            fields={getFilterFields([].concat(SystemFieldKeys, testExecutionFieldKeys))}
+            fields={getFilterFields([].concat(SystemFieldKeys, testCaseSetFieldKeys))}
             extendFields={[]}
             onSearch={setSelectors}
             testType={TestType.Execution}
@@ -299,15 +318,8 @@ const TestTaskList: React.FC<any> = ({ listRef }) => {
           workspaceKey,
           testType: TestType.CaseSet,
         }}
-        defaultColumnKey={[
-          'status',
-          'caseCount',
-          'assignee',
-          'createdAt',
-          'createdBy',
-          'caseStatus',
-        ]}
-        privateColumnKey={['caseCount', 'caseStatus', 'runCount']}
+        defaultColumnKey={['createdBy', 'yonglijiText', 'caseCount']}
+        privateColumnKey={['caseCount']}
         rowKey="objectId"
         useColumnSetting
         columns={columns}

@@ -136,7 +136,9 @@
     "stepStatusNoMatch": "步骤状态不符合",
     "descriptionRequire": "必须先输入结果描述",
     "objectNotFound": "该数据已被删除，请刷新页面",
-    "versionTip": "该面板在历史版本下暂不支持"
+    "versionTip": "该面板在历史版本下暂不支持",
+    "batchRemoveByTestSet": "用例集维度批量移除",
+    "batchRemoveByTestSetTitle": "按照用例集维度批量移除用例"
   },
   "report": {
     "overViewData": {
