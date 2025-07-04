@@ -135,7 +135,7 @@ const Header: React.FC<HeaderProps> = ({
             className={cx('icon')}
             onClick={() => {
               setSelectedTestPlan(undefined);
-              setActiveType('TestPlan');
+              setActiveType('TestExecution');
             }}
           />
           <TestPlanSelector />
