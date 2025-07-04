@@ -111,7 +111,28 @@ const TestEntityList: React.FC<TestEntityListProps> = ({
     },
   );
 
-  const [allCanSelectTestIds, setAllCanSelectTestIds] = useState([]);
+  const { data: allCanSelectTestIds, refresh } = useRequest(
+    async () => {
+      const filterSelectors = selectorToIql(handleSelector(selectors));
+      const { list } = await getTestEntityByQuery({
+        query: {
+          workspaceKey: workspaceKey,
+          type: TestType.Case,
+          repository: selectNode ? getRepositoryQuery(selectNode)?.repository : '',
+        },
+        onlySelectId: true,
+        limit: 99999,
+        selector: `${filterSelectors ? `${filterSelectors} and ` : ''}'测试用例集' in ['${
+          selectedTestCaseSet.objectId
+        }']`,
+      });
+      return list;
+    },
+    {
+      ready: Boolean(workspaceKey),
+      refreshDeps: [selectNode, selectors, activeType, selectedTestCaseSet.objectId],
+    },
+  );
   // 获取全部用例 getter
   const testCaseTableDataGetter = useFnHookTriggerFn(
     useCallback(
@@ -129,14 +150,13 @@ const TestEntityList: React.FC<TestEntityListProps> = ({
             selectedTestCaseSet.objectId
           }']`,
         });
-        setAllCanSelectTestIds(list.map(d => d.objectId));
         //  需要把testSet字段拍平处理，这样少调用一个接口
         return {
           list: list,
           total: total,
         };
       },
-      [selectNode, selectors, activeType, selectedTestCaseSet.objectId, setAllCanSelectTestIds],
+      [selectNode, selectors, activeType, selectedTestCaseSet.objectId],
     ),
     () => {
       setTableLoading(true);
@@ -189,6 +209,7 @@ const TestEntityList: React.FC<TestEntityListProps> = ({
         setTimeout(() => {
           addAndDeleteRefresh();
           mutateTestTableList.emit('refreshTable');
+          refresh();
         }, 500);
       },
       handleFail: error => {
