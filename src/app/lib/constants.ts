@@ -506,7 +506,7 @@ export const getExtendFields = t => [
     },
   },
   {
-    key: TestSetModel,
+    key: '测试用例集',
     name: '测试用例集',
     objectId: TestSetModel,
     fieldType: {

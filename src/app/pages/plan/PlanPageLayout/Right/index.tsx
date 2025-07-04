@@ -24,7 +24,6 @@ import {
   RepositoryModel,
   TestFiledKeyMapping,
   TestLinkType,
-  TestSetModel,
   TestType,
 } from '@/lib/constants';
 import { useBaseAction } from '@/lib/hooks/useContext';
@@ -153,7 +152,7 @@ const Right: React.FC<RightProps> = props => {
     const fieldsMapping = {
       // 测试用例类型筛选，只有测试用例库模块
       TestPlan: getExtendFields(t).filter(field =>
-        [RepositoryModel, TestSetModel].includes(field.key),
+        [RepositoryModel, '测试用例集'].includes(field.key),
       ),
       // 测试执行搜索
       TestExecution: getExtendFields(t),
