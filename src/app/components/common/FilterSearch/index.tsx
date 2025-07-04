@@ -415,7 +415,6 @@ const FilterSearch: React.ForwardRefRenderFunction<FilterRefMethod, FilterSearch
     });
   }, []);
 
-  // todo 查询这个空间下的用例集
   const extendFetchTestSet = useCallback(async () => {
     return (
       await getTestEntityByQuery({
@@ -425,6 +424,7 @@ const FilterSearch: React.ForwardRefRenderFunction<FilterRefMethod, FilterSearch
         },
         fields: ['id', 'name'],
         notConcatField: true,
+        limit: 9999,
       })
     )?.list?.map(item => ({
       value: item.objectId,
@@ -610,6 +610,7 @@ const FilterSearch: React.ForwardRefRenderFunction<FilterRefMethod, FilterSearch
                 backup,
                 document.querySelector(`#${selectTagId}-${item?.fieldId}`),
               );
+              console.info('props', backup, props);
               openFieldValuePopover(props as any);
             }}
             onDelete={onDeleteSelector}
