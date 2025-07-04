@@ -28,9 +28,9 @@ const TableCellTestDetailFormReadOnly: React.FC<TestDetailFormProps> = ({ values
 
   const columns = [
     { title: '#', width: 20, dataIndex: 'index', render: (value, record, index) =>  index + 1 },
-    { title: '步骤', dataIndex: 'action', render: (value) =>  getEditorOrStringText(value) || '-' },
-    { title: '预期', dataIndex: 'result', render: (value) =>  getEditorOrStringText(value) || '-' },
-    { title: '数据', dataIndex: 'data', render: (value) =>  getEditorOrStringText(value) || '-' },
+    { title: t('components.business.testStep.stepField.0'), dataIndex: 'action', render: (value) =>  getEditorOrStringText(value) || '-' },
+    { title: t('components.business.testStep.stepField.1'), dataIndex: 'result', render: (value) =>  getEditorOrStringText(value) || '-' },
+    { title: t('components.business.testStep.stepField.2'), dataIndex: 'data', render: (value) =>  getEditorOrStringText(value) || '-' },
   ];
   return (
     <div className={cx('form')}>
