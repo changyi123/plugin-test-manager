@@ -42,9 +42,9 @@ const TestStep: React.FC<TestStepProps> = ({
   readonly,
 }) => {
   const { t } = useI18n();
-  const isInitialStepRef = React.useRef(false);
+  // const isInitialStepRef = React.useRef(false);
   const testEntitySelectorRef = React.createRef<TestEntitySelectorActionType>();
-  const [steps, _setSteps] = React.useState([]);
+  const [steps, _setSteps] = React.useState(stepsProps);
 
   const setSteps = React.useCallback(
     newSteps => {
@@ -99,23 +99,27 @@ const TestStep: React.FC<TestStepProps> = ({
 
       swap({ sourceIndex, destinationIndex }) {
         const newSteps = Array.from(steps);
-        const [movedStep] = newSteps.splice(sourceIndex, 1);
-        newSteps.splice(destinationIndex, 0, { ...(movedStep || {}), copy: true });
+        const [movedStep]= newSteps.splice(sourceIndex, 1);
+        newSteps.splice(destinationIndex, 0, { ...((movedStep as any) || {}), copy: true });
         setSteps(newSteps);
       },
     };
   }, [setSteps, steps]);
 
   // 数据初始化
+  // React.useEffect(() => {
+  //   if (!isInitialStepRef.current) {
+  //     const hasStepsProp = hasArrayItem(stepsProps);
+  //     if (hasStepsProp) {
+  //       setSteps(stepsProps);
+  //       isInitialStepRef.current = true;
+  //     }
+  //   }
+  // }, [setSteps, stepsProps, stepActions]);
+
   React.useEffect(() => {
-    if (!isInitialStepRef.current) {
-      const hasStepsProp = hasArrayItem(stepsProps);
-      if (hasStepsProp) {
-        setSteps(stepsProps);
-        isInitialStepRef.current = true;
-      }
-    }
-  }, [setSteps, stepsProps, stepActions]);
+    setSteps(stepsProps);
+  }, [setSteps, stepsProps]);
 
   React.useImperativeHandle(actionRef, () => ({
     filter() {},

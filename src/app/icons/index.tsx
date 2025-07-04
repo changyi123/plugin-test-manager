@@ -18,6 +18,9 @@ export {
   QuestionCircleOutlined,
   ControlOutlined,
   ReloadOutlined,
+  PlusCircleTwoTone,
+  MinusCircleTwoTone,
+  CaretRightOutlined
 } from '@ant-design/icons';
 
 export * from './customIcon';
