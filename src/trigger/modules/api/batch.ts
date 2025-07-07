@@ -49,7 +49,6 @@ import {
   batchCreateItemWithProgress,
   batchUpdateItems,
   batchUpdateItemsValues,
-  updateExecutionCases,
 } from '../../lib/batchRequest';
 import {
   buildTestEntityLinkData,
@@ -64,10 +63,12 @@ import {
 } from '../../lib/helper';
 import { iqlRequest } from '../../lib/iqlRequest';
 import { getItemCreateRequiredAttrs, getItemTypeFromKey } from '../../lib/item';
+import { updateCaseDefects, updateExecutionCases, updateExecutionDefects } from '../../lib/update';
 import { testEntityFieldTypeValidator, throwArgumentError } from '../../lib/validator';
 import {
   addExecutionToPlanWorker,
   batchDeleteItems,
+  batchDeleteRuns,
   copyFolder,
   copyTesCases,
   createTestRuns,
@@ -169,6 +170,32 @@ export const batchDeleteV2 = async () => {
           headers,
         ),
       syncFunc: async () => await batchDeleteItems({ ids }),
+    });
+  } catch (err) {
+    return buildResponse(err);
+  }
+};
+
+/** 批量删除 */
+export const batchDeleteRun = async () => {
+  try {
+    const { body } = getReqInfoFromVMRuntime<BatchDeleteProcessParams>();
+    const { ids, key } = body;
+    if (!Array.isArray(ids)) throwArgumentError('ids', 'objectId[]');
+
+    return await batchRequestDecorator({
+      key,
+      asyncFunc: processId =>
+        requestCoreApi(
+          'POST',
+          `/api/app/${global.env.TENANT_KEY}/${global.appKey}/webhooks/job-batch-delete-runs`,
+          {
+            ...body,
+            processId,
+          },
+          headers,
+        ),
+      syncFunc: async () => await batchDeleteRuns(body),
     });
   } catch (err) {
     return buildResponse(err);
@@ -1234,79 +1261,6 @@ const addItemLinks = async ({
   await saveAllObject(bugLinks);
 };
 
-// 获取引用了测试用例的测试执行
-const getCaseRuns = async caseId => {
-  const {
-    data: { list: runList },
-  } = await iqlRequest<TestRunType>({
-    query: {
-      referenceCase: [caseId],
-      type: TestType.Run,
-    },
-    pagination: { limit: InfinityLimit },
-    fields: [SystemField.Id, TestFiledKeyMapping.runDetail, TestFiledKeyMapping.referenceCase],
-  });
-
-  return runList || [];
-};
-
-// 更新测试用例的测试缺陷字段
-const updateCaseDefects = async caseIds => {
-  if (!caseIds?.length) {
-    console.info('updateCaseDefects  caseIds is null', JSON.stringify(caseIds));
-    return;
-  }
-
-  const getDefectItemIds = runList => {
-    const runDetails = runList?.map(d => d?.runDetail).filter(Boolean) ?? [];
-
-    const stepDefectIds = runDetails
-      .filter(d => d?.steps)
-      .map(d => d.steps)
-      .flat()
-      .map(d => d.defectItemIds ?? [])
-      .flat();
-
-    const runDefectItemIds = runDetails.map(d => d?.defectItemIds ?? []).flat();
-    return [...new Set([...stepDefectIds, ...runDefectItemIds])].filter(Boolean);
-  };
-
-  const runList = await getCaseRuns(caseIds);
-
-  console.info('updateCaseDefects case runs', JSON.stringify(runList));
-
-  const caseRunMap = runList.reduce((result, run) => {
-    const caseId = run.referenceCase;
-    if (caseId) {
-      if (!result[caseId]) {
-        result[caseId] = [];
-      }
-      result[caseId].push(run);
-    }
-    return result;
-  }, {});
-
-  const updates = Object.keys(caseRunMap).map(caseId => {
-    const runs = caseRunMap[caseId];
-    const defectItemIds = getDefectItemIds(runs);
-    return {
-      itemIds: [caseId],
-      customField: TestFiledKeyMapping.testDefects,
-      value: defectItemIds,
-    };
-  });
-
-  console.info('updateCaseDefects updates', JSON.stringify(updates));
-
-  if (!updates.length) {
-    return;
-  }
-
-  await bulkUpdateItems({
-    updates,
-  });
-};
-
 // 关联执行和缺陷
 export const batchLinkBugsToRun = async () => {
   const {
@@ -1361,7 +1315,7 @@ export const batchLinkBugsToRun = async () => {
       ],
     });
 
-    await updateCaseDefects([caseId]);
+    await Promise.all([updateExecutionDefects([executionId]), updateCaseDefects([caseId])]);
 
     return buildResponse(defectItemIds);
   } catch (error) {
@@ -1471,7 +1425,7 @@ export const batchRemoveBugsWithRun = async () => {
       ],
     });
 
-    await updateCaseDefects([caseId]);
+    await Promise.all([updateExecutionDefects([executionId]), updateCaseDefects([caseId])]);
 
     return buildResponse(defectItemIds);
   } catch (error) {

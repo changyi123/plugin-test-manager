@@ -8,12 +8,9 @@ import {
   TestType,
 } from '../../../common/constant';
 import { buildResponse } from '../../lib/apiUtil';
-import {
-  batchDeleteItems,
-  batchUpdateItemsValues,
-  updateExecutionCases,
-} from '../../lib/batchRequest';
+import { batchDeleteItems, batchUpdateItemsValues } from '../../lib/batchRequest';
 import { iqlRequest } from '../../lib/iqlRequest';
+import { updateExecutionCasesAndDefects } from '../../lib/update';
 
 export const deleteTestLink = async () => {
   const { item } = global as any;
@@ -86,7 +83,7 @@ export const deleteTestLink = async () => {
       }
       if (executionIdSet.size) {
         fn = async () => {
-          await updateExecutionCases([...executionIdSet]);
+          await updateExecutionCasesAndDefects([...executionIdSet]);
         };
       }
     }

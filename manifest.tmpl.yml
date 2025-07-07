@@ -60,6 +60,8 @@ modules:
       function: api-batch-delete-function
     - key: api-batch-delete-v2
       function: api-batch-delete-v2-function
+    - key: api-batch-delete-run
+      function: api-batch-delete-run-function
     - key: api-batch-update-items-v2
       function: api-batch-update-items-v2-function
     - key: api-batch-update
@@ -80,6 +82,8 @@ modules:
       function: job-create-test-run-function
     - key: job-batch-delete-items
       function: job-batch-delete-items-function
+    - key: job-batch-delete-runs
+      function: job-batch-delete-runs-function
     - key: job-update-items-v2
       function: job-update-items-v2-function
     - key: job-copy-test-case
@@ -301,6 +305,9 @@ modules:
     - key: api-batch-delete-function
       handler: api.batchDelete
       timeout: 300000
+    - key: api-batch-delete-run-function
+      handler: api.batchDeleteRun
+      timeout: 300000
      # api batch
     - key: api-batch-update-items-v2-function
       handler: api.batchUpdateItemsV2
@@ -334,6 +341,10 @@ modules:
       timeout: 3600000
     - key: job-batch-delete-items-function
       handler: job.batchDeleteItemsJob
+      # 60 分钟超时时长
+      timeout: 3600000
+    - key: job-batch-delete-runs-function
+      handler: job.batchDeleteRunsJob
       # 60 分钟超时时长
       timeout: 3600000
     - key: job-update-items-v2-function

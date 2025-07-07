@@ -8,6 +8,7 @@ export {
 export {
   batchDelete,
   batchDeleteV2,
+  batchDeleteRun,
   batchUpdate,
   batchUpdateValue,
   batchCopyTestCase,

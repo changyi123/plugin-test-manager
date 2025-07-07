@@ -293,3 +293,17 @@ export const updateBatchRecordsDone = async (ids: string[]): Promise<void> => {
   });
   await saveAllObject(records);
 };
+
+export const getDefectItemIds = runList => {
+  const runDetails = runList?.map(d => d?.runDetail).filter(Boolean) ?? [];
+
+  const stepDefectIds = runDetails
+    .filter(d => d?.steps)
+    .map(d => d.steps)
+    .flat()
+    .map(d => d.defectItemIds ?? [])
+    .flat();
+
+  const runDefectItemIds = runDetails.map(d => d?.defectItemIds ?? []).flat();
+  return [...new Set([...stepDefectIds, ...runDefectItemIds])].filter(Boolean);
+};

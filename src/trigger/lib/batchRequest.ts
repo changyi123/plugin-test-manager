@@ -4,11 +4,9 @@ import isNil from 'lodash/isNil';
 import pick from 'lodash/pick';
 import times from 'lodash/times';
 
-import { TestFiledKeyMapping } from '../../common/constant';
 import { BaseTestEntity, TestEntity } from '../../common/types/test';
 import { compactNilValue, testEntityToItemValues } from '../../common/utils/dataTransfer';
 import { logTimeCost } from '../lib/logger';
-import { buildResponse } from './apiUtil';
 import {
   batchCreateWithProgress,
   bulkCreateItems,
@@ -16,7 +14,6 @@ import {
   deleteItems,
   updateItems,
 } from './coreApi';
-import { getExecutionCases } from './statistics';
 /** 并发数量 */
 const ParallelLimit = global.env?.ParallelLimit ?? 10;
 const UnRefreshLimit = global.env?.UnRefreshLimit ?? 10;
@@ -265,52 +262,4 @@ export async function batchCreateItemWithProgress(
     asynchronous,
     parseContext: CreateApiParseContext,
   });
-}
-
-export async function updateExecutionCases(executionIds) {
-  console.info('---updateExecutionCases executionIds', JSON.stringify(executionIds));
-  try {
-    const data = await getExecutionCases(executionIds);
-
-    console.info('---updateExecutionCases execution cases', JSON.stringify(data));
-
-    const updates = [];
-
-    const ids = [];
-
-    data?.value?.forEach(item => {
-      const itemId = item[TestFiledKeyMapping.linkItems];
-
-      ids.push(itemId);
-      updates.push({
-        itemIds: [itemId],
-        customField: TestFiledKeyMapping.executionCases,
-        value: item.count,
-      });
-    });
-
-    // 没查询出来，即表示为0
-    executionIds
-      .filter(id => !ids.includes(id))
-      .forEach(id => {
-        updates.push({
-          itemIds: [id],
-          customField: TestFiledKeyMapping.executionCases,
-          value: 0,
-        });
-      });
-
-    console.info('---updateExecutionCases updates', JSON.stringify(updates));
-
-    await bulkUpdateItems({
-      updates,
-      parseContext: { skipCheckItemHandler: true },
-    });
-
-    return buildResponse(executionIds);
-  } catch (err) {
-    console.info('---updateExecutionCases error');
-    console.error(err);
-    return buildResponse(err);
-  }
 }

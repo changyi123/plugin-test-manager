@@ -16,7 +16,7 @@ import React, { useCallback, useEffect, useMemo, useState } from 'react';
 
 import {
   createTestRunWithProcess,
-  deleteV1WithProcess,
+  deleteRunWithProcess,
   updateItemsWithProcess,
 } from '@/components/business/BatchResult/hooks';
 import DropDownButton from '@/components/business/DropDownButton';
@@ -31,7 +31,6 @@ import TestRunModal, {
 } from '@/components/business/TestRunModal';
 import { useTestTypeScreenFieldKeys } from '@/components/common/BusinessTable/hook';
 import {
-  batchUpdateExecutionCases,
   getLinkedTestEntityByQuery,
   getTestEntityByQuery,
   getUpdateParams,
@@ -228,10 +227,9 @@ const Test = () => {
         return;
       }
       // 删除测试和测试执行的关联
-      await deleteV1WithProcess({
+      await deleteRunWithProcess({
         ids: testRunIds,
         handleSuccess: () => {
-          batchUpdateExecutionCases([testEntity?.objectId]);
           refreshDepData();
           message.success(t('common.deleteSuccess'));
         },
@@ -240,7 +238,7 @@ const Test = () => {
         },
       });
     },
-    [getCreatePermission, refreshDepData, t, testEntity?.objectId],
+    [getCreatePermission, refreshDepData, t],
   );
 
   // table column 数据
