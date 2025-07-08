@@ -87,6 +87,7 @@ const getExecutionDefectUpdates = async executionIds => {
     if (runs?.length) {
       defectItemIds = getDefectItemIds(runs);
     }
+    defectItemIds.sort();
     updates.push({
       itemIds: [executionId],
       customField: TestFiledKeyMapping.testDefects,
@@ -203,6 +204,7 @@ export const updateCaseDefects = async caseIds => {
   caseIds.forEach(caseId => {
     const runs = caseRunMap[caseId] || [];
     const defectItemIds = getDefectItemIds(runs);
+    defectItemIds.sort();
 
     updates.push({
       itemIds: [caseId],

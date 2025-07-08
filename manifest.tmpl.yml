@@ -489,6 +489,10 @@ modules:
       handler: exporter.runScript
     # - key: test-manager-item-after-save-function
     #   handler: trigger.itemAfterSave
+    - key: iql-function-test-execution-cases
+      handler: iqlFunction.testExecutionCases
+    - key: iql-function-test-case-executions
+      handler: iqlFunction.testCaseExecutions
 
   proxima:itemDetail:
     - key: test-manager-item-detail
@@ -626,6 +630,13 @@ modules:
         title: importer.itemFields.executor
       - key: executionCount
         title: importer.itemFields.executionCount
+  proxima:iqlFunction:
+    - key: iql-test-execution-cases
+      name: TestExecutionCases
+      function: iql-function-test-execution-cases
+    - key: iql-test-case-executions
+      name: TestCaseExecutions
+      function: iql-function-test-case-executions
   proxima:exporter:
     function: test-manager-export-script
   # 初始化 dataType 为 object， array 的数据类型
