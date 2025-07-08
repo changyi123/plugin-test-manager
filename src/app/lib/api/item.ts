@@ -10,6 +10,7 @@ import {
   TestCountPayload,
   TestExecutionStatsPayload,
   TestPlanStatsPayload,
+  TestSetStatsPayload,
 } from 'common/types/api';
 import { has, omit, pick, uniq } from 'lodash';
 import { merge } from 'lodash';
@@ -210,6 +211,16 @@ export const getTestStats = async (props: TestCountPayload) => {
 // 测试计划统计查询
 export const getStatsTestPlan = async (props: TestPlanStatsPayload) => {
   const { data: res } = await fetch.post(`${pluginWebTriggerBaseUrl}/api-stats-test-plan`, {
+    ...props,
+    sessionToken: getSessionToken(),
+  });
+
+  return res.data;
+};
+
+// 测试计划统计查询
+export const getStatsTestSet = async (props: TestSetStatsPayload) => {
+  const { data: res } = await fetch.post(`${pluginWebTriggerBaseUrl}/api-stats-test-set`, {
     ...props,
     sessionToken: getSessionToken(),
   });

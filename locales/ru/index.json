@@ -653,6 +653,8 @@
     "repository": {
       "list": "Список",
       "minder": "?->Ментальная карта",
+      "expandAllCases": "Рассредоточить все детали по делу",
+      "collapseAllCases": "Соберите все материалы по делу",
       "folderTree": {
         "repositoryName": "Имя",
         "placeholder": "Введите название модуля",

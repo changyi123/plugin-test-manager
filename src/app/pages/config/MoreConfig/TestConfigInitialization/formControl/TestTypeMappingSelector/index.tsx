@@ -3,6 +3,7 @@ import { components } from 'proxima-sdk';
 import React from 'react';
 import { useTranslation } from 'react-i18next';
 
+import { judgeTestReportVersion, TEST_REPORT_VERSION } from '@/lib/appEnv';
 import { TestType } from '@/lib/constants';
 import { commonQuery } from '@/services/query';
 
@@ -27,11 +28,11 @@ const TestTypes = [
     type: TestType.CaseSet,
     title: 'testCaseSet',
   },
-  {
+  judgeTestReportVersion(TEST_REPORT_VERSION.V2) && {
     type: TestType.Report,
     title: 'testReport',
   },
-];
+].filter(Boolean);
 
 const TestTypeMappingSelector: React.FC<any> = ({ value, onChange }) => {
   const { t } = useTranslation();

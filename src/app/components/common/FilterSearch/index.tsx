@@ -415,22 +415,22 @@ const FilterSearch: React.ForwardRefRenderFunction<FilterRefMethod, FilterSearch
     });
   }, []);
 
-  // todo 查询这个空间下的用例集
   const extendFetchTestSet = useCallback(async () => {
     return (
       await getTestEntityByQuery({
         query: {
-          workspaceKey: workspaceKey,
+          workspaceKey: workspace?.key,
           type: TestType.CaseSet,
         },
         fields: ['id', 'name'],
         notConcatField: true,
+        limit: 9999,
       })
     )?.list?.map(item => ({
       value: item.objectId,
       label: item.name,
     }));
-  }, [globalTestConfig, t]);
+  }, [globalTestConfig, t, workspace?.key]);
 
   const extendFetch = useCallback(async () => {
     const query = new Parse.Query(Repository);
@@ -610,6 +610,7 @@ const FilterSearch: React.ForwardRefRenderFunction<FilterRefMethod, FilterSearch
                 backup,
                 document.querySelector(`#${selectTagId}-${item?.fieldId}`),
               );
+              console.info('props', backup, props);
               openFieldValuePopover(props as any);
             }}
             onDelete={onDeleteSelector}

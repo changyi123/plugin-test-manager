@@ -123,6 +123,7 @@ export const queryLinkedTestEntity = async () => {
       destinationType,
       sortByRepositoryIds,
       sourceIds: originalSourceIds,
+      notConcatField = false,
     } = body;
 
     const sourceIds = toArray(originalSourceIds).filter(Boolean);
@@ -141,7 +142,7 @@ export const queryLinkedTestEntity = async () => {
         sourceIds,
         destinationType,
       },
-      fields: concatIqlRequestFields(fields),
+      fields: notConcatField ? fields : concatIqlRequestFields(fields),
       ...overwriteIqlParamsWithOnlySelectId(onlySelectId),
       ...overwriteIqlParamsWithSelect(select),
     });

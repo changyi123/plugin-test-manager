@@ -45,8 +45,8 @@ const StepFields: React.FC<{
 
   return (
     <>
-      {changeFieldsWithImpl.map(field => (
-        <span key={field.key} className={cx('column', 'field')}>
+      {fieldsWithImpl.map(field => (
+        <span key={field.key} className={cx('column', 'field', `field-${field.key}`)}>
           <Form.Item name={[stepId, field.key]} noStyle>
             {React.createElement(
               field.component,
@@ -136,7 +136,7 @@ const StepRow: React.FC<StepRowProps> = props => {
 
   const renderDraggableChild = (provider, snapshot) => {
     const isHover = isMouseHover && !snapshot.isDragging && !readonly;
-    console.info(readonly, 'renderDraggableChild');
+    // console.info(readonly, 'renderDraggableChild');
 
     const child = (
       <div
@@ -358,7 +358,7 @@ const StepList: React.FC<StepListProps> = ({ steps, actions, hasRequiredTip, rea
           <div className={cx('header')}>
             <span className={cx('column', 'drag-area')}>#</span>
             {ActualStepFieldImpl.map(field => (
-              <span className={cx('column', 'field')} key={field.key}>
+              <span className={cx('column', 'field', `field-${field.key}`)} key={field.key}>
                 {t(`components.business.testStep.${field.title}`)}
                 {(field as any).hasRequiredTip && <span className={cx('required')}>*</span>}
               </span>
