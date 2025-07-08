@@ -636,10 +636,10 @@ modules:
         title: importer.itemFields.executionCount
   proxima:iqlFunction:
     - key: iql-test-execution-cases
-      name: TestExecutionCases
+      name: testExecutionCases
       function: iql-function-test-execution-cases
     - key: iql-test-case-executions
-      name: TestCaseExecutions
+      name: testCaseExecutions
       function: iql-function-test-case-executions
   proxima:exporter:
     function: test-manager-export-script

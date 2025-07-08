@@ -13,11 +13,21 @@ const log = (...args) => {
 
 // 根据测试执行任务查询规划的测试用例
 export const testExecutionCases = async ({ payload }: { payload: IPayload }) => {
-  const { field, operator, arguments: executionIds } = payload;
+  const { field, operator, arguments: args } = payload;
 
   log('testExecutionCases-field', JSON.stringify(field));
   log('testExecutionCases-operator', JSON.stringify(operator));
-  log('testExecutionCases-arguments', JSON.stringify(executionIds));
+  log('testExecutionCases-arguments', JSON.stringify(args));
+
+  let executionIds = args?.[0];
+
+  if (!executionIds?.length) {
+    return { iql: 'id in []' };
+  }
+
+  if (!Array.isArray(executionIds)) {
+    executionIds = [executionIds];
+  }
 
   const runs = await getAllEntity(
     {
@@ -46,11 +56,21 @@ export const testExecutionCases = async ({ payload }: { payload: IPayload }) => 
 
 // 根据测试用例查询引用的测试执行任务
 export const testCaseExecutions = async ({ payload }: { payload: IPayload }) => {
-  const { field, operator, arguments: caseIds } = payload;
+  const { field, operator, arguments: args } = payload;
 
   log('testCaseExecutions-field', JSON.stringify(field));
   log('testCaseExecutions-operator', JSON.stringify(operator));
-  log('testCaseExecutions-arguments', JSON.stringify(caseIds));
+  log('testCaseExecutions-arguments', JSON.stringify(args));
+
+  let caseIds = args?.[0];
+
+  if (!caseIds?.length) {
+    return { iql: 'id in []' };
+  }
+
+  if (!Array.isArray(caseIds)) {
+    caseIds = [caseIds];
+  }
 
   const runs = await getAllEntity(
     {
