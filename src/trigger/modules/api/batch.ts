@@ -63,7 +63,12 @@ import {
 } from '../../lib/helper';
 import { iqlRequest } from '../../lib/iqlRequest';
 import { getItemCreateRequiredAttrs, getItemTypeFromKey } from '../../lib/item';
-import { updateCaseDefects, updateExecutionCases, updateExecutionDefects } from '../../lib/update';
+import {
+  updateCaseDefects,
+  updateExecutionCases,
+  updateExecutionCasesAndDefects,
+  updateExecutionDefects,
+} from '../../lib/update';
 import { testEntityFieldTypeValidator, throwArgumentError } from '../../lib/validator';
 import {
   addExecutionToPlanWorker,
@@ -283,6 +288,7 @@ const getRunDataByLinkItemDelete = async data => {
   return {
     runIds,
     executionIds,
+    caseIds: runDataInfo.caseIds ?? [],
   };
 };
 
@@ -307,15 +313,19 @@ export const batchUpdate = async () => {
   ];
 
   // 移除测试计划下的测试用例关联的测试执行
-  const { runIds: needDeleteTestRunIds, executionIds } = await getRunDataByLinkItemDelete(data);
+  const {
+    runIds: needDeleteTestRunIds,
+    executionIds,
+    caseIds,
+  } = await getRunDataByLinkItemDelete(data);
   if (needDeleteTestRunIds?.length) {
     tasks.push(batchDeleteItems({ ids: needDeleteTestRunIds }));
   }
 
   const [res] = await Promise.all(tasks);
-  // 删除测试执行后，更新测试执行任务引用的引用数
+  // 删除测试执行后，更新测试执行任务的用例数、缺陷，测试用例的缺陷
   if (executionIds?.length) {
-    await updateExecutionCases(executionIds);
+    await Promise.all([updateExecutionCasesAndDefects(executionIds), updateCaseDefects(caseIds)]);
   }
 
   return buildResponse(res.filter(Boolean).map(data => itemToTestEntity(data.item)));
