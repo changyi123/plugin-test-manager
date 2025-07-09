@@ -21,7 +21,7 @@ const getCurrentNodeContainer = target => target.parentNode;
 const getPopupContainer = () => document.getElementById('test-manager');
 interface OverflowTooltip {
   className?: string;
-  title?: string | React.ReactElement;
+  title?: string | React.ReactElement | React.ReactElement[];
   children: any; // TODO: 可参考 PropTypes 的 ReactNodeLike，暂时先用any
   // 是否禁用，在一些需要react-whether去判断的场景有用
   disabled?: boolean;
