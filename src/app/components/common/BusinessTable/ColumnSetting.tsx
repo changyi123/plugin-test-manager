@@ -5,12 +5,13 @@ import createProximaSdk from '@projectproxima/proxima-sdk-js';
 import { useDeepCompareEffect, useLocalStorageState, useUpdateEffect } from 'ahooks';
 import { Button, Drawer, message, Select, Spin, Tooltip } from 'antd';
 import { ColumnType } from 'antd/lib/table';
-import { getAllReadComponents, StatusCell, TableCell } from 'apps-team-components-v1';
+import { getAllReadComponents, StatusCell } from 'apps-team-components-v1';
 import { keyBy, noop } from 'lodash';
 import React, { useCallback, useEffect, useMemo, useState } from 'react';
 import { DragDropContext, Draggable, Droppable } from 'react-beautiful-dnd';
 
 import OverflowTooltip from '@/components/common/OverflowTooltip';
+import TableCell from '@/components/common/table-components';
 
 // 下面方法应该放在 useFieldsWithFieldCellProps 这个函数里面处理，但是怕影响太大，所以先放着这里兜底
 function getValue(object, key) {
@@ -161,10 +162,8 @@ const ColumnSetting: React.FC<ColumnSettingProps> = props => {
 
         if (!textValue) {
           textValue = getValue(record, field.key);
-          console.info('text 1234', textValue);
         }
         const itemId = itemData.caseId || itemData.objectId || itemData.id;
-
         // 状态组件使用新版组件
         if (field?.key === 'status') {
           return (
@@ -183,11 +182,11 @@ const ColumnSetting: React.FC<ColumnSettingProps> = props => {
             />
           );
         }
-        if (record.name === '5555') console.info(restTableCellProps, textValue);
         return (
           <TableCell
             {...restTableCellProps}
             text={textValue}
+            itemId={itemId}
             cellData={textValue}
             column={{ ...field, cellType: field?.fieldType.defaultKey }}
             values={itemData.values}
