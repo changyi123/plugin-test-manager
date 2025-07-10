@@ -561,14 +561,14 @@ export const batchCreateTestRunJob = async () => {
       }, []);
       const workspaceConfigs = await getParseQuery(false, 'test_manager_TestConfig')
         .containedIn('workspaceKey', workspaceKeys)
-        .select(['workspaceKey', 'enableCaseSnapshot'])
+        .select(['workspaceKey', 'caseSnapshot'])
         .findAll({ useMasterKey: true })
         .then(data =>
           data?.reduce((m, i) => {
             return {
               ...m,
               [i.get('workspaceKey')]: global.env?.ENABLED_CASE_SNAPSHOT
-                ? i.get('enableCaseSnapshot')
+                ? i.get('caseSnapshot')
                 : global.env?.DEFAULT_ENABLED_CASE_SNAPSHOT,
             };
           }, {}),

@@ -38,6 +38,7 @@ import {
   updateProcessBar,
 } from '../../lib/helper';
 import { iqlRequest } from '../../lib/iqlRequest';
+import { CASESNAPSHOT_TYPE } from '@/lib/constants';
 
 type TestRunType = TestEntity<TestType.Run>;
 type ProcessJobParams<T> = T & {
@@ -211,18 +212,18 @@ export const createTestRuns = async (params: ProcessJobParams<BatchCreateTestRun
 
     // 获取快照配置
     const getCaseSnapshotEnabled = async () => {
-      let caseSnapshotEnabled = undefined;
+      let caseSnapshot = undefined;
       // 如果 ENABLED_CASE_SNAPSHOT 为 true 开启快照空间配置，需要查询空间的快照配置
       if (global.env?.ENABLED_CASE_SNAPSHOT) {
-        caseSnapshotEnabled = await getParseQuery(false, 'test_manager_TestConfig')
+        caseSnapshot = await getParseQuery(false, 'test_manager_TestConfig')
           .equalTo('workspaceKey', workspace.key)
-          .select(['enableCaseSnapshot'])
+          .select(['caseSnapshot'])
           .first({ useMasterKey: true })
-          .then(data => data?.get('enableCaseSnapshot'));
+          .then(data => data?.get('caseSnapshot'));
       }
 
       // 没有快照配置 则以默认值 DEFAULT_ENABLED_CASE_SNAPSHOT 为准
-      return caseSnapshotEnabled ?? global.env?.DEFAULT_ENABLED_CASE_SNAPSHOT;
+      return [CASESNAPSHOT_TYPE.AUTO_BUILDVERSION].includes(caseSnapshot?.type) ?? global.env?.DEFAULT_ENABLED_CASE_SNAPSHOT;
     };
 
     // 获取测试管理已关联的测试执行

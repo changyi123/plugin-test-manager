@@ -1,6 +1,6 @@
 import { useMutation } from '@tanstack/react-query';
 import { useMemoizedFn } from 'ahooks';
-import { Button, Form, message, Switch } from 'antd';
+import { Button, Form, message, Switch, Radio } from 'antd';
 import { pick } from 'lodash';
 import React from 'react';
 import { useTranslation } from 'react-i18next';
@@ -9,7 +9,7 @@ import { ReloadOutlined } from '@/icons';
 import { updateGlobalConfig } from '@/lib/api/common';
 import { getBuiltinItemTypes } from '@/lib/api/proxima';
 import { getAppEnv } from '@/lib/appEnv';
-import { BuiltinItemTypeMapping } from '@/lib/constants';
+import { BuiltinItemTypeMapping, CASESNAPSHOT_TYPE, caseSnapshotOpt } from '@/lib/constants';
 
 import { useDataContext } from '../../hooks';
 import TestTypeMappingSelector from './formControl/TestTypeMappingSelector';
@@ -20,7 +20,10 @@ let builtinItemTypes = null;
 const FormFieldKey = {
   enableItemTypeAutoBind: 'enableItemTypeAutoBind',
   initialItemTypeMapping: 'initialItemTypeMapping',
-  enableCaseSnapshot: 'enableCaseSnapshot',
+  caseSnapshot: {
+    type: 'type',
+    enableCaseExeUpdate: 'enableCaseExeUpdate',
+  },
 } as const;
 
 const TestConfigInitialization = () => {
@@ -33,7 +36,7 @@ const TestConfigInitialization = () => {
 
   const form = Form.useForm()[0];
   const enableItemTypeAutoBind = Form.useWatch(FormFieldKey.enableItemTypeAutoBind, form);
-  const enableCaseSnapshot = Form.useWatch(FormFieldKey.enableCaseSnapshot, form);
+  const caseSnapshotType = Form.useWatch(['caseSnapshot', 'type'], form);
 
   React.useEffect(() => {
     form.setFieldsValue(pick(globalConfig?.extra, Object.keys(FormFieldKey)));
@@ -67,10 +70,20 @@ const TestConfigInitialization = () => {
       {getAppEnv('ENABLED_CASE_SNAPSHOT') && (
         <Form.Item
           label={<div>{scopeT('switchSnapshotLabel')}</div>}
-          name={FormFieldKey.enableCaseSnapshot}
+          name={['caseSnapshot', 'type']}
+        >
+          <Radio.Group
+            options={caseSnapshotOpt(t)}
+          />
+        </Form.Item>
+      )}
+      {[CASESNAPSHOT_TYPE.NO_BUILDVERSION_SELVERSION].includes(caseSnapshotType) && (
+        <Form.Item
+          label={<div>{scopeT('enableCaseExeUpdate')}</div>}
+          name={['caseSnapshot', 'enableCaseExeUpdate']}
           valuePropName="checked"
         >
-          <Switch checked={enableCaseSnapshot} />
+          <Switch/>
         </Form.Item>
       )}
       <Form.Item

@@ -32,6 +32,7 @@ import {
   statisticsRunFromCase,
   statisticsRunFromPlan,
 } from '../../lib/statistics';
+import { CASESNAPSHOT_TYPE } from '@/lib/constants';
 
 type TestRunEntityType = TestEntity<TestType.Run>;
 type TestCaseEntityType = TestEntity<TestType.Case>;
@@ -169,14 +170,14 @@ export const testExecutionStats = async () => {
 
   // 测试执行用例统计数据
   taskPool.register(['runStatus', 'runCount'], async function (result) {
-    let enableCaseSnapshot = false;
+    let caseSnapshot: any = {};
     if (workspaceKey) {
-      enableCaseSnapshot = await getParseQuery(false, TestConfigClassName)
+      caseSnapshot = await getParseQuery(false, TestConfigClassName)
         .equalTo('workspaceKey', workspaceKey)
         .first({ useMasterKey: true })
         .then(item =>
           global.env?.ENABLED_CASE_SNAPSHOT
-            ? item.get('enableCaseSnapshot')
+            ? item.get('caseSnapshot')
             : global.env?.DEFAULT_ENABLED_CASE_SNAPSHOT,
         );
     }
@@ -190,7 +191,7 @@ export const testExecutionStats = async () => {
       },
       fields: [TestFiledKeyMapping.status, TestFiledKeyMapping.linkItems],
       pagination: { limit: InfinityLimit, offset: 0 },
-      selector: enableCaseSnapshot
+      selector: [CASESNAPSHOT_TYPE.AUTO_BUILDVERSION].includes(caseSnapshot?.type)
         ? `${BuiltinFieldNameMapping.referenceCaseSnapshot} is not null`
         : `${BuiltinFieldNameMapping.referenceCase} is not null`,
     });

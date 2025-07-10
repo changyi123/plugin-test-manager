@@ -6,7 +6,7 @@ import React, { useEffect, useState } from 'react';
 import { useLocation } from 'react-router-dom';
 
 import { getCasesByStatus, getLinkedTestEntityByQuery, getTestEntityByQuery } from '@/lib/api/item';
-import { TestCaseStatusModel, TestRunDesigneeModel, TestRunExecutorModel } from '@/lib/constants';
+import { CASESNAPSHOT_TYPE, TestCaseStatusModel, TestRunDesigneeModel, TestRunExecutorModel } from '@/lib/constants';
 import { useTestConfig } from '@/lib/hooks/useContext';
 import {
   getTestCaseStatusModelValue,
@@ -155,7 +155,7 @@ export const useGetExecutionLinkCaseRunIds = (params: ScopedTestDetailIdsParams)
       return {
         executionLinkRunIds: [...runMap.keys()],
         runLinkCaseIds: [...runMap.values()],
-        runLinkSnapshotIds: config.enableCaseSnapshot
+        runLinkSnapshotIds: [CASESNAPSHOT_TYPE.AUTO_BUILDVERSION].includes(config?.caseSnapshot?.type)
           ? [...runSnapshotMap.values()].filter(Boolean)
           : [],
       };
@@ -177,7 +177,7 @@ export const useGetFilterExecutionLinkCaseRunIds = props => {
     executionId,
     selectNode,
     selectors,
-    enableCaseSnapshot,
+    caseSnapshot,
   } = props;
   // 先查询 testRun 再查询 testCase
   const getTableDataByFilterRun = async params => {
@@ -223,7 +223,7 @@ export const useGetFilterExecutionLinkCaseRunIds = props => {
       selectNode,
       executionId,
       selector,
-      enableCaseSnapshot,
+      caseSnapshot,
     } = params;
 
     const repository = getRepositoryQuery(selectNode, 'all');
@@ -239,7 +239,7 @@ export const useGetFilterExecutionLinkCaseRunIds = props => {
       onlySelectId: true,
     };
 
-    if (enableCaseSnapshot) {
+    if ([CASESNAPSHOT_TYPE.AUTO_BUILDVERSION].includes(caseSnapshot?.type)) {
       searchParams.query.id = runLinkSnapshotIds;
       searchParams.selector.push(`'baseLineSources' in ['${executionId}']`);
     }
@@ -256,7 +256,7 @@ export const useGetFilterExecutionLinkCaseRunIds = props => {
       onlySelectId: true,
     };
 
-    if (enableCaseSnapshot) runSearchParams.query.referenceCaseSnapshot = caseIds;
+    if ([CASESNAPSHOT_TYPE.AUTO_BUILDVERSION].includes(caseSnapshot?.type)) runSearchParams.query.referenceCaseSnapshot = caseIds;
     else runSearchParams.query.referenceCase = caseIds;
 
     const { list: runId } = await getLinkedTestEntityByQuery({
@@ -305,7 +305,7 @@ export const useGetFilterExecutionLinkCaseRunIds = props => {
         executionId,
         selector: [systemSelectors, filterCaseSelector],
         selectNode,
-        enableCaseSnapshot,
+        caseSnapshot,
       });
     },
     {
@@ -375,7 +375,7 @@ export const useTreeParams = (props: {
         selector: '',
       };
 
-      if (config?.enableCaseSnapshot) {
+      if ([CASESNAPSHOT_TYPE.AUTO_BUILDVERSION].includes(config?.caseSnapshot?.type)) {
         treeParams.query.id = runLinkSnapshotIds;
         treeParams.selector = `'baseLineSources' in ['${selectedExecution.objectId}']`;
       }
@@ -398,7 +398,7 @@ export const useTreeParams = (props: {
     workspaceKey,
     selectedExecution,
     runLinkSnapshotIds,
-    config?.enableCaseSnapshot,
+    config?.caseSnapshot?.type,
   ]);
 
   return treeParams;

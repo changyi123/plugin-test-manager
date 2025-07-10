@@ -6,7 +6,7 @@ import React from 'react';
 
 import { StatusProgress } from '@/components/business/Status';
 import { getTestStats } from '@/lib/api/item';
-import { BuiltinFieldNameMapping, TestFiledKeyMapping, TestLinkType, TestType } from '@/lib/constants';
+import { BuiltinFieldNameMapping, CASESNAPSHOT_TYPE, TestFiledKeyMapping, TestLinkType, TestType } from '@/lib/constants';
 import { useTestConfig } from '@/lib/hooks/useContext';
 import useI18n from '@/lib/hooks/useI18n';
 
@@ -32,7 +32,7 @@ const ExecutionStatus: React.FC<ExecutionStatusProps> = ({ selectedExecution }) 
             workspaceKey: workspaceKey,
             type: TestType.Run,
           },
-          selector: config?.enableCaseSnapshot
+          selector: [CASESNAPSHOT_TYPE.AUTO_BUILDVERSION].includes(config?.caseSnapshot?.type)
             ? `${BuiltinFieldNameMapping.referenceCaseSnapshot} is not null`
             : `${BuiltinFieldNameMapping.referenceCase} is not null`,
           linkType: TestLinkType.RunLinkExecution,
@@ -51,7 +51,7 @@ const ExecutionStatus: React.FC<ExecutionStatusProps> = ({ selectedExecution }) 
       );
     },
     {
-      refreshDeps: [selectedExecution, workspaceKey, config?.enableCaseSnapshot],
+      refreshDeps: [selectedExecution, workspaceKey, config?.caseSnapshot?.type],
     },
   );
 

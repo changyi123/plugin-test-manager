@@ -400,11 +400,15 @@
         "title": "测试管理空间配置初始化",
         "description": "开启自动类型关联会将测试管理内置的事项类型关联配置修改为内置的事项类型",
         "switchLabel": "开启自动类型关联",
-        "switchSnapshotLabel": "向测试执行任务中规划用例时自动打快照",
+        "switchSnapshotLabel": "用例快照类型",
         "builtInItemTypeHasBeenModified": "内置事项类型已被修改",
         "messageSuccess": "测试管理初始化配置修改成功",
         "initialItemTypeMappingLabel": "配置初始化类型映射",
-        "resetButtonText": "重置类型映射"
+        "resetButtonText": "重置类型映射",
+        "noAutoBuildVersionNoSelVersion": "不自动打版本且规划用例不能选择用例版本",
+        "autoBuildVersion": "测试执行任务规划用例时自动打版本",
+        "noBuildVersionSelVersion": "测试执行任务规划用例不打版本，可以选择用例版本",
+        "enableCaseExeUpdate": "执行任务用例是否可更新"
       },
       "testCaseRemoveDuplicates": {
         "title": "测试用例去重",

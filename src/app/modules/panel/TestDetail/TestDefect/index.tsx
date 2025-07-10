@@ -3,7 +3,7 @@ import React, { useMemo, useState, useCallback } from 'react';
 import { getTestEntityByQuery } from '@/lib/api/item';
 import { useTestConfig } from '@/lib/hooks/useContext';
 import OverflowTooltip from '@/components/common/OverflowTooltip';
-import { TestType } from '@/lib/constants';
+import { CASESNAPSHOT_TYPE, TestType } from '@/lib/constants';
 import { getItemByIQL } from '@/lib/api/proxima';
 import { BusinessTable } from '@/components/common/BusinessTable';
 import type { BusinessTableActionType } from '@/components/common/BusinessTable/type';
@@ -101,7 +101,7 @@ const TestDefect: React.FC = () => {
               ellipsis={true}
               target="_blank"
               onClick={() => {
-                if (item?.referenceCaseSnapshot && config?.enableCaseSnapshot)
+                if (item?.referenceCaseSnapshot && [CASESNAPSHOT_TYPE.AUTO_BUILDVERSION].includes(config?.caseSnapshot?.type))
                   openBaseLineViewItemModal(item?.key, item?.referenceCaseSnapshot);
                 else
                   goToItemDetailPage({

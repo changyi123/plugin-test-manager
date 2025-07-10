@@ -254,9 +254,6 @@ const Test = () => {
               ellipsis={true}
               target="_blank"
               onClick={() => {
-                // if (item?.referenceCaseSnapshot && config?.enableCaseSnapshot)
-                //   openBaseLineViewItemModal(item?.key, item?.referenceCaseSnapshot);
-                // else
                 goToItemDetailPage({
                   workspaceKey: item?.workspace?.key,
                   itemKey: item?.key,

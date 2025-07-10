@@ -23,7 +23,7 @@ export const useTreeParams = (props: {
       },
       selector: `'测试用例集' in ['${selectedTestCaseSet.objectId}']`,
     });
-  }, [selectedTestCaseSet?.objectId, workspaceKey, config?.enableCaseSnapshot]);
+  }, [selectedTestCaseSet?.objectId, workspaceKey, config?.caseSnapshot]);
 
   return treeParams;
 };

@@ -145,7 +145,7 @@ const ListView: React.FC<ViewComponentProps> = ({
       };
     },
     // eslint-disable-next-line react-hooks/exhaustive-deps
-    [repository, selector, testCaseFieldKeys, workspaceKey, config?.enableCaseSnapshot],
+    [repository, selector, testCaseFieldKeys, workspaceKey, config?.caseSnapshot?.type],
   );
 
   const queryDeps = useMemo(

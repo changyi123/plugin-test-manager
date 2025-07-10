@@ -1,4 +1,5 @@
 import { FileType } from 'common/types/test';
+import { CASESNAPSHOT_TYPE } from '@/lib/constants'
 
 export * from 'common/types/test';
 
@@ -45,3 +46,10 @@ export type CopyTestCaseV2PayloadTo = {
 export type GeneralSetting = {
   caseDetailExtra: boolean;
 };
+
+export type  CaseSnapshotType = CASESNAPSHOT_TYPE.NO_AUTOBUILDVERSION_NO_SELVERSION | CASESNAPSHOT_TYPE.AUTO_BUILDVERSION | CASESNAPSHOT_TYPE.NO_BUILDVERSION_SELVERSION
+
+export interface CaseSnapshot {
+  type: CaseSnapshotType,
+  enableCaseExeUpdate: boolean
+}

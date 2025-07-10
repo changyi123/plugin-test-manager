@@ -398,7 +398,11 @@
         "builtInItemTypeHasBeenModified": "Built-in matter types have been modified.",
         "messageSuccess": "Test management configuration initialization successful.",
         "initialItemTypeMappingLabel": "Configuring Initialization Type Mapping",
-        "resetButtonText": "Reset"
+        "resetButtonText": "Reset",
+        "noAutoBuildVersionNoSelVersion": "It does not automatically generate versions and cannot select use case versions when planning use cases",
+        "autoBuildVersion": "When testing and executing task planning use cases, the version is automatically typed",
+        "noBuildVersionSelVersion": "When planning test cases for the execution of test tasks, you can choose the version of the test case instead of typing a version",
+        "enableCaseExeUpdate": "Can the use cases for task execution be updated"
       },
       "testCaseRemoveDuplicates": {
         "title": "Test case deduplication",

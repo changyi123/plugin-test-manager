@@ -39,7 +39,7 @@ import { openBaseLineViewItemModal } from '@/lib/api/sdk';
 import { useCurrentUser } from '@/lib/api/user';
 import { getCurrentUserSetting, saveUserSetting } from '@/lib/api/userSetting';
 import { getAppEnv } from '@/lib/appEnv';
-import { TestCaseStatusModel, TestRunDesigneeModel, TestRunExecutorModel } from '@/lib/constants';
+import { CASESNAPSHOT_TYPE, TestCaseStatusModel, TestRunDesigneeModel, TestRunExecutorModel } from '@/lib/constants';
 import { useBaseAction, useTestConfig } from '@/lib/hooks/useContext';
 import useI18n from '@/lib/hooks/useI18n';
 import { useUserCellUserDataProp } from '@/lib/hooks/useProxima';
@@ -375,7 +375,7 @@ const TestEntityList: React.FC<TestEntityListProps> = ({
       ...queryParams,
     };
 
-    if (config?.enableCaseSnapshot) {
+    if ([CASESNAPSHOT_TYPE.AUTO_BUILDVERSION].includes(config?.caseSnapshot?.type)) {
       searchParams.query.id = runLinkSnapshotIds;
       searchParams.selector.push(`'baseLineSources' in ['${executionId}']`);
       searchParams.fields.push('itemId');
@@ -412,7 +412,7 @@ const TestEntityList: React.FC<TestEntityListProps> = ({
       if (i.id) referenceCase.push(i.id);
     });
 
-    if (config?.enableCaseSnapshot)
+    if ([CASESNAPSHOT_TYPE.AUTO_BUILDVERSION].includes(config?.caseSnapshot?.type))
       caseSearchParams.query.referenceCaseSnapshot = referenceCaseSnapshot;
     else if (referenceCase.length) caseSearchParams.query.referenceCase = referenceCase;
 
@@ -420,7 +420,7 @@ const TestEntityList: React.FC<TestEntityListProps> = ({
 
     const runCaseMap = new Map();
     runs.forEach(d => {
-      runCaseMap.set(config?.enableCaseSnapshot ? d.referenceCaseSnapshot : d.referenceCase, d);
+      runCaseMap.set([CASESNAPSHOT_TYPE.AUTO_BUILDVERSION].includes(config?.caseSnapshot?.type) ? d.referenceCaseSnapshot : d.referenceCase, d);
     });
 
     return {
@@ -859,7 +859,7 @@ const TestEntityList: React.FC<TestEntityListProps> = ({
         },
         extraProps: {
           onClick: record => {
-            if (record?.referenceCaseSnapshot && config?.enableCaseSnapshot)
+            if (record?.referenceCaseSnapshot && [CASESNAPSHOT_TYPE.AUTO_BUILDVERSION].includes(config?.caseSnapshot?.type))
               openBaseLineViewItemModal(record?.key, record.referenceCaseSnapshot);
             else openItemViewScreen(record?.caseId);
           },

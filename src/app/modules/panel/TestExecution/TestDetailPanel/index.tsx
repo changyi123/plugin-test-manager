@@ -33,7 +33,7 @@ import { useTestTypeScreenFieldKeys } from '@/components/common/BusinessTable/ho
 import { getLinkedTestEntityByQuery, getTestEntityByQuery, getUpdateParams, updateTestStatus } from '@/lib/api/item';
 import { openBaseLineViewItemModal } from '@/lib/api/sdk';
 import { getAppEnv } from '@/lib/appEnv';
-import { TestLinkType, TestType } from '@/lib/constants';
+import { CASESNAPSHOT_TYPE, TestLinkType, TestType } from '@/lib/constants';
 import { useBaseAction, useTestConfig } from '@/lib/hooks/useContext';
 import useI18n from '@/lib/hooks/useI18n';
 import { useCanExecuteTestRunIdSequence, useTestRunActionAuth } from '@/lib/hooks/useTest';
@@ -249,7 +249,7 @@ const Test = () => {
               ellipsis={true}
               target="_blank"
               onClick={() => {
-                if (item?.referenceCaseSnapshot && config?.enableCaseSnapshot)
+                if (item?.referenceCaseSnapshot && [CASESNAPSHOT_TYPE.AUTO_BUILDVERSION].includes(config?.caseSnapshot?.type))
                   openBaseLineViewItemModal(item?.key, item?.referenceCaseSnapshot);
                 else
                   goToItemDetailPage({

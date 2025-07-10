@@ -17,6 +17,7 @@ import { useCurrentUser } from '@/lib/api/user';
 import { getCurrentUserSetting, saveUserSetting } from '@/lib/api/userSetting';
 import {
   BuiltinFieldNameMapping,
+  CASESNAPSHOT_TYPE,
   SystemField,
   TestExecutionModel,
   TestFiledKeyMapping,
@@ -224,7 +225,7 @@ const TestTaskList: React.FC<any> = ({
           workspaceKey: workspace?.key,
           type: TestType.Run,
         },
-        selector: config?.enableCaseSnapshot
+        selector: [CASESNAPSHOT_TYPE.AUTO_BUILDVERSION].includes(config?.caseSnapshot?.type)
           ? `${BuiltinFieldNameMapping.referenceCaseSnapshot} is not null`
           : `${BuiltinFieldNameMapping.referenceCase} is not null`,
         linkType: TestLinkType.RunLinkExecution,
@@ -397,7 +398,7 @@ const TestTaskList: React.FC<any> = ({
     return (
       <Menu onClick={e => menuClick(e)}>
         <Menu.Item key="exportTask">{t('page.repository.repoDropDown.MenuItem.8')}</Menu.Item>
-        {!config?.enableCaseSnapshot ? (
+        {![CASESNAPSHOT_TYPE.AUTO_BUILDVERSION].includes(config?.caseSnapshot?.type) ? (
           <>
             <Menu.Item key="importTask">{t('executionTaskImport.entry')}</Menu.Item>
             <Menu.Item key="importTaskTemplate">{t('executionTaskImport.download')}</Menu.Item>
@@ -405,7 +406,7 @@ const TestTaskList: React.FC<any> = ({
         ) : null}
       </Menu>
     );
-  }, [config?.enableCaseSnapshot, menuClick, t]);
+  }, [config?.caseSnapshot?.type, menuClick, t]);
 
   const toggleSelection = useCallback(
     (visible?: boolean) => {

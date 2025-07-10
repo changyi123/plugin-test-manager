@@ -1,4 +1,5 @@
 import { get } from 'lodash';
+import { CASESNAPSHOT_TYPE } from './constants';
 
 export enum TEST_REPORT_VERSION {
   V0,
@@ -200,7 +201,7 @@ export function judgeTestReportVersion(version: TEST_REPORT_VERSION | TEST_REPOR
  */
 export function judgeCaseSnapshot(testConfig) {
   return getAppEnv('ENABLED_CASE_SNAPSHOT')
-    ? testConfig?.enableCaseSnapshot
+    ? [CASESNAPSHOT_TYPE.AUTO_BUILDVERSION].includes(testConfig?.caseSnapshot?.type)
     : getAppEnv('DEFAULT_ENABLED_CASE_SNAPSHOT');
 }
 

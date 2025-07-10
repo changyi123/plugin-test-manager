@@ -292,7 +292,7 @@ export const BuiltInInitializationStages: Record<string, InitializationStage> = 
           if (
             !testConfig?.itemTypeMap ||
             !Object.keys(testConfig?.itemTypeMap ?? {}).length ||
-            typeof testConfig?.enableCaseSnapshot !== 'boolean'
+            typeof testConfig?.caseSnapshot !== 'object'
           )
             return {
               workspaceKey: workspace?.key,
@@ -324,7 +324,7 @@ export const BuiltInInitializationStages: Record<string, InitializationStage> = 
       const testConfigs = instance.getConfigStorage('testConfigs');
 
       let initialItemTypeMapping = globalTestConfig?.extra?.initialItemTypeMapping;
-      const enableCaseSnapshot = !!globalTestConfig?.extra?.enableCaseSnapshot;
+      const caseSnapshot = !!globalTestConfig?.extra?.caseSnapshot;
 
       if (
         // 不存在初始化的配置
@@ -438,7 +438,7 @@ export const BuiltInInitializationStages: Record<string, InitializationStage> = 
             global: false,
             isolateTestType: Constants.DefaultIsolateTestType,
             itemTypeMap: enableUpdateItemTypeMap ? initialItemTypeMapping : undefined,
-            enableCaseSnapshot: enableCaseSnapshot,
+            caseSnapshot: caseSnapshot,
             workspaceKey: workspaceInfo.key,
             defectsMapping: [],
             tableFields: {
@@ -464,8 +464,8 @@ export const BuiltInInitializationStages: Record<string, InitializationStage> = 
               (testConfigParseObject as any).id = testConfigParseObject;
             }
 
-            if (typeof workspaceInfo.testConfig?.enableCaseSnapshot !== 'boolean') {
-              testConfigParseObject.set('enableCaseSnapshot', enableCaseSnapshot);
+            if (typeof workspaceInfo.testConfig?.caseSnapshot !== 'object') {
+              testConfigParseObject.set('caseSnapshot', caseSnapshot);
               (testConfigParseObject as any).id = testConfigParseObject;
             }
           } else {
