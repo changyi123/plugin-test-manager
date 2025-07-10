@@ -10,7 +10,7 @@ import {
 import { buildResponse } from '../../lib/apiUtil';
 import { batchDeleteItems, batchUpdateItemsValues } from '../../lib/batchRequest';
 import { iqlRequest } from '../../lib/iqlRequest';
-import { updateExecutionCasesAndDefects } from '../../lib/update';
+import { updateCaseDefects, updateExecutionCasesAndDefects } from '../../lib/update';
 
 export const deleteTestLink = async () => {
   const { item } = global as any;
@@ -91,7 +91,7 @@ export const deleteTestLink = async () => {
     // 删除测试执行任务，需要删除关联的测试执行
     if (itemType === TestType.Execution) {
       // 测试执行任务删除时需要删除任务下的测试执行
-      const getRunIdByLInkItem = async () => {
+      const getRunIdAndCaseIdByLInkItem = async () => {
         const {
           data: { list: runs },
         } = await iqlRequest({
@@ -104,13 +104,26 @@ export const deleteTestLink = async () => {
             destinationType: TestType.Run,
           },
           pagination: { limit: InfinityLimit },
-          fields: IQLRequiredFieldKeys,
+          fields: [...IQLRequiredFieldKeys, TestFiledKeyMapping.referenceCase],
         });
 
-        return runs?.map(item => item.objectId);
+        const runIds = [];
+        const caseIdSet = new Set();
+        runs?.forEach(item => {
+          runIds.push(item.objectId);
+          const caseId = item.referenceCase;
+          if (caseId) {
+            caseIdSet.add(caseId);
+          }
+        });
+
+        return {
+          runIds,
+          caseIds: [...caseIdSet],
+        };
       };
 
-      const runIds = await getRunIdByLInkItem();
+      const { runIds, caseIds } = await getRunIdAndCaseIdByLInkItem();
 
       const checkRun = global.env?.CHECK_RUN_FOR_DELETE_EXECUTION;
 
@@ -121,6 +134,9 @@ export const deleteTestLink = async () => {
 
       if (runIds?.length) {
         tasks.push(batchDeleteItems(runIds));
+        fn = async () => {
+          await updateCaseDefects(caseIds);
+        };
       }
     }
 
