@@ -2,7 +2,7 @@ import createProximaSdk from '@projectproxima/proxima-sdk-js';
 import { lib } from 'proxima-sdk';
 import { useCallback, useEffect, useRef, useState } from 'react';
 
-import { EXINCLUDE_FIELDS, TEST_MANAGER_PLUGIN_KEY } from '@/lib/constants';
+import { EXCLUDE_FILTER_KEYS, EXINCLUDE_FIELDS, TEST_MANAGER_PLUGIN_KEY } from '@/lib/constants';
 import Parse from '@/lib/parse';
 import { CustomField } from '@/services/models';
 
@@ -79,10 +79,10 @@ export const useOpenFilterPopover = fields => {
       const includeFileds = INCLUDE_FILTER_FIELD_TYPES?.filter(
         field => !EXINCLUDE_FIELDS?.includes(field),
       );
-
       const _customFields = customFields
         .map(item => item.toJSON())
-        .filter(d => includeFileds?.includes(d.fieldType.key));
+        .filter(d => includeFileds?.includes(d.fieldType.key))
+        ?.filter(item => !EXCLUDE_FILTER_KEYS.includes(item.key));
 
       // proximaSDK.execute不能传递函数，限制太多
       window.QiankunProps.openFilterPopover({
