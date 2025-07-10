@@ -1,4 +1,4 @@
-import { useSDK } from '@projectproxima/plugin-sdk';
+import { useSDK } from '@giteeteam/plugin-sdk';
 import { useEventEmitter } from 'ahooks';
 import { EventEmitter } from 'ahooks/lib/useEventEmitter';
 import { noop } from 'lodash';
@@ -62,7 +62,8 @@ const PageProvider: React.FC<any> = ({ children }) => {
   const tableSelectionToggleEvent = useEventEmitter<boolean>();
   const mutateStatusEvent = useEventEmitter<string | undefined>();
   const mutateTestTableList = useEventEmitter<string | undefined>();
-  const workspaceKey = context?.env?.WORKSPACE_KEY ?? getDevConfig().workspaceKey;
+  console.info('context', context);
+  const workspaceKey = context?.env?.WORKSPACE_KEY ?? getDevConfig().workspaceKey ?? 'CS024032501';
   const [selectedTestCaseSet, setTestCaseSet] = useState(null);
   const [runLinkSnapshotIds, setRunLinkSnapshotIds] = useState<string[]>(null);
 

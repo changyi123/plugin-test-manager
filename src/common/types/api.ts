@@ -281,6 +281,13 @@ export type TestPlanStatsResponse = ResponseType<{
   caseStatus: StatusStatsType;
 }>;
 
+export type TestSetStatsPayload = {
+  /** 测试用例集 id */
+  testSetIds: string[];
+  /** 数据数据字段 */
+  select?: ('caseCount' | 'caseStatus')[];
+};
+
 /**
  * 测试计划数据统计接口
  * @example POST /api/project/app/osc/test_manager/webhooks/api-stats-test-execution

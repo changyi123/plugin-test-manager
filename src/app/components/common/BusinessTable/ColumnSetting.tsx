@@ -83,16 +83,20 @@ const ColumnSetting: React.FC<ColumnSettingProps> = props => {
   } = props;
   const { t } = useI18n();
   const [visible, setVisible] = React.useState(false);
-  const { testPlanFieldKeys, testCaseFieldKeys, testExecutionFieldKeys, testReportFieldKeys } =
-    useBaseAction();
+  const {
+    testPlanFieldKeys,
+    testCaseFieldKeys,
+    testCaseSetFieldKeys,
+    testExecutionFieldKeys,
+    testReportFieldKeys,
+  } = useBaseAction();
   const keys = useMemo(() => {
     if (testFieldKeys) return testFieldKeys;
     if (titleCellOption.testType === TestType.Case) {
       return testCaseFieldKeys;
     }
-    // todo 这个可能需要改造，但是没找到具体配置的位置
     if (titleCellOption.testType === TestType.CaseSet) {
-      return testCaseFieldKeys;
+      return testCaseSetFieldKeys;
     }
     if (
       titleCellOption.testType === TestType.Report &&

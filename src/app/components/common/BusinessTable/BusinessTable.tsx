@@ -1,5 +1,5 @@
 import { useLocalStorageState, useMemoizedFn, useSize } from 'ahooks';
-import { Pagination, Table } from 'antd';
+import { Pagination, Table, Tooltip } from 'antd';
 import { ColumnsType, TableProps } from 'antd/lib/table';
 import { useDataQuoteStore } from 'apps-team-components-v1';
 import { TestFiledKeyMapping } from 'common/constant';
@@ -7,6 +7,7 @@ import { difference, isEqual, omit, pick } from 'lodash';
 import React, { useEffect, useMemo, useRef } from 'react';
 import { useCallback } from 'react';
 import { Resizable } from 'react-resizable';
+import { CaretRightOutlined } from '@/icons';
 
 import OverflowTooltip from '@/components/common/OverflowTooltip';
 import { getItemByIQL } from '@/lib/api/proxima';
@@ -19,7 +20,7 @@ import cx from './BusinessTable.less';
 import ColumnSetting from './ColumnSetting';
 import TableSelection from './TableSelection';
 import type { BusinessTableActionType } from './type';
-import type { TitleCellOption } from './type';
+import type { TitleCellOption, EnableCacheEpandedRowKeys } from './type';
 
 const DEFAULT_PAGE_SIZE = 10;
 const MIN_COLUMN_WIDTH = 120;
@@ -121,6 +122,7 @@ type BusinessTableProps = TableProps<any> &
     cacheKey?: string;
     ignoreInit?: boolean;
     getContainer?: any;
+    enableCacheEpandedRowKeys?: EnableCacheEpandedRowKeys
   };
 
 const BusinessTable: React.FC<BusinessTableProps> = props => {
@@ -153,13 +155,15 @@ const BusinessTable: React.FC<BusinessTableProps> = props => {
     cacheKey,
     ignoreInit,
     getContainer,
+    enableCacheEpandedRowKeys = 'disable',
     ...restTableProps
   } = props;
 
   const currentPageRowsRef = React.useRef([]);
-  const initialExpandedRef = React.useRef(false);
+  // const initialExpandedRef = React.useRef(false);
   const [tableSorter, setTableSorter] = React.useState({});
   const [expandedRowKeys, setExpandedKeys] = React.useState([]);
+  const [allExpanded, setAllExpanded] = React.useState(false); // 新增状态来跟踪是否全部展开
   const [selectedRowKeys, setSelectedRowKeys] = React.useState<string[] | undefined>(undefined);
   const [unSelectedRowKeys, setUnSelectedRowKeys] = React.useState<string[] | undefined>(undefined);
   const [selectionMode, setSelectionMode] = React.useState(selectionModeFromProp);
@@ -638,11 +642,19 @@ const BusinessTable: React.FC<BusinessTableProps> = props => {
   );
 
   React.useEffect(() => {
-    if (!initialExpandedRef.current && hasArrayItem(dataSource)) {
-      initialExpandedRef.current = true;
-      setExpandedKeys([dataSource[0]?.[props.rowKey as string]]);
+    // if (!initialExpandedRef.current && hasArrayItem(dataSource)) {
+    //   initialExpandedRef.current = true;
+    //   setExpandedKeys([dataSource[0]?.[props.rowKey as string]]);
+    // }
+   
+    if (['enable'].includes(enableCacheEpandedRowKeys)) {
+      setAllExpanded(allExpanded)
+      setExpandedKeys(expandedRowKeys);
+    } else {
+      setAllExpanded(false)
+      setExpandedKeys([dataSource[0]?.[props?.rowKey as string]]);
     }
-  }, [dataSource, props.rowKey, setExpandedKeys]);
+  }, [dataSource, props.rowKey, setExpandedKeys, enableCacheEpandedRowKeys]);
 
   return (
     <div className={`${cx('table-container')} table-box business-debug-table`} ref={ref}>
@@ -676,11 +688,62 @@ const BusinessTable: React.FC<BusinessTableProps> = props => {
         expandable={
           expandable
             ? {
+                columnTitle: () => {
+                  const iconStyle = {
+                    color: '#878C96',
+                    cursor: 'pointer',
+                    transition: 'transform 0.3s ease',
+                    transform: allExpanded ? 'rotate(90deg)' : 'rotate(0deg)',
+                  }
+                  return (
+                  <Tooltip title={allExpanded ? t('page.repository.collapseAllCases') : t('page.repository.expandAllCases')}>
+                    <div
+                      className={cx('table-columnTitle-icon')}
+                      onClick={() => {
+                        if (allExpanded) {
+                          setExpandedKeys([]);
+                        } else {
+                          const allKeys = dataSource.map(item => item[props.rowKey as string]); 
+                          setExpandedKeys(allKeys);
+                        }
+                        setAllExpanded(!allExpanded);
+                      }}
+                    >
+                      <CaretRightOutlined style={iconStyle}/>
+                    </div>
+                  </Tooltip>
+                  )
+                },
+                indentSize: 2,
+                expandIcon: ({ expanded, onExpand, record }) => {
+                  const iconStyle = {
+                    color: '#878C96',
+                    transition: 'transform 0.3s ease',
+                    transform: expanded ? 'rotate(90deg)' : 'rotate(0deg)',
+                  };
+                  return (
+                    <div
+                      className={cx('table-columnTitle-icon')}
+                      style={{ background: '#fff' }}
+                      onClick={(e) => onExpand(record, e)}
+                    >
+                      <CaretRightOutlined style={iconStyle} />
+                    </div>
+                  )
+                },
                 ...expandable,
                 fixed: true,
                 expandedRowKeys,
                 expandRowByClick: false,
-                onExpandedRowsChange: rows => setExpandedKeys(rows as any[]),
+                // onExpandedRowsChange: rows => setExpandedKeys(rows as any[]),
+                onExpandedRowsChange:(expandedRows) => {
+                    if (expandedRows?.length === dataSource?.length) {
+                      setAllExpanded(true)
+                    } else {
+                    setAllExpanded(false)
+                    }
+                  setExpandedKeys(expandedRows as any[])
+                },
               }
             : undefined
         }

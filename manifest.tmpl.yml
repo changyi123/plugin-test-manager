@@ -123,6 +123,8 @@ modules:
     # 数据统计
     - key: api-stats-test-plan
       function: api-stats-test-plan-function
+    - key: api-stats-test-set
+      function: api-stats-test-set-function
     - key: api-stats-test-execution
       function: api-stats-test-execution-function
     - key: api-stats-test-case
@@ -415,6 +417,8 @@ modules:
     # api stats
     - key: api-stats-test-plan-function
       handler: query.testPlanStats
+    - key: api-stats-test-set-function
+      handler: query.testSetStats
     - key: api-stats-test-execution-function
       handler: api.testExecutionStats
     - key: api-stats-test-case-function
