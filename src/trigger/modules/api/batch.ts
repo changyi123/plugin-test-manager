@@ -49,7 +49,6 @@ import {
   batchCreateItemWithProgress,
   batchUpdateItems,
   batchUpdateItemsValues,
-  updateExecutionCases,
 } from '../../lib/batchRequest';
 import {
   buildTestEntityLinkData,
@@ -64,10 +63,17 @@ import {
 } from '../../lib/helper';
 import { iqlRequest } from '../../lib/iqlRequest';
 import { getItemCreateRequiredAttrs, getItemTypeFromKey } from '../../lib/item';
+import {
+  updateCaseDefects,
+  updateExecutionCases,
+  updateExecutionCasesAndDefects,
+  updateExecutionDefects,
+} from '../../lib/update';
 import { testEntityFieldTypeValidator, throwArgumentError } from '../../lib/validator';
 import {
   addExecutionToPlanWorker,
   batchDeleteItems,
+  batchDeleteRuns,
   copyFolder,
   copyTesCases,
   createTestRuns,
@@ -175,6 +181,32 @@ export const batchDeleteV2 = async () => {
   }
 };
 
+/** 批量删除 */
+export const batchDeleteRun = async () => {
+  try {
+    const { body } = getReqInfoFromVMRuntime<BatchDeleteProcessParams>();
+    const { ids, key } = body;
+    if (!Array.isArray(ids)) throwArgumentError('ids', 'objectId[]');
+
+    return await batchRequestDecorator({
+      key,
+      asyncFunc: processId =>
+        requestCoreApi(
+          'POST',
+          `/api/app/${global.env.TENANT_KEY}/${global.appKey}/webhooks/job-batch-delete-runs`,
+          {
+            ...body,
+            processId,
+          },
+          headers,
+        ),
+      syncFunc: async () => await batchDeleteRuns(body),
+    });
+  } catch (err) {
+    return buildResponse(err);
+  }
+};
+
 /** 批量更新事项V2接口 */
 export const batchUpdateItemsV2 = async () => {
   try {
@@ -256,6 +288,7 @@ const getRunDataByLinkItemDelete = async data => {
   return {
     runIds,
     executionIds,
+    caseIds: runDataInfo.caseIds ?? [],
   };
 };
 
@@ -269,6 +302,8 @@ export const batchUpdate = async () => {
 
   // 需要更新的事项
   const needUpdateItemData = await buildTestEntityLinkData(data as TestEntityLinkActionData[]);
+
+  console.info('---needUpdateItemData', JSON.stringify(needUpdateItemData));
   // 校验需要保存的参数
   needUpdateItemData.forEach(testEntityFieldTypeValidator);
   const tasks = [
@@ -278,15 +313,19 @@ export const batchUpdate = async () => {
   ];
 
   // 移除测试计划下的测试用例关联的测试执行
-  const { runIds: needDeleteTestRunIds, executionIds } = await getRunDataByLinkItemDelete(data);
+  const {
+    runIds: needDeleteTestRunIds,
+    executionIds,
+    caseIds,
+  } = await getRunDataByLinkItemDelete(data);
   if (needDeleteTestRunIds?.length) {
     tasks.push(batchDeleteItems({ ids: needDeleteTestRunIds }));
   }
 
   const [res] = await Promise.all(tasks);
-  // 删除测试执行后，更新测试执行任务引用的引用数
+  // 删除测试执行后，更新测试执行任务的用例数、缺陷，测试用例的缺陷
   if (executionIds?.length) {
-    await updateExecutionCases(executionIds);
+    await Promise.all([updateExecutionCasesAndDefects(executionIds), updateCaseDefects(caseIds)]);
   }
 
   return buildResponse(res.filter(Boolean).map(data => itemToTestEntity(data.item)));
@@ -1232,52 +1271,6 @@ const addItemLinks = async ({
   await saveAllObject(bugLinks);
 };
 
-// 更新测试用例的测试缺陷字段
-const updateCaseDefects = async ({ caseId, defectItemIds, action }) => {
-  if (!caseId) {
-    console.info('updateCaseDefects  caseId is null', caseId);
-    return;
-  }
-  const {
-    data: { list: caseList },
-  } = await iqlRequest<TestCaseType>({
-    query: {
-      id: [caseId],
-    },
-    pagination: { limit: 1 },
-    fields: [SystemField.Id, TestFiledKeyMapping.testDefects],
-  });
-
-  const caseItem = caseList?.[0];
-  console.info('updateCaseDefects caseItem', JSON.stringify(caseItem));
-  if (!caseItem) {
-    console.info('updateCaseDefects  caseItem is null', caseId);
-  }
-
-  const currentDefectItemIds = (caseItem as any).testDefects || [];
-
-  const defectSet = new Set(currentDefectItemIds);
-  defectItemIds.forEach(id => {
-    if (action === 'add') {
-      defectSet.add(id);
-    } else if (action === 'delete') {
-      defectSet.delete(id);
-    }
-  });
-  const newDefectItemIds = [...defectSet];
-  console.info('updateCaseDefects newDefectItemIds', JSON.stringify(newDefectItemIds));
-
-  await bulkUpdateItems({
-    updates: [
-      {
-        itemIds: [caseId],
-        customField: TestFiledKeyMapping.testDefects,
-        value: newDefectItemIds,
-      },
-    ],
-  });
-};
-
 // 关联执行和缺陷
 export const batchLinkBugsToRun = async () => {
   const {
@@ -1300,8 +1293,6 @@ export const batchLinkBugsToRun = async () => {
       executionId,
     });
     await addItemLinks(handleItemLinkParams);
-
-    await updateCaseDefects({ caseId, defectItemIds, action: 'add' });
 
     const run = handleItemLinkParams?.run;
     let runDetail = {} as any;
@@ -1333,6 +1324,8 @@ export const batchLinkBugsToRun = async () => {
         },
       ],
     });
+
+    await Promise.all([updateExecutionDefects([executionId]), updateCaseDefects([caseId])]);
 
     return buildResponse(defectItemIds);
   } catch (error) {
@@ -1370,8 +1363,6 @@ export const batchRemoveBugsWithRun = async () => {
       ...(existedLinksMap.get(run.id) || []).map(link => link.id),
     ];
 
-    let deleteDefectItemSet = new Set();
-
     // 如果同一用例重复规划进测试执行任务，只有在所有用例的执行都不关联该缺陷时，才删除执行任务和缺陷的关联
     const otherLinkedItemIds = otherLinks.map(link => link.source);
     if (otherLinkedItemIds.length) {
@@ -1392,22 +1383,17 @@ export const batchRemoveBugsWithRun = async () => {
         const executionLinks = existedLinksMap.get(executionId) || [];
         const needDeleteLinks = executionLinks.reduce((links, link) => {
           if (!otherRunLinkedBugs.includes(link.bug) && !links.includes(link.id)) {
-            deleteDefectItemSet.add(link.bug);
             links.push(link.id);
           }
           return links;
         }, []);
         deleteLinks = deleteLinks.concat(needDeleteLinks);
       } else {
-        deleteDefectItemSet = new Set(defectItemIds);
-
         deleteLinks = deleteLinks.concat([
           ...(existedLinksMap.get(executionId) || []).map(link => link.id),
         ]);
       }
     } else {
-      deleteDefectItemSet = new Set(defectItemIds);
-
       deleteLinks = deleteLinks.concat([
         ...(existedLinksMap.get(executionId) || []).map(link => link.id),
       ]);
@@ -1417,16 +1403,6 @@ export const batchRemoveBugsWithRun = async () => {
     deleteLinks.filter(Boolean).forEach(async link => {
       await deleteParseObject(ItemLink.createWithoutData(link));
     });
-
-    console.info('remove defectItemIds', JSON.stringify([...deleteDefectItemSet]));
-
-    if (deleteDefectItemSet.size > 0) {
-      await updateCaseDefects({
-        caseId,
-        defectItemIds: [...deleteDefectItemSet],
-        action: 'delete',
-      });
-    }
 
     let runDetail = {} as any;
     try {
@@ -1458,6 +1434,8 @@ export const batchRemoveBugsWithRun = async () => {
         },
       ],
     });
+
+    await Promise.all([updateExecutionDefects([executionId]), updateCaseDefects([caseId])]);
 
     return buildResponse(defectItemIds);
   } catch (error) {

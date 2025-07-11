@@ -22,7 +22,7 @@ import {
 import { TestEntity } from '../../../common/types/test';
 import { buildResponse } from '../../lib/apiUtil';
 import { getReqInfoFromVMRuntime } from '../../lib/apiUtil';
-import { batchUpdateItemsValues, updateExecutionCases } from '../../lib/batchRequest';
+import { batchUpdateItemsValues } from '../../lib/batchRequest';
 import {
   batchCreateItemsV2,
   batchUpdateItemsV2 as originBatchUpdateItemsV2,
@@ -38,6 +38,11 @@ import {
   updateProcessBar,
 } from '../../lib/helper';
 import { iqlRequest } from '../../lib/iqlRequest';
+import {
+  updateCaseDefects,
+  updateExecutionCases,
+  updateExecutionCasesAndDefects,
+} from '../../lib/update';
 
 type TestRunType = TestEntity<TestType.Run>;
 type ProcessJobParams<T> = T & {
@@ -720,6 +725,117 @@ export const batchDeleteItemsJob = async () => {
   return await batchDeleteItems(body);
 };
 
+export const batchDeleteRuns = async ({
+  ids: itemIds,
+  retry,
+  processId,
+}: ProcessJobParams<BatchDeletePayload>) => {
+  const result = getResult(processId);
+  result.total = itemIds.length;
+  const withProcess = !!processId;
+  try {
+    const getExecutionAndCaseId = async items => {
+      const runIds = items.map(i => i.objectId);
+
+      const runs = await getAllEntity(
+        {
+          query: { id: runIds, type: TestType.Run },
+        },
+        ['id', TestFiledKeyMapping.linkItems, TestFiledKeyMapping.referenceCase],
+      );
+
+      const executionIdSet = new Set();
+      const caseSet = new Set();
+      runs.forEach(runData => {
+        const executionId = runData?.linkItems?.[0];
+        const caseId = runData?.referenceCase;
+        if (executionId) {
+          executionIdSet.add(executionId);
+        }
+        if (caseId) {
+          caseSet.add(caseId);
+        }
+      });
+
+      const result = {
+        executionIds: [...executionIdSet],
+        caseIds: [...caseSet],
+      };
+
+      console.info('getExecutionAndCaseId', JSON.stringify(result));
+      return result;
+    };
+
+    const deleteChunkRuns = async items => {
+      try {
+        // 获取执行关联的测试执行任务、测试用例
+        const { executionIds, caseIds } = await getExecutionAndCaseId(items);
+
+        console.info(
+          'deleteChunkRuns  executionIds-caseIds',
+          JSON.stringify({ executionIds, caseIds }),
+        );
+        const res = await deleteItems(items, getHeaders());
+        // 删除测试执行后，更新测试执行任务、测试用例
+
+        await Promise.all([
+          updateExecutionCasesAndDefects(executionIds),
+          updateCaseDefects(caseIds),
+        ]);
+        const errors = res?.filter(i => i.status !== 'success');
+        result.success += items.length - errors.length;
+        result.fail += errors.length;
+        result.items = result.items.concat(errors.map(i => i.objectId));
+        if (errors.length) {
+          result.message.push(errors[0]?.message);
+        }
+      } catch (e) {
+        result.message.push(getErrorMessage(e));
+        result.fail += items.length;
+        result.items = result.items.concat(items);
+        throw e;
+      } finally {
+        console.info('deleteChunkRuns end');
+      }
+    };
+    const items = itemIds.map(objectId => ({ objectId }));
+
+    if (withProcess)
+      await execWithProcess({
+        processId,
+        execFunc: deleteChunkRuns,
+        list: items,
+        getDesc: () => JSON.stringify(result),
+        batchSize: deleteBatchSize,
+        getBatchRecord: (items, error) => ({
+          retryId: processId,
+          type: 'batchDeleteItems',
+          params: {
+            ids: items,
+          },
+          error,
+        }),
+      });
+    else if (retry) await deleteChunkRuns(items);
+    else
+      await batchExecFunction({
+        list: items,
+        fun: deleteChunkRuns,
+        batchSize: itemsV2BatchSize,
+      });
+
+    return buildResponse(result);
+  } catch (err) {
+    return handleError(err, retry, result, processId);
+  }
+};
+
+export const batchDeleteRunsJob = async () => {
+  const { body } = getReqInfoFromVMRuntime<ProcessJobParams<BatchDeletePayload>>();
+
+  return await batchDeleteRuns(body);
+};
+
 export const removeCaseFromPlanWorker = async (
   props: ProcessJobParams<RemoveCaseFromPlanPayload>,
 ) => {
@@ -772,10 +888,12 @@ export const removeCaseFromPlanWorker = async (
           JSON.stringify([...executionIdSet]),
         );
         if (runIds.length) await batchDeleteItems({ ids: runIds });
-        // 更新测试执行任务
-        if (executionIdSet.size) {
-          await updateExecutionCases([...executionIdSet]);
-        }
+
+        // 删除测试执行后，需要更新用例的缺陷、测试执行任务的缺陷、用例数
+        await Promise.all([
+          updateExecutionCasesAndDefects([...executionIdSet]),
+          updateCaseDefects(cases),
+        ]);
 
         result.success += cases.length;
       } catch (e) {

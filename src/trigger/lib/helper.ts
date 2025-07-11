@@ -93,10 +93,20 @@ export const buildTestEntityLinkData = async (data: TestEntityLinkActionData[]) 
 
           const { action, value } = linkItems as any;
           const processedLinkData = { linkItems: value } as any;
+
+          const currentLinkType = originalLinkType || (item as any).linkType;
           const isCaseOrExecution = [
             TestLinkType.CaseLinkPlan,
             TestLinkType.ExecutionLinkPlan,
-          ].includes(originalLinkType);
+          ].includes(currentLinkType);
+
+          console.info(
+            '-----originalLinkType',
+            originalLinkType,
+            isCaseOrExecution,
+            (item as any).linkType,
+            currentLinkType,
+          );
           if (action === 'delete') {
             const linkItems = difference(originalLinkItems, value);
             processedLinkData.linkItems = linkItems?.length ? linkItems : [];
@@ -282,4 +292,18 @@ export const updateBatchRecordsDone = async (ids: string[]): Promise<void> => {
     return record;
   });
   await saveAllObject(records);
+};
+
+export const getDefectItemIds = runList => {
+  const runDetails = runList?.map(d => d?.runDetail).filter(Boolean) ?? [];
+
+  const stepDefectIds = runDetails
+    .filter(d => d?.steps)
+    .map(d => d.steps)
+    .flat()
+    .map(d => d.defectItemIds ?? [])
+    .flat();
+
+  const runDefectItemIds = runDetails.map(d => d?.defectItemIds ?? []).flat();
+  return [...new Set([...stepDefectIds, ...runDefectItemIds])].filter(Boolean);
 };
