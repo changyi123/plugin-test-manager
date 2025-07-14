@@ -324,7 +324,9 @@
         "messageSuccess": "测试管理系统隔离操作成功",
         "enableTestManagerSystemIsolation": "开启测试管理系统隔离",
         "systemTips": "测试管理系统隔离说明",
-        "caseDetailExtra": "用例详情独立"
+        "caseDetailExtra": "用例详情独立",
+        "selectDefaultField": "请选择默认值自定义字段",
+        "selectInputIql": "请输入默认值内容的IQL"
       },
       "wordTemplate": {
         "title": "测试报告 Word 模板管理",
@@ -385,6 +387,10 @@
       "isolatedSystem": {
         "title": "测试管理系统隔离",
         "description": "配置测试管理系统与业务系统进行隔离"
+      },
+      "defectManageConfig": {
+        "title": "缺陷管理需求配置",
+        "description": "配置创建缺陷时候自定义字段设置为默认值"
       },
       "tableFields": {
         "title": "表头及检索项设置",

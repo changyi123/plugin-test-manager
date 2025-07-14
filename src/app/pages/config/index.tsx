@@ -6,6 +6,7 @@ import React from 'react';
 import { featureFlags, getAppEnv } from '@/lib/appEnv';
 import { withPageGuard } from '@/lib/guards/page';
 import useI18n from '@/lib/hooks/useI18n';
+import DefectManageConfig from '@/pages/config/MoreConfig/DefectManageConfig';
 
 import DataProvider from './DataProvider';
 import DefectMapping from './DefectMapping';
@@ -53,6 +54,13 @@ const MoreConfigPages = [
     title: 'generalSettings',
     component: GeneralSettings,
     description: 'generalSettings',
+    isGlobalConfig: true,
+  },
+  {
+    key: 'defectManageConfig',
+    title: 'defectManageConfig',
+    component: DefectManageConfig,
+    description: 'defectManageConfig',
     isGlobalConfig: true,
   },
 ];
