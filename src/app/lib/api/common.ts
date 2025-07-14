@@ -965,3 +965,28 @@ export function transferObject(data) {
   transfer(data.values);
   return data;
 }
+
+/**
+ * @description 获取自定义字段的options
+ * */
+export const getSettingFieldsList = async ({
+  keyword,
+  keys = [], // 数据类型的集合
+}: {
+  keyword?: string;
+  keys?: string[];
+}): Promise<{ label: string; value: string }[]> => {
+  const res = await fetch.$get('/parse/api/fields/settings', {
+    params: {
+      fieldType: {
+        keys,
+      },
+      skip: 0,
+      limit: 500,
+      matchName: keyword || '',
+      orderBy: '-createdAt',
+      propertyNames: ['name', 'description', 'key', 'property', 'data', 'objectId'],
+    },
+  });
+  return res?.payload?.results?.map(field => ({ label: field.name, value: field.key })) || [];
+};

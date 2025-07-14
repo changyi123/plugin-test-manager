@@ -13,7 +13,13 @@ const proximaSDK = createProximaSdk();
 /**
  * 打开事项创建弹窗
  */
-export const openCreateItemModal = ({ itemTypeId, workspaceId, name, extraData }) => {
+export const openCreateItemModal = ({
+  itemTypeId,
+  workspaceId,
+  name,
+  extraData,
+  defaultValues = {},
+}) => {
   proximaSDK.execute('openItemCreateScreen', {
     extraData: {
       hideMessage: true,
@@ -24,6 +30,7 @@ export const openCreateItemModal = ({ itemTypeId, workspaceId, name, extraData }
       planId: extraData?.planId,
       filterItemTypeList: true,
     },
+    defaultValues,
     initItemData: {
       defaultName: name,
       workspace: {

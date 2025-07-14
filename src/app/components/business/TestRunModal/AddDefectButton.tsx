@@ -7,6 +7,7 @@ import { TestType } from '@/lib/constants';
 import { useBaseAction } from '@/lib/hooks/useContext';
 import useI18n from '@/lib/hooks/useI18n';
 import { Step, TestEntity } from '@/lib/types/Test';
+import { getDefectDefautFieldConfig } from '@/lib/utils/getDefectDefautFieldConfig';
 import { getEditorOrStringText } from '@/lib/utils/helper';
 import { usePageContext } from '@/pages/plan/hook';
 
@@ -38,12 +39,13 @@ const AddDefectButton: React.FC<AddDefectButtonProps> = props => {
   } = props;
   const { t } = useI18n();
   const { createItemUseModal, getCreatePermission } = useBaseAction();
-  const { selectedTestPlan, activeExecutionPlan } = usePageContext();
+  const { selectedTestPlan, activeExecutionPlan, selectedTestExecution } = usePageContext();
   const { TestToDefect = '' } = useItemLinkTypeConfig();
   const currentRef = React.useRef(null);
   const testEntitySelectorRef = React.useRef<ActionType>();
   const createDefect = React.useCallback(
     async (isNeedContentFieldsInfo = false) => {
+      const defaultFieldConfig = await getDefectDefautFieldConfig(selectedTestExecution?.objectId);
       let content = null;
       if (isNeedContentFieldsInfo) {
         const { action, actualResult, result, data, index } = step;
@@ -74,7 +76,9 @@ const AddDefectButton: React.FC<AddDefectButtonProps> = props => {
             id: 'ls15d',
             children: [
               {
-                text: `${t('components.business.testRunModal.testStep.testCaseName')}：${testRunEntity?.name}  `,
+                text: `${t('components.business.testRunModal.testStep.testCaseName')}：${
+                  testRunEntity?.name
+                }  `,
               },
             ],
           },
@@ -139,6 +143,7 @@ const AddDefectButton: React.FC<AddDefectButtonProps> = props => {
           extraValues: { content },
           useItemBatchCreate: true,
         },
+        ...defaultFieldConfig,
       });
 
       onLoading?.();
@@ -167,6 +172,7 @@ const AddDefectButton: React.FC<AddDefectButtonProps> = props => {
       currentDefectIds,
       onSave,
       t,
+      selectedTestExecution,
     ],
   );
 
