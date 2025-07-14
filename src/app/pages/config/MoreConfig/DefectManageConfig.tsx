@@ -1,5 +1,6 @@
+import { useMemoizedFn } from 'ahooks';
 import { Button, Form, Input, message, Select } from 'antd';
-import React, { useCallback, useEffect, useState } from 'react';
+import React, { useCallback, useEffect, useMemo, useState } from 'react';
 
 import { getSettingFieldsList } from '@/lib/api/common';
 import useI18n from '@/lib/hooks/useI18n';
@@ -34,7 +35,7 @@ const DefectManageConfig = () => {
     },
     [configId, t],
   );
-  const initData = async () => {
+  const initData = useMemoizedFn(async () => {
     // 可能会有并发问题，但是这都是升级后内部人员配置的。所以问题发生的概率很小，先忽略不计
     let _generalConfig = await new Parse.Query(GeneralSetting)
       .select(['objectId', 'defectsDefaultFieldInfo'])
@@ -50,7 +51,7 @@ const DefectManageConfig = () => {
       iql: config?.defectsDefaultFieldInfo?.iql || '',
       defaultValueCustomKey: config?.defectsDefaultFieldInfo?.defaultValueCustomKey || '',
     });
-  };
+  });
   const getDataQuoteFields = async () => {
     const result = await getSettingFieldsList({
       keyword: '',
@@ -59,13 +60,16 @@ const DefectManageConfig = () => {
     console.info(result, 'result');
     setDataQuoteFields(result);
   };
+  const uniqueKey = useMemo(() => {
+    return JSON.stringify(formData);
+  }, [formData]);
   useEffect(() => {
     initData();
     getDataQuoteFields();
-  }, [setConfigId]);
+  }, [initData]);
   return (
     <div>
-      <Form initialValues={formData} onFinish={handleSave}>
+      <Form key={uniqueKey} initialValues={formData} onFinish={handleSave}>
         <Form.Item
           name="defaultValueCustomKey"
           label={t('page.config.moreConfig.selectDefaultField')}
@@ -73,7 +77,7 @@ const DefectManageConfig = () => {
           <Select showSearch optionFilterProp="label" options={dataQuoteFields} />
         </Form.Item>
         <Form.Item name="iql" label={t('page.config.moreConfig.selectInputIql')}>
-          <Input placeholder={t('common.pleaseInputContent')} />
+          <Input allowClear placeholder={t('common.pleaseInputContent')} />
         </Form.Item>
         <Form.Item label={null}>
           <Button type="primary" htmlType="submit">

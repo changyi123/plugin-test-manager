@@ -23,10 +23,10 @@ export const getDefectDefautFieldConfig = async (
 
   if (_generalConfig) {
     const generalConfigJSON = _generalConfig.toJSON();
-    const { defectsDefaultFieldInfo } = generalConfigJSON;
+    const { defectsDefaultFieldInfo = {} } = generalConfigJSON;
     if (defectsDefaultFieldInfo.defaultValueCustomKey) {
       let finalIql = `子事项 in ['${executionId}']`;
-      if (defectsDefaultFieldInfo?.iql) {
+      if (defectsDefaultFieldInfo.iql) {
         finalIql = defectsDefaultFieldInfo.iql;
       }
       const {
