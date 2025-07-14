@@ -4,7 +4,7 @@ import React from 'react';
 
 import TestEntitySelectorModal, { ActionType } from '@/components/business/TestEntitySelectorModal';
 import { TestType } from '@/lib/constants';
-import { useBaseAction } from '@/lib/hooks/useContext';
+import { useBaseAction, useTestConfig } from '@/lib/hooks/useContext';
 import useI18n from '@/lib/hooks/useI18n';
 import { Step, TestEntity } from '@/lib/types/Test';
 import { getDefectDefautFieldConfig } from '@/lib/utils/getDefectDefautFieldConfig';
@@ -40,12 +40,15 @@ const AddDefectButton: React.FC<AddDefectButtonProps> = props => {
   const { t } = useI18n();
   const { createItemUseModal, getCreatePermission } = useBaseAction();
   const { selectedTestPlan, activeExecutionPlan, selectedTestExecution } = usePageContext();
+  const { testEntity } = useTestConfig();
   const { TestToDefect = '' } = useItemLinkTypeConfig();
   const currentRef = React.useRef(null);
   const testEntitySelectorRef = React.useRef<ActionType>();
   const createDefect = React.useCallback(
     async (isNeedContentFieldsInfo = false) => {
-      const defaultFieldConfig = await getDefectDefautFieldConfig(selectedTestExecution?.objectId);
+      const defaultFieldConfig = await getDefectDefautFieldConfig(
+        selectedTestExecution?.objectId || testEntity?.objectId,
+      );
       let content = null;
       if (isNeedContentFieldsInfo) {
         const { action, actualResult, result, data, index } = step;
