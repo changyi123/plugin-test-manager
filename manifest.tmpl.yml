@@ -201,6 +201,11 @@ modules:
         - gei:proxima:item:beforeCreate
       function: item-before-create-trigger-function
       async: false
+    - key: item-before-update-trigger
+      events:
+        - gei:proxima:item:beforeUpdate
+      function: item-before-update-trigger-function
+      async: false
     # - key: test-manager-item-after-save-trigger
     #   events:
     #     - gei:proxima:item:updated
@@ -237,6 +242,8 @@ modules:
       handler: trigger.deleteTestLink
     - key: item-before-create-trigger-function
       handler: trigger.handleBeforeCreate
+    - key: item-before-update-trigger-function
+      handler: trigger.handleBeforeUpdate
     - key: item-created-trigger-function
       handler: trigger.createdItemLinkType
     - key: test-manager-validate-script-function
@@ -758,6 +765,17 @@ modules:
       name: test_manager_runMapCaseKey
       description: 测试管理内置字段-测试执行关联的测试用例 key（勿删改）
       type: Text
+    - key: isCaseUpdate
+      name: 是否有更新
+      type: Radio
+      undeletable: true
+      locked: true
+      readonly: true
+      description: 测试管理内置字段-用例是否有更新
+      data:
+        customData:
+          - label: '是'
+            value: '1'
   customItemType:
     - key: test_manager_detail
       name: 测试用例

@@ -137,6 +137,7 @@ export const TestFiledKeyMapping = {
   runDetail: 'r_test_manager_runDetail',
   comment: 'r_test_manager_comment',
   testSet: 'r_test_manager_referenceSet',
+  isCaseUpdate: 'r_test_manager_isCaseUpdate',
 } as const;
 
 export const NotValidatorFiledKeyMapping = {
