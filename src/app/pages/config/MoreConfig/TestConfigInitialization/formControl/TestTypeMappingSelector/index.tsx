@@ -3,7 +3,7 @@ import { components } from 'proxima-sdk';
 import React from 'react';
 import { useTranslation } from 'react-i18next';
 
-import { judgeTestReportVersion, TEST_REPORT_VERSION } from '@/lib/appEnv';
+import { featureFlags, judgeTestReportVersion, TEST_REPORT_VERSION } from '@/lib/appEnv';
 import { TestType } from '@/lib/constants';
 import { commonQuery } from '@/services/query';
 
@@ -24,7 +24,7 @@ const TestTypes = [
     type: TestType.Execution,
     title: 'testExecution',
   },
-  {
+  featureFlags('ENABLE_TEST_CASE_SET') && {
     type: TestType.CaseSet,
     title: 'testCaseSet',
   },

@@ -1,14 +1,20 @@
 import { Table } from 'antd';
 import { TestFiledKeyMapping } from 'common/constant';
 import React, { Suspense, useCallback, useEffect, useState } from 'react';
-import { AutoResizer } from 'react-base-table';
 
+// import { AutoResizer } from 'react-base-table';
 import { searchFields } from '@/lib/api/proxima';
+import { featureFlags } from '@/lib/appEnv';
 import useI18n from '@/lib/hooks/useI18n';
 
 import TranslateModal from './TranslateModal';
 
-const TEST_MANAGER_FIELD_KEYS = Object.values(TestFiledKeyMapping);
+let TEST_MANAGER_FIELD_KEYS = Object.values(TestFiledKeyMapping);
+if (!featureFlags('ENABLE_TEST_CASE_SET')) {
+  TEST_MANAGER_FIELD_KEYS = TEST_MANAGER_FIELD_KEYS.filter(
+    item => item !== TestFiledKeyMapping.testSet,
+  );
+}
 
 const FieldSettings: React.FC = () => {
   const [fields, setFields] = useState([]);

@@ -1,4 +1,6 @@
-import { TestType } from 'common/constant';
+import { TestFiledKeyMapping, TestType } from 'common/constant';
+
+import { featureFlags } from '@/lib/appEnv';
 
 export * from 'common/constant';
 
@@ -492,71 +494,72 @@ export const TestExecutionModel = `${appKey}_Execution`;
 export const TestPlanModel = `${appKey}_Plan`;
 export const TestSetModel = `${appKey}_referenceSet`;
 
-export const getExtendFields = t => [
-  {
-    key: RepositoryModel,
-    name: t('common.testRepository'),
-    objectId: RepositoryModel,
-    fieldType: {
-      isExtend: true,
-      dataType: 'object',
-      objectId: RepositoryModel,
+export const getExtendFields = t =>
+  [
+    {
       key: RepositoryModel,
       name: t('common.testRepository'),
+      objectId: RepositoryModel,
+      fieldType: {
+        isExtend: true,
+        dataType: 'object',
+        objectId: RepositoryModel,
+        key: RepositoryModel,
+        name: t('common.testRepository'),
+      },
     },
-  },
-  {
-    key: '测试用例集',
-    name: '测试用例集',
-    objectId: TestSetModel,
-    fieldType: {
-      isExtend: true,
-      dataType: 'object',
-      objectId: TestSetModel,
-      key: TestSetModel,
+    featureFlags('ENABLE_TEST_CASE_SET') && {
+      key: '测试用例集',
       name: '测试用例集',
+      objectId: TestSetModel,
+      fieldType: {
+        isExtend: true,
+        dataType: 'object',
+        objectId: TestSetModel,
+        key: TestSetModel,
+        name: '测试用例集',
+      },
     },
-  },
-  {
-    key: TestRunDesigneeModel,
-    // name: '执行人',
-    name: t('common.designee'),
-    objectId: TestRunDesigneeModel,
-    fieldType: {
-      component: 'createdBy',
-      dataType: 'object',
-      objectId: 'test_designee',
-      key: 'createdBy',
-      name: t('common.user'),
+    {
+      key: TestRunDesigneeModel,
+      // name: '执行人',
+      name: t('common.designee'),
+      objectId: TestRunDesigneeModel,
+      fieldType: {
+        component: 'createdBy',
+        dataType: 'object',
+        objectId: 'test_designee',
+        key: 'createdBy',
+        name: t('common.user'),
+      },
     },
-  },
-  {
-    key: TestRunExecutorModel,
-    // name: '最新操作执行人',
-    name: t('common.testExecutor'),
-    objectId: TestRunExecutorModel,
-    fieldType: {
-      component: 'createdBy',
-      dataType: 'object',
-      objectId: 'test_executor',
-      key: 'createdBy',
-      name: t('common.user'),
+    {
+      key: TestRunExecutorModel,
+      // name: '最新操作执行人',
+      name: t('common.testExecutor'),
+      objectId: TestRunExecutorModel,
+      fieldType: {
+        component: 'createdBy',
+        dataType: 'object',
+        objectId: 'test_executor',
+        key: 'createdBy',
+        name: t('common.user'),
+      },
     },
-  },
-  {
-    key: TestCaseStatusModel,
-    // name: '测试执行状态',
-    name: t('common.testCaseStatus'),
-    objectId: TestCaseStatusModel,
-    fieldType: {
-      isExtend: true,
-      dataType: 'object',
-      objectId: TestCaseStatusModel,
+    {
       key: TestCaseStatusModel,
+      // name: '测试执行状态',
       name: t('common.testCaseStatus'),
+      objectId: TestCaseStatusModel,
+      fieldType: {
+        isExtend: true,
+        dataType: 'object',
+        objectId: TestCaseStatusModel,
+        key: TestCaseStatusModel,
+        name: t('common.testCaseStatus'),
+      },
     },
-  },
-];
+  ].filter(Boolean);
 
 export const getTestPlanField = t => [
   {

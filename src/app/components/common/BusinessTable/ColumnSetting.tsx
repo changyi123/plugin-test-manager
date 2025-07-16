@@ -19,8 +19,8 @@ import {
   QuestionCircleOutlined,
   Setting,
 } from '@/icons';
-import { judgeTestReportVersion, TEST_REPORT_VERSION } from '@/lib/appEnv';
-import { TABLE_EXCLUDE_FIELDS, TestType } from '@/lib/constants';
+import { featureFlags, judgeTestReportVersion, TEST_REPORT_VERSION } from '@/lib/appEnv';
+import { TABLE_EXCLUDE_FIELDS, TestFiledKeyMapping, TestType } from '@/lib/constants';
 import { useBaseAction } from '@/lib/hooks/useContext';
 import useI18n from '@/lib/hooks/useI18n';
 import { useFieldsWithFieldCellProps } from '@/lib/hooks/useProxima';
@@ -55,6 +55,10 @@ const proxima = createProximaSdk();
 const filedKeyText = ['User', 'UserGroup', 'Assignee', 'Sprint', 'Version'];
 
 const readComponents = getAllReadComponents();
+
+if (!featureFlags('ENABLE_TEST_CASE_SET')) {
+  TABLE_EXCLUDE_FIELDS.push(TestFiledKeyMapping.testSet);
+}
 
 const ColumnSetting: React.FC<ColumnSettingProps> = props => {
   const {
