@@ -131,6 +131,11 @@ export const TestFiledKeyMapping = {
   reportChartGroup: 'r_test_manager_reportChartGroup',
   reportTemplate: 'r_test_manager_reportTemplate',
   plan: 'r_test_manager_plan',
+  executionCases: 'r_test_manager_executionCases',
+  testCases: 'r_test_manager_testCases',
+  testPlans: 'r_test_manager_testPlans',
+  testExecutions: 'r_test_manager_testExecutions',
+  testDefects: 'r_test_manager_testDefects',
 
   // 以下字段以字符串形式存入，存入前需要 stringify，返回需要 parse
   detail: 'r_test_manager_detail',

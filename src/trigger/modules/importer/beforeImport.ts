@@ -202,6 +202,7 @@ export const runBeforeImport = async () => {
               r_test_manager_type: 'TestRun',
               r_test_manager_executeCount: item.executionCount || 1,
               r_test_manager_linkItems: [executionId],
+              r_test_manager_testExecutions: [executionId],
               r_test_manager_plan: planId,
               r_test_manager_linkType: 'RunLinkExecution',
               r_test_manager_runDetail: JSON.stringify({
@@ -214,6 +215,7 @@ export const runBeforeImport = async () => {
             }),
             ...(findData?.values?.r_test_manager_linkType === 'CaseLinkPlan' && {
               r_test_manager_type: 'TestCase',
+              r_test_manager_testPlans: findData.values.r_test_manager_linkItems || [],
               r_test_manager_detail: JSON.stringify({
                 precondition: item.precondition,
                 steps: isNotHaveMap ? getStepsData(clone(item)) : [],
@@ -226,6 +228,7 @@ export const runBeforeImport = async () => {
           }),
           ...(!findData?.values?.r_test_manager_linkType && {
             ...findData?.values,
+            r_test_manager_testPlans: findData.values.r_test_manager_linkItems || [],
             r_test_manager_type: 'TestCase',
             r_test_manager_linkType: 'CaseLinkPlan',
             r_test_manager_detail: JSON.stringify({

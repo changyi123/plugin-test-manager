@@ -38,6 +38,11 @@ import {
   updateProcessBar,
 } from '../../lib/helper';
 import { iqlRequest } from '../../lib/iqlRequest';
+import {
+  updateCaseDefects,
+  updateExecutionCases,
+  updateExecutionCasesAndDefects,
+} from '../../lib/update';
 
 type TestRunType = TestEntity<TestType.Run>;
 type ProcessJobParams<T> = T & {
@@ -266,6 +271,7 @@ export const createTestRuns = async (params: ProcessJobParams<BatchCreateTestRun
         from: cases,
         fields: {
           [TestFiledKeyMapping.linkItems]: [execution.objectId],
+          [TestFiledKeyMapping.testExecutions]: [execution.objectId],
           [TestFiledKeyMapping.linkType]: TestLinkType.RunLinkExecution,
           [TestFiledKeyMapping.type]: TestType.Run,
           [TestFiledKeyMapping.status]: StartStatusKey,
@@ -278,6 +284,11 @@ export const createTestRuns = async (params: ProcessJobParams<BatchCreateTestRun
           [TestFiledKeyMapping.referenceCase]: {
             copy: 'objectId',
             valueType: 'item',
+          },
+          [TestFiledKeyMapping.testCases]: {
+            copy: 'objectId',
+            valueType: 'item',
+            fieldType: 'DataQuote',
           },
           [TestFiledKeyMapping.runDetail]: {
             copy: TestFiledKeyMapping.detail,
@@ -302,7 +313,6 @@ export const createTestRuns = async (params: ProcessJobParams<BatchCreateTestRun
         getHeaders(),
       );
     };
-
     // 对用例打快照
     const snapshotCases = async cases => {
       console.info(`batchCreateTestRunV2 snapshotCases cases: ${cases.length}`);
@@ -393,6 +403,9 @@ export const createTestRuns = async (params: ProcessJobParams<BatchCreateTestRun
           [TestFiledKeyMapping.linkItems]: {
             concat: [planId],
           },
+          [TestFiledKeyMapping.testPlans]: {
+            concat: [planId],
+          },
         },
       };
       return await batchUpdateItemsV2(updateParams);
@@ -413,6 +426,9 @@ export const createTestRuns = async (params: ProcessJobParams<BatchCreateTestRun
 
         // 更新测试用例上的
         await updateCaseLinkPlan(needPlanCases);
+
+        // 更新测试执行任务规划的用例数量
+        await updateExecutionCases([execution.objectId]);
         result.success += needPlanCases.length;
       } catch (e) {
         result.message.push(getErrorMessage(e));
@@ -560,6 +576,7 @@ export const copyTesCases = async (params: ProcessJobParams<BatchCopyTestCaseV3P
         from: cases,
         fields: {
           [TestFiledKeyMapping.linkItems]: [],
+          [TestFiledKeyMapping.testPlans]: [],
           [TestFiledKeyMapping.linkType]: '',
         },
         update: {
@@ -708,6 +725,117 @@ export const batchDeleteItemsJob = async () => {
   return await batchDeleteItems(body);
 };
 
+export const batchDeleteRuns = async ({
+  ids: itemIds,
+  retry,
+  processId,
+}: ProcessJobParams<BatchDeletePayload>) => {
+  const result = getResult(processId);
+  result.total = itemIds.length;
+  const withProcess = !!processId;
+  try {
+    const getExecutionAndCaseId = async items => {
+      const runIds = items.map(i => i.objectId);
+
+      const runs = await getAllEntity(
+        {
+          query: { id: runIds, type: TestType.Run },
+        },
+        ['id', TestFiledKeyMapping.linkItems, TestFiledKeyMapping.referenceCase],
+      );
+
+      const executionIdSet = new Set();
+      const caseSet = new Set();
+      runs.forEach(runData => {
+        const executionId = runData?.linkItems?.[0];
+        const caseId = runData?.referenceCase;
+        if (executionId) {
+          executionIdSet.add(executionId);
+        }
+        if (caseId) {
+          caseSet.add(caseId);
+        }
+      });
+
+      const result = {
+        executionIds: [...executionIdSet],
+        caseIds: [...caseSet],
+      };
+
+      console.info('getExecutionAndCaseId', JSON.stringify(result));
+      return result;
+    };
+
+    const deleteChunkRuns = async items => {
+      try {
+        // 获取执行关联的测试执行任务、测试用例
+        const { executionIds, caseIds } = await getExecutionAndCaseId(items);
+
+        console.info(
+          'deleteChunkRuns  executionIds-caseIds',
+          JSON.stringify({ executionIds, caseIds }),
+        );
+        const res = await deleteItems(items, getHeaders());
+        // 删除测试执行后，更新测试执行任务、测试用例
+
+        await Promise.all([
+          updateExecutionCasesAndDefects(executionIds),
+          updateCaseDefects(caseIds),
+        ]);
+        const errors = res?.filter(i => i.status !== 'success');
+        result.success += items.length - errors.length;
+        result.fail += errors.length;
+        result.items = result.items.concat(errors.map(i => i.objectId));
+        if (errors.length) {
+          result.message.push(errors[0]?.message);
+        }
+      } catch (e) {
+        result.message.push(getErrorMessage(e));
+        result.fail += items.length;
+        result.items = result.items.concat(items);
+        throw e;
+      } finally {
+        console.info('deleteChunkRuns end');
+      }
+    };
+    const items = itemIds.map(objectId => ({ objectId }));
+
+    if (withProcess)
+      await execWithProcess({
+        processId,
+        execFunc: deleteChunkRuns,
+        list: items,
+        getDesc: () => JSON.stringify(result),
+        batchSize: deleteBatchSize,
+        getBatchRecord: (items, error) => ({
+          retryId: processId,
+          type: 'batchDeleteItems',
+          params: {
+            ids: items,
+          },
+          error,
+        }),
+      });
+    else if (retry) await deleteChunkRuns(items);
+    else
+      await batchExecFunction({
+        list: items,
+        fun: deleteChunkRuns,
+        batchSize: itemsV2BatchSize,
+      });
+
+    return buildResponse(result);
+  } catch (err) {
+    return handleError(err, retry, result, processId);
+  }
+};
+
+export const batchDeleteRunsJob = async () => {
+  const { body } = getReqInfoFromVMRuntime<ProcessJobParams<BatchDeletePayload>>();
+
+  return await batchDeleteRuns(body);
+};
+
 export const removeCaseFromPlanWorker = async (
   props: ProcessJobParams<RemoveCaseFromPlanPayload>,
 ) => {
@@ -722,6 +850,9 @@ export const removeCaseFromPlanWorker = async (
           [TestFiledKeyMapping.linkItems]: {
             remove: planId,
           },
+          [TestFiledKeyMapping.testPlans]: {
+            remove: planId,
+          },
         },
         fields: {},
         items: cases,
@@ -730,11 +861,40 @@ export const removeCaseFromPlanWorker = async (
 
       try {
         await batchUpdateItemsV2(updateParams);
-        const runIds = await getAllEntity({
-          query: { referenceCase: cases, plan: planId, type: TestType.Run },
+        const runs = await getAllEntity(
+          {
+            query: { referenceCase: cases, plan: planId, type: TestType.Run },
+          },
+          ['id', TestFiledKeyMapping.linkItems],
+        );
+
+        console.info('removeCaseFromPlanWorker runs', JSON.stringify(runs));
+
+        const runIds = [];
+        const executionIdSet = new Set();
+        runs.forEach(runData => {
+          runIds.push(runData.objectId);
+
+          const executionId = runData?.linkItems?.[0];
+          if (executionId) {
+            executionIdSet.add(executionId);
+          }
         });
-        console.info('removeCaseFromPlanWorker', runIds.length, cases.length);
+
+        console.info(
+          'removeCaseFromPlanWorker',
+          runIds.length,
+          cases.length,
+          JSON.stringify([...executionIdSet]),
+        );
         if (runIds.length) await batchDeleteItems({ ids: runIds });
+
+        // 删除测试执行后，需要更新用例的缺陷、测试执行任务的缺陷、用例数
+        await Promise.all([
+          updateExecutionCasesAndDefects([...executionIdSet]),
+          updateCaseDefects(cases),
+        ]);
+
         result.success += cases.length;
       } catch (e) {
         result.message.push(getErrorMessage(e));
@@ -791,6 +951,7 @@ export const removeExecutionFromPlanWorker = async (
       fields: {
         values: {
           [TestFiledKeyMapping.linkItems]: [],
+          [TestFiledKeyMapping.testPlans]: [],
         },
       },
       items: executionIds,
@@ -870,6 +1031,7 @@ export const addExecutionToPlanWorker = async (
         values: {
           [TestFiledKeyMapping.linkType]: TestLinkType.ExecutionLinkPlan,
           [TestFiledKeyMapping.linkItems]: [planId],
+          [TestFiledKeyMapping.testPlans]: [planId],
         },
       },
       items: executionIds,
@@ -907,6 +1069,9 @@ export const addExecutionToPlanWorker = async (
       const updateCaseParams = {
         update: {
           [TestFiledKeyMapping.linkItems]: {
+            concat: [planId],
+          },
+          [TestFiledKeyMapping.testPlans]: {
             concat: [planId],
           },
         },

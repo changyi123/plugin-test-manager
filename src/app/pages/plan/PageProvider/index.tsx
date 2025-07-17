@@ -11,6 +11,7 @@ import { getDevConfig } from '@/devEnv';
 import { TestType } from '@/lib/constants';
 import { TestEntity } from '@/lib/types/Test';
 import { SearchSelectors } from '@/lib/utils/iql';
+import { TestExecutionEntity } from '@/pages/plan/type';
 
 export type TableActionEventType = {
   tableSelectionVisible?: boolean;
@@ -30,12 +31,14 @@ type PageContextType = {
   runLinkCaseIds?: string[];
   refresh: (key?: string) => void;
   selectedTestPlan: TestPlanEntity | null;
+  selectedTestExecution: TestExecutionEntity | null;
   setSearchValue: (searchValue: string) => void;
   tableSelectionToggleEvent: EventEmitter<boolean>;
   mutateTestPlanEvent: EventEmitter<string | undefined>;
   mutateTestTableList: EventEmitter<string | undefined>;
   mutateStatusEvent: EventEmitter<string | undefined>;
   setSelectedTestPlan: (testPlan: TestPlanEntity | null) => void;
+  setSelectedTestExecution: (testPlan: TestExecutionEntity | null) => void;
   registerRefreshMethod: (method: Record<string, () => void>) => void;
   setPlanLinkCaseIds: (val?: string[]) => void;
   setExecutionLinkRunIds: (val?: string[]) => void;
@@ -61,6 +64,7 @@ export const PageContext = React.createContext<PageContextType>({
   registerRefreshMethod: noop,
   tableSelectionToggleEvent: null,
   selectedTestPlan: {} as TestPlanEntity,
+  selectedTestExecution: {} as TestExecutionEntity,
   planLinkCaseIds: null,
   executionLinkRunIds: null,
   runLinkCaseIds: null,
@@ -72,6 +76,7 @@ export const PageContext = React.createContext<PageContextType>({
   setActiveExecutionPlan: noop,
   runLinkSnapshotIds: null,
   setRunLinkSnapshotIds: noop,
+  setSelectedTestExecution: noop,
 });
 
 const PageProvider: React.FC<any> = ({ children }) => {
@@ -85,6 +90,7 @@ const PageProvider: React.FC<any> = ({ children }) => {
   const mutateTestTableList = useEventEmitter<string | undefined>();
   const workspaceKey = context?.env?.WORKSPACE_KEY ?? getDevConfig().workspaceKey;
   const [selectedTestPlan, setSelectedTestPlan] = useState(null);
+  const [selectedTestExecution, setSelectedTestExecution] = useState(null);
   const [planLinkCaseIds, setPlanLinkCaseIds] = useState<string[]>(null);
   const [executionLinkRunIds, setExecutionLinkRunIds] = useState<string[]>(null);
   const [runLinkCaseIds, setRunLinkCaseIds] = useState<string[]>(null);
@@ -149,6 +155,8 @@ const PageProvider: React.FC<any> = ({ children }) => {
             setActiveExecutionPlan,
             runLinkSnapshotIds,
             setRunLinkSnapshotIds,
+            selectedTestExecution,
+            setSelectedTestExecution,
           }}
         >
           {children}

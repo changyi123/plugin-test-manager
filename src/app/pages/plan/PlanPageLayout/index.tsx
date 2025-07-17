@@ -231,7 +231,7 @@ const PlanPageLayout: React.FC<any> = () => {
           }, 500);
         }
         // executionListRef?.current?.refresh();
-        refreshExecutionList && refreshExecutionList()
+        refreshExecutionList && refreshExecutionList();
         notification.success({
           message: `${t('page.plan.planPageLayout.right.createTestExecutionSuccessMessage.0')}【${
             item.name
@@ -315,7 +315,7 @@ const PlanPageLayout: React.FC<any> = () => {
     }
     await addTestExecutionToPlan(ids);
     // executionListRef?.current.refresh();
-    refreshExecutionList && refreshExecutionList()
+    refreshExecutionList && refreshExecutionList();
   }, [addTestExecutionToPlan, executionListRef, t]);
 
   const cancelCallback = useCallback(
@@ -333,7 +333,7 @@ const PlanPageLayout: React.FC<any> = () => {
       setTreeType('repository');
       if (!props?.itemIdList?.length) {
         // executionListRef?.current?.refresh();
-        refreshExecutionList && refreshExecutionList()
+        refreshExecutionList && refreshExecutionList();
       }
     },
     [executionListRef],

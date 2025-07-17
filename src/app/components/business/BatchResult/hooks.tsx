@@ -22,6 +22,7 @@ import {
   copyTestCaseV3,
   deleteTestEntity,
   deleteTestEntityV2,
+  deleteTestRun,
   updateItemsV2,
 } from '@/lib/api/item';
 import { getRootContainer } from '@/lib/utils/helper';
@@ -47,6 +48,7 @@ export enum ACTION_TYPE_ENUM {
   ADD_EXECUTION_TO_PLAN,
   RETRY,
   COPY_FOLDER,
+  DELETE_RUN,
 }
 
 type ProcessSwap<T> = T & {
@@ -106,6 +108,10 @@ export async function retryWithProcess(props: ProcessSwap<RetryPayload>) {
 
 export async function copyFolderWithProcess(props: ProcessSwap<CopyFolderPayload>) {
   return await execWithProcess({ ...props, actionType: ACTION_TYPE_ENUM.COPY_FOLDER });
+}
+
+export async function deleteRunWithProcess(props: ProcessSwap<BatchDeletePayload>) {
+  return await execWithProcess({ ...props, actionType: ACTION_TYPE_ENUM.DELETE_RUN });
 }
 
 let timer = null;
@@ -170,6 +176,13 @@ export async function execWithProcess(
         break;
       case ACTION_TYPE_ENUM.DELETE_V2:
         data = await deleteTestEntityV2({
+          ...params,
+          key: processBarKey,
+        });
+        title = '移除中';
+        break;
+      case ACTION_TYPE_ENUM.DELETE_RUN:
+        data = await deleteTestRun({
           ...params,
           key: processBarKey,
         });

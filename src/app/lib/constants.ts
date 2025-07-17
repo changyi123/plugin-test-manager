@@ -1,6 +1,7 @@
 import { TestFiledKeyMapping, TestType } from 'common/constant';
 
 import { featureFlags } from '@/lib/appEnv';
+import { TestFiledKeyMapping, TestType } from 'common/constant';
 
 export * from 'common/constant';
 
@@ -87,7 +88,7 @@ export const SYSTEM_FIELD = {
   Team: 'team', // 团队
 };
 
-export const TABLE_EXCLUDE_FIELDS = [SYSTEM_FIELD.Team].filter(Boolean);
+export const TABLE_EXCLUDE_FIELDS = [SYSTEM_FIELD.Team];
 
 export const ICLUDE_SYSTEM_FIELD = [SYSTEM_FIELD.Status];
 
@@ -458,6 +459,9 @@ export const EXINCLUDE_FIELDS = [
   FIELD_TYPE_KEY_MAPPINGS.Cascade,
   FIELD_TYPE_KEY_MAPPINGS.Tree,
 ];
+
+// 筛选器忽略字段
+export const EXCLUDE_FILTER_KEYS = [TestFiledKeyMapping.testSet];
 
 export const isUseOptionValue = (component: string): boolean => {
   return [FIELD_TYPE_KEY_MAPPINGS.Dropdown].includes(component);

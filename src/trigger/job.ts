@@ -2,6 +2,7 @@ export {
   copyTesCasesJob,
   createTestRunsJob,
   batchDeleteItemsJob,
+  batchDeleteRunsJob,
   updateItemsV2Job,
   addExecutionToPlanJob,
   removeCaseFromPlanJob,

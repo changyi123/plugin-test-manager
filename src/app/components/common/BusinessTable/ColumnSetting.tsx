@@ -5,12 +5,24 @@ import createProximaSdk from '@projectproxima/proxima-sdk-js';
 import { useDeepCompareEffect, useLocalStorageState, useUpdateEffect } from 'ahooks';
 import { Button, Drawer, message, Select, Spin, Tooltip } from 'antd';
 import { ColumnType } from 'antd/lib/table';
-import { getAllReadComponents, StatusCell, TableCell } from 'apps-team-components-v1';
+import { getAllReadComponents, StatusCell } from 'apps-team-components-v1';
 import { keyBy, noop } from 'lodash';
 import React, { useCallback, useEffect, useMemo, useState } from 'react';
 import { DragDropContext, Draggable, Droppable } from 'react-beautiful-dnd';
 
 import OverflowTooltip from '@/components/common/OverflowTooltip';
+import TableCell from '@/components/common/table-components';
+
+// 下面方法应该放在 useFieldsWithFieldCellProps 这个函数里面处理，但是怕影响太大，所以先放着这里兜底
+function getValue(object, key) {
+  const customeFileldKeys = Object.values(TestFiledKeyMapping);
+  const index = customeFileldKeys.findIndex(item => item === key);
+  if (index > -1) {
+    const propertyKey = Object.keys(TestFiledKeyMapping)[index];
+    return object?.[propertyKey];
+  }
+  return object?.values?.[key];
+}
 import {
   AddSearch,
   DeleteIcon,
@@ -151,13 +163,15 @@ const ColumnSetting: React.FC<ColumnSettingProps> = props => {
         const { text, ...restTableCellProps } = fieldCellsPropDict[field.key] ?? {};
         if (!text || !itemData) return '-';
 
-        const textValue =
+        let textValue =
           !filedKeyText.includes(field.fieldType.key) && Array.isArray(text(itemData))
             ? text(itemData).map(d => d?.objectId ?? d)
             : text(itemData);
 
+        if (!textValue) {
+          textValue = getValue(record, field.key);
+        }
         const itemId = itemData.caseId || itemData.objectId || itemData.id;
-
         // 状态组件使用新版组件
         if (field?.key === 'status') {
           return (
@@ -181,6 +195,7 @@ const ColumnSetting: React.FC<ColumnSettingProps> = props => {
           <TableCell
             {...restTableCellProps}
             text={textValue}
+            itemId={itemId}
             cellData={textValue}
             column={{ ...field, cellType: field?.fieldType.defaultKey }}
             values={itemData.values}
