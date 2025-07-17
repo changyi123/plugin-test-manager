@@ -87,10 +87,7 @@ export const SYSTEM_FIELD = {
   Team: 'team', // 团队
 };
 
-export const TABLE_EXCLUDE_FIELDS = [
-  SYSTEM_FIELD.Team,
-  !featureFlags('ENABLE_TEST_CASE_SET') && TestFiledKeyMapping.testSet,
-].filter(Boolean);
+export const TABLE_EXCLUDE_FIELDS = [SYSTEM_FIELD.Team].filter(Boolean);
 
 export const ICLUDE_SYSTEM_FIELD = [SYSTEM_FIELD.Status];
 
