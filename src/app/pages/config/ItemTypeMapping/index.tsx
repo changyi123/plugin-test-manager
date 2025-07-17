@@ -37,7 +37,7 @@ const TestTypes = [
     type: TestType.CaseSet,
     title: 'testCaseSet',
   },
-];
+].filter(Boolean);
 
 async function getAllItemType() {
   const pageSize = 350;

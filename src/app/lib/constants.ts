@@ -1,7 +1,6 @@
 import { TestFiledKeyMapping, TestType } from 'common/constant';
 
 import { featureFlags } from '@/lib/appEnv';
-import { TestFiledKeyMapping, TestType } from 'common/constant';
 
 export * from 'common/constant';
 
