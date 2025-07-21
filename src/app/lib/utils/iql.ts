@@ -150,6 +150,7 @@ export interface SelectCase {
   key: string;
   value: string | number | any[];
   fieldLabel?: string[];
+  plugin?: Record<string, any>;
 }
 
 export type Selectors = Record<string, SelectCase>;
@@ -483,19 +484,28 @@ const toIqlName = (selector: SelectCase) => {
   return value ? `('标题' ~ '${value}'${costumeIql})` : '';
 };
 
+const toIqlFunction = (selector: SelectCase): string => {
+  const { value, plugin } = selector;
+  const { field, operator, name } = plugin;
+  const list = (value as any[]).map(i => i.value);
+
+  return `${field} ${operator} ${name}([${list.map(i => `"${i}"`).join(', ')}])`;
+};
+
 // iql语句转换
 const toIqlCase: IQLCaseFormatter = selector => {
-  const { fieldName, fieldId, value, expression, component } = selector;
+  const { fieldName, fieldId, value, expression, component, plugin } = selector;
   const isDateType = isDate(component);
   const isNameType = fieldId === 'name';
   const isCollectionType = isCollection(component);
 
   if (
     isNil(value) ||
-    (isNil(expression) && !isDateType && !isCollectionType) ||
+    (isNil(expression) && !isDateType && !isCollectionType && !plugin) ||
     (isArray(value) && !value?.length)
   )
     return null;
+  if (plugin) return toIqlFunction(selector);
 
   if (isDateType) return toIqlDateCase(selector);
   if (isNameType) return toIqlName(selector);

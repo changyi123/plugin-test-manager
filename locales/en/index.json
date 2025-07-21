@@ -1243,6 +1243,10 @@
       "executor": "executor"
     }
   },
+  "iqlFunction": {
+    "executionCases": "Test cases referenced by test executions",
+    "caseExecutions": "Test executions referenced by test cases"
+  },
   "minderExport": {
     "root": "import case",
     "module": "module {{num}}",
