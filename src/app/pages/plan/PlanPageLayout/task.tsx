@@ -2,7 +2,7 @@ import { ArrowLeftOutlined } from '@ant-design/icons';
 import { useListener } from '@projectproxima/proxima-sdk-js';
 import { useUpdateEffect } from 'ahooks';
 import { message, notification, Space } from 'antd';
-import React, { useCallback, useRef, useState } from 'react';
+import React, { useCallback, useEffect, useRef, useState } from 'react';
 import { useLocation } from 'react-router-dom';
 
 import {
@@ -43,6 +43,7 @@ const TaskPageLayout: React.FC<any> = () => {
     setExecutionLinkRunIds,
     setRunLinkCaseIds,
     setPlanId,
+    setSelectedTestExecution,
   } = usePageContext();
   const { t } = useI18n();
   const executionListRef = React.useRef<ExecutionListRef>();
@@ -61,6 +62,13 @@ const TaskPageLayout: React.FC<any> = () => {
   const [showType, setShowType] = useState('all');
 
   const { query } = useLocation();
+  const setSelectedExecutionWrapper = useCallback(
+    execution => {
+      setSelectedExecution(execution);
+      setSelectedTestExecution(execution);
+    },
+    [setSelectedExecution, setSelectedTestExecution],
+  );
 
   useUpdateEffect(() => {
     if (query?.actionType && !activeType) {
@@ -288,7 +296,7 @@ const TaskPageLayout: React.FC<any> = () => {
         <BasicPageLayout>
           <TestTaskList
             listRef={executionListRef}
-            setSelectedExecution={setSelectedExecution}
+            setSelectedExecution={setSelectedExecutionWrapper}
             createTestExecution={createTestExecution}
             addExistedTestExecution={addExistedTestExecution}
             selectorModalRef={selectorModalRef}
@@ -303,7 +311,7 @@ const TaskPageLayout: React.FC<any> = () => {
                   <ArrowLeftOutlined
                     className={cx('icon')}
                     onClick={() => {
-                      setSelectedExecution(undefined);
+                      setSelectedExecutionWrapper(undefined);
                       setPlanId(undefined);
                     }}
                   />

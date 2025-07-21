@@ -16,7 +16,10 @@ import RepositorySelector, {
   ActionType as RepositorySelectorActionType,
 } from '@/components/business/RepositorySelector';
 import UserCell from '@/components/business/UserCell';
-import type { BusinessTableActionType, EnableCacheEpandedRowKeys } from '@/components/common/BusinessTable/type';
+import type {
+  BusinessTableActionType,
+  EnableCacheEpandedRowKeys,
+} from '@/components/common/BusinessTable/type';
 import { BusinessTable } from '@/components/dynamicComponents';
 import {
   DeleteIcon,
@@ -34,6 +37,7 @@ import {
 } from '@/lib/api/item';
 import { useCurrentUser } from '@/lib/api/user';
 import { getCurrentUserSetting, saveUserSetting } from '@/lib/api/userSetting';
+import { featureFlags, SupportFeatureFlags } from '@/lib/appEnv';
 import { TestType } from '@/lib/constants';
 import { useTestConfig } from '@/lib/hooks/useContext';
 import useI18n from '@/lib/hooks/useI18n';
@@ -41,12 +45,11 @@ import fetch from '@/lib/utils/fetch';
 import { getProximaBasePath, getTenantKey } from '@/lib/utils/helper';
 import { actionConfirm, getPluginWebTriggerBaseUrl, openItemViewScreen } from '@/lib/utils/helper';
 import { SearchSelectors, selectorToIql } from '@/lib/utils/iql';
+import TableCellTestDetailForm from '@/modules/beforeCreateOrUpdateModal/TableCellTestDetailForm';
 
 import { UNGROUPED_FOLDER_KEY } from '../../constant';
 import CopyButton from '../Copy/Button';
 import cx from './Table.less';
-import TableCellTestDetailForm from '@/modules/beforeCreateOrUpdateModal/TableCellTestDetailForm';
-import { featureFlags, SupportFeatureFlags } from '@/lib/appEnv';
 
 const proxima = createProximaSdk();
 
@@ -186,7 +189,7 @@ type TestDetailTableProps = {
   breadcrumbs?: string[];
   repository?: Record<string, any>;
   selector?: SearchSelectors | string;
-  enableCacheEpandedRowKeys?: EnableCacheEpandedRowKeys
+  enableCacheEpandedRowKeys?: EnableCacheEpandedRowKeys;
 };
 
 const TestDetailTable: React.FC<TestDetailTableProps> = props => {
@@ -396,9 +399,9 @@ const TestDetailTable: React.FC<TestDetailTableProps> = props => {
 
     // 批量创建事项关联
     const createItemLink = async () => {
-      console.info(batchQueryToIql(getBatchParams(tableActionRef.current).query), 'getBatchParams');
+      console.info(batchQueryToIql(getBatchParams(tableActionRef.current)), 'getBatchParams');
       proxima.execute('openAddLinkScreen', {
-        iql: batchQueryToIql(getBatchParams(tableActionRef.current).query),
+        iql: batchQueryToIql(getBatchParams(tableActionRef.current)),
         breadcrumbs,
         selectAll: tableActionRef.current.selectAll,
         displayContext: 'test_manager',
@@ -418,7 +421,7 @@ const TestDetailTable: React.FC<TestDetailTableProps> = props => {
         .first();
       window.localStorage.setItem(
         localIqlKey,
-        batchQueryToIql(getBatchParams(tableActionRef.current).query),
+        batchQueryToIql(getBatchParams(tableActionRef.current)),
       );
       // 构造url，打开批量编辑页面
       const itemBatchPage = `${getProximaBasePath()}/${getTenantKey()}/workspaces/${workspaceKey}/batch-operate/${testBoard.get(
@@ -554,7 +557,7 @@ const TestDetailTable: React.FC<TestDetailTableProps> = props => {
               </span>
             );
           }
-          
+
           return (
             <>
               <RowDragBox
@@ -629,7 +632,9 @@ const TestDetailTable: React.FC<TestDetailTableProps> = props => {
               >
                 <a>{t('common.copy')}</a>
               </CopyButton>
-              <a onClick={() => deleteTestDetail(rowData)} style={{ color: 'red' }}>{t('common.delete')}</a>
+              <a onClick={() => deleteTestDetail(rowData)} style={{ color: 'red' }}>
+                {t('common.delete')}
+              </a>
             </Space>
           );
         },
@@ -673,18 +678,23 @@ const TestDetailTable: React.FC<TestDetailTableProps> = props => {
         queryDeps={queryDeps}
         virtualSelectAll
         enableCacheEpandedRowKeys={enableCacheEpandedRowKeys}
-        expandable={enableRepositoryTableStep && {
-          expandedRowClassName: () => {
-            return cx('expandedRowClassName')
-          },
-          expandedRowRender: record => {
-            return (
-              <div className={cx('form')}>
-                <TableCellTestDetailForm values={record?.detail ?? {}} objectId={record?.objectId}/>
-              </div>
-            )
-          },
-        }}
+        expandable={
+          enableRepositoryTableStep && {
+            expandedRowClassName: () => {
+              return cx('expandedRowClassName');
+            },
+            expandedRowRender: record => {
+              return (
+                <div className={cx('form')}>
+                  <TableCellTestDetailForm
+                    values={record?.detail ?? {}}
+                    objectId={record?.objectId}
+                  />
+                </div>
+              );
+            },
+          }
+        }
       />
       <RepositorySelector actionRef={repositorySelectorRef} />
     </>

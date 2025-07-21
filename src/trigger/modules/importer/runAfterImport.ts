@@ -33,6 +33,7 @@ const runAfterImport = async () => {
         objectId: linkMapId[mapKey].TestRun,
         values: {
           r_test_manager_referenceCase: linkMapId[mapKey].TestCase,
+          r_test_manager_testCases: [linkMapId[mapKey].TestCase],
         },
       };
     });

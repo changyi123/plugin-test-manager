@@ -2,7 +2,7 @@ app:
   key: test_manager
   uuid: bf73e61c-e15a-4461-a1f7-f940c2009332
   name: test_manager
-  version: "4.38.0"
+  version: "4.38.1"
 modules:
   webtrigger:
     # TODO: Debug 使用，生产环境禁止调用下面的 trigger
@@ -60,6 +60,8 @@ modules:
       function: api-batch-delete-function
     - key: api-batch-delete-v2
       function: api-batch-delete-v2-function
+    - key: api-batch-delete-run
+      function: api-batch-delete-run-function
     - key: api-batch-update-items-v2
       function: api-batch-update-items-v2-function
     - key: api-batch-update
@@ -80,6 +82,8 @@ modules:
       function: job-create-test-run-function
     - key: job-batch-delete-items
       function: job-batch-delete-items-function
+    - key: job-batch-delete-runs
+      function: job-batch-delete-runs-function
     - key: job-update-items-v2
       function: job-update-items-v2-function
     - key: job-copy-test-case
@@ -116,6 +120,10 @@ modules:
       function: api-batch-remove-bug-function
     - key: api-copy-folder
       function: api-copy-folder-function
+    - key: api-batch-update-execution-cases
+      function: api-batch-update-execution-cases-function
+    - key: api-update-all-execution-cases
+      function: api-update-all-execution-cases-function
     # 数据统计
     - key: api-stats-test-plan
       function: api-stats-test-plan-function
@@ -299,6 +307,9 @@ modules:
     - key: api-batch-delete-function
       handler: api.batchDelete
       timeout: 300000
+    - key: api-batch-delete-run-function
+      handler: api.batchDeleteRun
+      timeout: 300000
      # api batch
     - key: api-batch-update-items-v2-function
       handler: api.batchUpdateItemsV2
@@ -332,6 +343,10 @@ modules:
       timeout: 3600000
     - key: job-batch-delete-items-function
       handler: job.batchDeleteItemsJob
+      # 60 分钟超时时长
+      timeout: 3600000
+    - key: job-batch-delete-runs-function
+      handler: job.batchDeleteRunsJob
       # 60 分钟超时时长
       timeout: 3600000
     - key: job-update-items-v2-function
@@ -404,7 +419,12 @@ modules:
     - key: api-copy-folder-function
       handler: api.batchCopyFolder
       timeout: 300000
-
+    - key: api-batch-update-execution-cases-function
+      handler: api.batchUpdateExecutionCases
+      timeout: 300000
+    - key: api-update-all-execution-cases-function
+      handler: api.updateAllExecutionCases
+      timeout: 7200000
     # api stats
     - key: api-stats-test-plan-function
       handler: query.testPlanStats
@@ -473,6 +493,10 @@ modules:
       handler: exporter.runScript
     # - key: test-manager-item-after-save-function
     #   handler: trigger.itemAfterSave
+    - key: iql-function-test-execution-cases
+      handler: iqlFunction.testExecutionCases
+    - key: iql-function-test-case-executions
+      handler: iqlFunction.testCaseExecutions
 
   proxima:itemDetail:
     - key: test-manager-item-detail
@@ -610,6 +634,13 @@ modules:
         title: importer.itemFields.executor
       - key: executionCount
         title: importer.itemFields.executionCount
+  proxima:iqlFunction:
+    - key: iql-test-execution-cases
+      name: testExecutionCases
+      function: iql-function-test-execution-cases
+    - key: iql-test-case-executions
+      name: testCaseExecutions
+      function: iql-function-test-case-executions
   proxima:exporter:
     function: test-manager-export-script
   # 初始化 dataType 为 object， array 的数据类型
@@ -641,6 +672,11 @@ modules:
       description: 测试管理内置字段类型-测试用例库模块（勿删改）
       dataType: text
       resource: test_repository
+    - key: test_reference
+      name: 测试管理内置字段类型-引用
+      description: 测试管理内置字段类型-引用（勿删改）
+      dataType: number
+      resource: test_reference
   proxima:CustomField:
     - key: r_test_manager_reportTemplate
       name: test_report_template
@@ -758,6 +794,48 @@ modules:
       name: test_manager_runMapCaseKey
       description: 测试管理内置字段-测试执行关联的测试用例 key（勿删改）
       type: Text
+    - key: executionCases
+      name: 引用测试用例
+      type: _self:test_reference
+      undeletable: true
+      locked: true
+      description: 测试管理内置字段-测试执行任务引用的测试用例（勿删改）
+    - key: testCases
+      name: 测试用例
+      type: DataQuote
+      undeletable: true
+      locked: true
+      description: 测试管理内置字段-测试用例
+      property:
+        mode: multiple
+        showDataNumber: Y
+    - key: testExecutions
+      name: 测试执行任务
+      type: DataQuote
+      undeletable: true
+      locked: true
+      description: 测试管理内置字段-测试执行任务
+      property:
+        mode: multiple
+        showDataNumber: Y
+    - key: testPlans
+      name: 测试计划
+      type: DataQuote
+      undeletable: true
+      locked: true
+      description: 测试管理内置字段-测试计划
+      property:
+        mode: multiple
+        showDataNumber: Y
+    - key: testDefects
+      name: 测试缺陷
+      type: DataQuote
+      undeletable: true
+      locked: true
+      description: 测试管理内置字段-测试缺陷
+      property:
+        mode: multiple
+        showDataNumber: Y
   customItemType:
     - key: test_manager_detail
       name: 测试用例
@@ -1181,3 +1259,5 @@ resources:
     path: ./fields/build/test-text
   - key: test_object
     path: ./fields/build/test-object
+  - key: test_reference
+    path: ./fields/build/test-reference

@@ -25,6 +25,7 @@ export interface CellProp {
   value: string;
   options: Option[];
   objectId: string;
+  workspaceId: string;
 }
 
 export interface FieldProp {

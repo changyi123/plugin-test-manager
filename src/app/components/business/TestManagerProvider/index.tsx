@@ -656,7 +656,7 @@ const TestManagerProvider: React.FC<RepositoryDataProviderProps> = ({
   const baseActionContextValues = React.useMemo(() => {
     const actions: BaseActionContextType = {
       async createItemUseModal(params) {
-        const { extraData, type, name, hideMessage } = params;
+        const { extraData, type, name, hideMessage, defaultValues = {} } = params;
         const currentTestConfig =
           Object.keys(testConfig).length > 0 ? testConfig : testConfigRef.current;
         const currentWorkspace = workspace || workspaceRef.current;
@@ -684,6 +684,7 @@ const TestManagerProvider: React.FC<RepositoryDataProviderProps> = ({
           name: name ?? '',
           itemTypeId: itemType?.objectId,
           workspaceId: currentWorkspace?.objectId,
+          defaultValues,
           extraData: Object.assign(
             {
               hideMessage: hideMessage ?? true,

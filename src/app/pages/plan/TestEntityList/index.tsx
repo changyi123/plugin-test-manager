@@ -10,7 +10,7 @@ import { isEmpty, isEqual, keyBy, omit, pick } from 'lodash';
 import React, { useCallback, useEffect, useRef, useState } from 'react';
 
 import {
-  deleteV1WithProcess,
+  deleteRunWithProcess,
   removeCaseFromPlanWithProcess,
   updateItemsWithProcess,
 } from '@/components/business/BatchResult/hooks';
@@ -20,12 +20,15 @@ import TestRunModal, {
   ActionType as TestRunModalActionType,
   VERSION,
 } from '@/components/business/TestRunModal';
+import { useItemLinkTypeConfig } from '@/components/business/TestRunModal/hooks';
 import UserCell from '@/components/business/UserCell';
 import { BusinessTable } from '@/components/common/BusinessTable';
 import { SystemFieldKeys } from '@/components/common/BusinessTable/hook';
+import { useStepAfterUpdateItemList } from '@/components/common/BusinessTable/hook';
 import type { BusinessTableActionType } from '@/components/common/BusinessTable/type';
 import Field from '@/components/common/Field';
 import {
+  addTestDefect,
   getCasesByStatus,
   getLinkedTestEntityByQuery,
   getTestCaseStats,
@@ -33,22 +36,24 @@ import {
   getUpdateParams,
   updateTestEntity,
   updateTestStatus,
-  addTestDefect,
 } from '@/lib/api/item';
 import { openBaseLineViewItemModal } from '@/lib/api/sdk';
 import { useCurrentUser } from '@/lib/api/user';
 import { getCurrentUserSetting, saveUserSetting } from '@/lib/api/userSetting';
 import { getAppEnv } from '@/lib/appEnv';
+import { featureFlags, SupportFeatureFlags } from '@/lib/appEnv';
 import { TestCaseStatusModel, TestRunDesigneeModel, TestRunExecutorModel } from '@/lib/constants';
 import { useBaseAction, useTestConfig } from '@/lib/hooks/useContext';
 import useI18n from '@/lib/hooks/useI18n';
 import { useUserCellUserDataProp } from '@/lib/hooks/useProxima';
 import { useCanExecuteTestRunIdSequence, useTestRunActionAuth } from '@/lib/hooks/useTest';
 import { checkRunStatus } from '@/lib/utils/checkRunStatus';
+import { getDefectDefautFieldConfig } from '@/lib/utils/getDefectDefautFieldConfig';
 import { actionConfirm, openItemViewScreen } from '@/lib/utils/helper';
 import { getTestCaseStatusModelValue, handleCustomerSelector } from '@/lib/utils/iql';
 import { getRepositoryQuery } from '@/lib/utils/tree';
-import { useItemLinkTypeConfig } from '@/components/business/TestRunModal/hooks';
+import TableCellTestDetailForm from '@/modules/beforeCreateOrUpdateModal/TableCellTestDetailForm';
+import TableCellTestDetailFormReadOnly from '@/modules/beforeCreateOrUpdateModal/TableCellTestDetailFormReadOnly';
 
 import { usePageContext } from '../hook';
 import { getTestRunSelector } from '../PlanPageLayout/helps';
@@ -56,10 +61,6 @@ import {
   useGetFilterExecutionLinkCaseRunIds,
   useGetFilterPlanLinkCaseIds,
 } from '../PlanPageLayout/hooks';
-import TableCellTestDetailForm from '@/modules/beforeCreateOrUpdateModal/TableCellTestDetailForm';
-import TableCellTestDetailFormReadOnly from '@/modules/beforeCreateOrUpdateModal/TableCellTestDetailFormReadOnly';
-import { featureFlags, SupportFeatureFlags } from '@/lib/appEnv';
-import { useStepAfterUpdateItemList } from '@/components/common/BusinessTable/hook';
 import cx from './index.less';
 
 interface TestEntityListProps {
@@ -116,7 +117,8 @@ const TestEntityList: React.FC<TestEntityListProps> = ({
   const enableRepositoryTableStep = featureFlags(SupportFeatureFlags.ENABLE_REPOSITORY_TABLE_STEP);
   const proxima = createProximaSdk();
   const { config } = useTestConfig();
-  const { getCreatePermission, testCaseFieldKeys, globalTestConfig, createItemUseModal } = useBaseAction();
+  const { getCreatePermission, testCaseFieldKeys, globalTestConfig, createItemUseModal } =
+    useBaseAction();
   const { TestToDefect = '' } = useItemLinkTypeConfig();
 
   const actionRef = React.useRef<BusinessTableActionType>();
@@ -157,12 +159,12 @@ const TestEntityList: React.FC<TestEntityListProps> = ({
   });
 
   // 修改弹窗的步骤后，更新table的数据
-  const { enableCacheEpandedRowKeys } = useStepAfterUpdateItemList({ 
+  const { enableCacheEpandedRowKeys } = useStepAfterUpdateItemList({
     selectNodeKey: selectNode?.key,
     refresh: () => {
       actionRef.current.refresh();
-    }
-  })
+    },
+  });
 
   const { data: currentFields } = useRequest(
     async () => {
@@ -771,7 +773,7 @@ const TestEntityList: React.FC<TestEntityListProps> = ({
       async () => {
         setTableLoading(true);
         // 删除测试执行
-        await deleteV1WithProcess({
+        await deleteRunWithProcess({
           ids: testRunIds,
           handleSuccess: () => {
             setTableLoading(false);
@@ -796,14 +798,16 @@ const TestEntityList: React.FC<TestEntityListProps> = ({
   });
   /**创建缺陷*/
   const createDefect = React.useCallback(
-    async (objectId) => {
-      let content = null;
+    async objectId => {
+      const defaultFieldConfig = await getDefectDefautFieldConfig(selectedExecution?.objectId);
+      const content = null;
       const { itemList: defectItemList } = await createItemUseModal({
         type: TestType.TestDefect,
         extraData: {
           extraValues: { content },
           useItemBatchCreate: true,
         },
+        ...defaultFieldConfig,
       });
       const { list: testRunData } = await getTestEntityByQuery({
         query: {
@@ -815,7 +819,7 @@ const TestEntityList: React.FC<TestEntityListProps> = ({
 
       // 创建事项关联
       try {
-        const _currentDefectIds = testRunData[0].runDetail?.defectItemIds || []
+        const _currentDefectIds = testRunData[0].runDetail?.defectItemIds || [];
         const needAddedItemIds = []
           .concat(
             _currentDefectIds,
@@ -823,17 +827,13 @@ const TestEntityList: React.FC<TestEntityListProps> = ({
           )
           .filter(Boolean);
         await addTestDefect(TestToDefect, testRunData[0], needAddedItemIds);
-        setTimeout(() => actionRef.current?.refresh(), 500)
+        setTimeout(() => actionRef.current?.refresh(), 500);
         message.success(t('components.business.testRunModal.addDefectButton.createDefectSuccess'));
       } catch (error) {
         message.error(error?.message);
       }
     },
-    [
-      createItemUseModal,
-      getTestEntityByQuery,
-      t,
-    ],
+    [createItemUseModal, getTestEntityByQuery, t],
   );
   const executionColumns = React.useMemo(
     () => [
@@ -1015,6 +1015,7 @@ const TestEntityList: React.FC<TestEntityListProps> = ({
                 style={{ marginLeft: 10, color: 'red' }}
                 disabled={getCreatePermission(TestType.Case)}
                 onClick={async () => {
+                  console.info('--record', record);
                   deleteTestRunByIds([record.id]);
                 }}
               >
@@ -1245,6 +1246,7 @@ const TestEntityList: React.FC<TestEntityListProps> = ({
     mutateStatusEvent,
     deleteTestRunByIds,
     t,
+    selectedExecution?.objectId,
   ]);
 
   tableSelectionToggleEvent.useSubscription(visible => {
@@ -1326,18 +1328,23 @@ const TestEntityList: React.FC<TestEntityListProps> = ({
           onSelectionCancel={() => tableSelectionToggleEvent.emit(false)}
           handleFilterField={handleFilterField}
           enableCacheEpandedRowKeys={enableCacheEpandedRowKeys}
-          expandable={enableRepositoryTableStep && {
-            expandedRowClassName: () => {
-              return cx('expandedRowClassName')
-            },
-            expandedRowRender: record => {
-              return (
-                <div className={cx('form')}>
-                  <TableCellTestDetailForm values={record?.detail ?? {}} objectId={record?.objectId}/>
-                </div>
-              )
-            },
-          }}
+          expandable={
+            enableRepositoryTableStep && {
+              expandedRowClassName: () => {
+                return cx('expandedRowClassName');
+              },
+              expandedRowRender: record => {
+                return (
+                  <div className={cx('form')}>
+                    <TableCellTestDetailForm
+                      values={record?.detail ?? {}}
+                      objectId={record?.objectId}
+                    />
+                  </div>
+                );
+              },
+            }
+          }
         />
       ) : (
         //  测试计划--测试执行任务
@@ -1380,18 +1387,20 @@ const TestEntityList: React.FC<TestEntityListProps> = ({
           onSelectionCancel={() => tableSelectionToggleEvent.emit(false)}
           handleFilterField={handleFilterField}
           enableCacheEpandedRowKeys={enableCacheEpandedRowKeys}
-          expandable={enableRepositoryTableStep && {
-            expandedRowClassName: () => {
-              return cx('expandedRowClassName')
-            },
-            expandedRowRender: record => {
-              return (
-                <div className={cx('form')}>
-                  <TableCellTestDetailFormReadOnly values={record?.runDetail ?? {}} />
-                </div>
-              )
-            },
-          }}
+          expandable={
+            enableRepositoryTableStep && {
+              expandedRowClassName: () => {
+                return cx('expandedRowClassName');
+              },
+              expandedRowRender: record => {
+                return (
+                  <div className={cx('form')}>
+                    <TableCellTestDetailFormReadOnly values={record?.runDetail ?? {}} />
+                  </div>
+                );
+              },
+            }
+          }
         />
       )}
       {activeType !== 'TestPlan' && (

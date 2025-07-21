@@ -8,6 +8,7 @@ export {
 export {
   batchDelete,
   batchDeleteV2,
+  batchDeleteRun,
   batchUpdate,
   batchUpdateValue,
   batchCopyTestCase,
@@ -25,6 +26,8 @@ export {
   removeExecutionFromPlan,
   batchLinkBugsToRun,
   batchRemoveBugsWithRun,
+  batchUpdateExecutionCases,
+  updateAllExecutionCases,
   retry,
 } from './modules/api/batch';
 

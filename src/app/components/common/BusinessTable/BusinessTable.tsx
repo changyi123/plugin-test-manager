@@ -2,6 +2,7 @@ import { useLocalStorageState, useMemoizedFn, useSize } from 'ahooks';
 import { Pagination, Table, Tooltip } from 'antd';
 import { ColumnsType, TableProps } from 'antd/lib/table';
 import { useDataQuoteStore } from 'apps-team-components-v1';
+import { TestFiledKeyMapping } from 'common/constant';
 import { difference, isEqual, omit, pick } from 'lodash';
 import React, { useEffect, useMemo, useRef } from 'react';
 import { useCallback } from 'react';
@@ -612,7 +613,29 @@ const BusinessTable: React.FC<BusinessTableProps> = props => {
     ],
   );
 
-  useDataQuoteStore(dataSource, ids =>
+  // 解决values字段中的数据引用丢失问题
+  const transferValueDataSource = useMemo(() => {
+    if (!dataSource?.length) {
+      return [];
+    }
+    return dataSource.map(item => {
+      const finalValues = {
+        ...item.values,
+      };
+      const testKeys = Object.keys(TestFiledKeyMapping);
+      Object.keys(item).forEach(key => {
+        if (testKeys.includes(key)) {
+          finalValues[TestFiledKeyMapping[key]] = item[key];
+        }
+      });
+      return {
+        ...item,
+        values: finalValues,
+      };
+    });
+  }, [dataSource]);
+
+  useDataQuoteStore(transferValueDataSource, ids =>
     getItemByIQL({
       itemId: ids,
     }).then(res => res.items),

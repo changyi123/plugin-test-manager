@@ -12,11 +12,13 @@ import { updateItemsWithProcess } from '@/components/business/BatchResult/hooks'
 import RenderRepository from '@/components/business/RenderRepository';
 import UserCell from '@/components/business/UserCell';
 import { BusinessTable } from '@/components/common/BusinessTable';
+import { SystemFieldKeys } from '@/components/common/BusinessTable/hook';
 import type { BusinessTableActionType } from '@/components/common/BusinessTable/type';
 import Field from '@/components/common/Field';
 import { getTestEntityByQuery, handleSelector } from '@/lib/api/item';
 import { useCurrentUser } from '@/lib/api/user';
 import { getCurrentUserSetting, saveUserSetting } from '@/lib/api/userSetting';
+import { useBaseAction } from '@/lib/hooks/useContext';
 import useI18n from '@/lib/hooks/useI18n';
 import { useUserCellUserDataProp } from '@/lib/hooks/useProxima';
 import { actionConfirm, openItemViewScreen } from '@/lib/utils/helper';
@@ -68,6 +70,7 @@ const TestEntityList: React.FC<TestEntityListProps> = ({
     tableSelectionToggleEvent,
     mutateTestTableList,
   } = usePageContext();
+  const { testCaseFieldKeys } = useBaseAction();
   const { t } = useI18n();
 
   const actionRef = React.useRef<BusinessTableActionType>();
@@ -137,14 +140,16 @@ const TestEntityList: React.FC<TestEntityListProps> = ({
   const testCaseTableDataGetter = useFnHookTriggerFn(
     useCallback(
       async queryParams => {
+        console.info('queryParams', queryParams);
+        const caseFieldKeys = [].concat(SystemFieldKeys, testCaseFieldKeys ?? []);
         const filterSelectors = selectorToIql(handleSelector(selectors));
         const { list, total } = await getTestEntityByQuery({
           query: {
             workspaceKey: workspaceKey,
             type: TestType.Case,
             repository: selectNode ? getRepositoryQuery(selectNode)?.repository : '',
-            fields: [TestFiledKeyMapping.testSet],
           },
+          fields: caseFieldKeys.concat([TestFiledKeyMapping.testSet]),
           ...queryParams,
           selector: `${filterSelectors ? `${filterSelectors} and ` : ''}'测试用例集' in ['${
             selectedTestCaseSet.objectId
@@ -156,7 +161,7 @@ const TestEntityList: React.FC<TestEntityListProps> = ({
           total: total,
         };
       },
-      [selectNode, selectors, activeType, selectedTestCaseSet.objectId],
+      [selectNode, selectors, activeType, selectedTestCaseSet.objectId, testCaseFieldKeys],
     ),
     () => {
       setTableLoading(true);
