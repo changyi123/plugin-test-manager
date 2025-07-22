@@ -1,8 +1,10 @@
 import { useMemoizedFn } from 'ahooks';
 import { Button, Form, Input, message, Select } from 'antd';
+import { SystemField } from 'common/constant';
 import React, { useCallback, useEffect, useMemo, useState } from 'react';
 
 import { getSettingFieldsList } from '@/lib/api/common';
+import { search } from '@/lib/api/proxima';
 import useI18n from '@/lib/hooks/useI18n';
 import Parse from '@/lib/parse';
 import { GeneralSetting } from '@/services/models';
@@ -18,9 +20,20 @@ const DefectManageConfig = () => {
   });
   const [dataQuoteFields, setDataQuoteFields] = useState([]);
 
+  const verifyIQL = async iql => {
+    const result = await search(iql, [SystemField.Id], 1);
+    return result?.length;
+  };
+
   const handleSave = useCallback(
     async config => {
       if (configId) {
+        if (config?.iql) {
+          const isValid = await verifyIQL(config?.iql);
+          if (!isValid) {
+            return;
+          }
+        }
         const query = new Parse.Query(GeneralSetting);
         query.equalTo('objectId', configId);
         try {
@@ -33,7 +46,7 @@ const DefectManageConfig = () => {
         }
       }
     },
-    [configId, t],
+    [configId, t, verifyIQL],
   );
   const initData = useMemoizedFn(async () => {
     // 可能会有并发问题，但是这都是升级后内部人员配置的。所以问题发生的概率很小，先忽略不计
