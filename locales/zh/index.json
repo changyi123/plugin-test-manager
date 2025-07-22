@@ -150,6 +150,19 @@
         "sprint": "所选迭代"
       }
     },
+    "coverRate": {
+      "servicesName": "服务名称",
+      "branchCov": "分支覆盖率",
+      "functionCov": "函数覆盖率",
+      "rowCov": "行覆盖率",
+      "baseVersionNumber": "基线版本",
+      "remarks": "备注",
+      "linkA": "链接",
+      "typeIncrement": "类型：增量",
+      "typeAll": "类型：全量",
+      "typeEmpty": "类型：-",
+      "noData": "暂无数据"
+    },
     "workspaceReportTemplate": {
       "modalTitle": "空间测试报告模板管理",
       "deleteConfirm": {

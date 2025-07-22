@@ -139,6 +139,19 @@
         "sprint": "Выбранный спринт"
       }
     },
+    "coverRate": {
+      "servicesName": "Служебное имя",
+      "branchCov": "Охват ветвей",
+      "functionCov": "Функциональный охват",
+      "rowCov": "Охват линии",
+      "baseVersionNumber": "Базовая версия",
+      "remarks": "примечан",
+      "linkA": "ссылк",
+      "typeIncrement": "Тип: увеличение",
+      "typeAll": "Тип: полный набор",
+      "typeEmpty": "Тип: -",
+      "noData": "Приходящее множество доказательств"
+    },
     "workspaceReportTemplate": {
       "modalTitle": "Менеджер шаблонов отчетов в проекте",
       "deleteConfirm": {
