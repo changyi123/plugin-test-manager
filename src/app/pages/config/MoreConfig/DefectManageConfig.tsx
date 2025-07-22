@@ -57,7 +57,6 @@ const DefectManageConfig = () => {
       keyword: '',
       keys: ['DataQuote'],
     });
-    console.info(result, 'result');
     setDataQuoteFields(result);
   };
   const uniqueKey = useMemo(() => {
@@ -74,7 +73,7 @@ const DefectManageConfig = () => {
           name="defaultValueCustomKey"
           label={t('page.config.moreConfig.selectDefaultField')}
         >
-          <Select showSearch optionFilterProp="label" options={dataQuoteFields} />
+          <Select allowClear showSearch optionFilterProp="label" options={dataQuoteFields} />
         </Form.Item>
         <Form.Item name="iql" label={t('page.config.moreConfig.selectInputIql')}>
           <Input allowClear placeholder={t('common.pleaseInputContent')} />
