@@ -1291,7 +1291,7 @@
   },
   "iqlFunction": {
     "executionCases": "测试任务引用的测试用例",
-    "caseExecutions": "测试用例引用的测试任务"
+    "caseExecutions": "测试用例被引用的测试任务"
   },
   "minderExport": {
     "root": "用例导入",

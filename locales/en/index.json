@@ -1245,7 +1245,7 @@
   },
   "iqlFunction": {
     "executionCases": "Test cases referenced by test executions",
-    "caseExecutions": "Test executions referenced by test cases"
+    "caseExecutions": "The test executions that the test case references"
   },
   "minderExport": {
     "root": "import case",
