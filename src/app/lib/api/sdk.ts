@@ -82,7 +82,7 @@ export const useOpenFilterPopover = fields => {
    * 打开筛选器popver
    */
   const openFilterPopover = useCallback(
-    async ({ selectors, onChange, extendFields, dom }) => {
+    async ({ selectors, onChange, extendFields, iqlFunctionFilters, dom }) => {
       const includeFileds = INCLUDE_FILTER_FIELD_TYPES?.filter(
         field => !EXINCLUDE_FIELDS?.includes(field),
       );
@@ -95,7 +95,7 @@ export const useOpenFilterPopover = fields => {
       window.QiankunProps.openFilterPopover({
         showChoosedInSearch: false,
         selectors,
-        list: [..._customFields, ...extendFields],
+        list: [..._customFields, ...extendFields, ...iqlFunctionFilters],
         onChange,
         dom,
       });

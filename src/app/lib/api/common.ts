@@ -990,3 +990,14 @@ export const getSettingFieldsList = async ({
   });
   return res?.payload?.results?.map(field => ({ label: field.name, value: field.key })) || [];
 };
+
+// 获取iqlFunction内容
+export async function getIqlFunction(params: {
+  workspaceKey: string;
+  applicationId: string;
+}): Promise<any[]> {
+  const result = await fetch.$get(
+    `/apps/api/v1/${params.applicationId}/${params.workspaceKey}/apps/modules/proxima:iqlFunction`,
+  );
+  return result.data || [];
+}
