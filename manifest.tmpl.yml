@@ -823,12 +823,14 @@ modules:
       type: _self:test_reference
       undeletable: true
       locked: true
+      readonly: true
       description: 测试管理内置字段-测试执行任务引用的测试用例（勿删改）
     - key: testCases
       name: 测试用例
       type: DataQuote
       undeletable: true
       locked: true
+      readonly: true
       description: 测试管理内置字段-测试用例
       property:
         mode: multiple
@@ -838,6 +840,7 @@ modules:
       type: DataQuote
       undeletable: true
       locked: true
+      readonly: true
       description: 测试管理内置字段-测试执行任务
       property:
         mode: multiple
@@ -847,6 +850,7 @@ modules:
       type: DataQuote
       undeletable: true
       locked: true
+      readonly: true
       description: 测试管理内置字段-测试计划
       property:
         mode: multiple
@@ -856,6 +860,7 @@ modules:
       type: DataQuote
       undeletable: true
       locked: true
+      readonly: true
       description: 测试管理内置字段-测试缺陷
       property:
         mode: multiple
