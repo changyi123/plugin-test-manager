@@ -21,16 +21,20 @@ const DefectManageConfig = () => {
   const [dataQuoteFields, setDataQuoteFields] = useState([]);
 
   const verifyIQL = async iql => {
-    const result = await search(iql, [SystemField.Id], 1);
-    return result?.length;
+    try {
+      await search(iql, [SystemField.Id], 1, true);
+      return true;
+    } catch (e) {
+      return false;
+    }
   };
 
   const handleSave = useCallback(
     async config => {
       if (configId) {
         if (config?.iql) {
-          const isValid = await verifyIQL(config?.iql);
-          if (!isValid) {
+          const valid = await verifyIQL(config.iql);
+          if (!valid) {
             return;
           }
         }
