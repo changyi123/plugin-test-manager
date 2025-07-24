@@ -802,7 +802,7 @@ export const removeExecutionFromPlanWorker = async (
       query: {
         type: TestType.Run,
         linkType: TestLinkType.RunLinkExecution,
-        linkItems: [executionIds],
+        linkItems: executionIds,
       },
     });
     result.total = runIds.length;
@@ -829,22 +829,25 @@ export const removeExecutionFromPlanWorker = async (
       }
     };
 
-    if (withProcess)
-      await execWithProcess({
-        processId,
-        execFunc: removeRunFromPlan,
-        list: runIds,
-        getDesc: () => JSON.stringify(result),
-        batchSize: itemsV2BatchSize,
-        getBatchRecord: () => false,
-      });
-    else
-      await batchExecFunction({
-        list: runIds,
-        fun: removeRunFromPlan,
-        batchSize: itemsV2BatchSize,
-      });
-
+    if (runIds?.length) {
+      if (withProcess)
+        await execWithProcess({
+          processId,
+          execFunc: removeRunFromPlan,
+          list: runIds,
+          getDesc: () => JSON.stringify(result),
+          batchSize: itemsV2BatchSize,
+          getBatchRecord: () => false,
+        });
+      else
+        await batchExecFunction({
+          list: runIds,
+          fun: removeRunFromPlan,
+          batchSize: itemsV2BatchSize,
+        });
+    } else {
+      withProcess && (await updateProcessBar(processId, 100, JSON.stringify(result)));
+    }
     return buildResponse(result);
   } catch (err) {
     return handleError(err, retry, result, processId);
@@ -879,7 +882,7 @@ export const addExecutionToPlanWorker = async (
         query: {
           type: TestType.Run,
           linkType: TestLinkType.RunLinkExecution,
-          linkItems: [executionIds],
+          linkItems: executionIds,
         },
       },
       ['id', TestFiledKeyMapping.referenceCase],
@@ -948,7 +951,7 @@ export const addExecutionToPlanWorker = async (
           batchSize: itemsV2BatchSize,
         });
     } else {
-      await updateProcessBar(processId, 100, JSON.stringify(result));
+      withProcess && (await updateProcessBar(processId, 100, JSON.stringify(result)));
     }
 
     return buildResponse(result);

@@ -207,15 +207,10 @@ const TestCaseSetPanel = () => {
         items: [testEntity?.objectId],
         fields: {
           values: {
-            [TestFiledKeyMapping.testSet]: [],
+            [TestFiledKeyMapping.testSet]: newTestsetIds,
           },
         },
         hideNotification: true,
-        update: {
-          [TestFiledKeyMapping.testSet]: {
-            concat: newTestsetIds,
-          },
-        },
         handleSuccess: () => {
           refreshDepData();
           alert({

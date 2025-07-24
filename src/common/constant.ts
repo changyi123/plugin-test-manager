@@ -107,7 +107,7 @@ export const TestFieldTypeKeyMapping = {
   status: 'r_test_manager_es_text_keyword',
   linkItems: 'r_test_manager_es_array_keyword',
   plan: 'Text.keyword',
-  testSet: 'r_test_manager_referenceSet',
+  testSet: 'DataQuote',
 };
 
 /** 测试管理自定义字段 key 映射 */
@@ -137,6 +137,7 @@ export const TestFiledKeyMapping = {
   runDetail: 'r_test_manager_runDetail',
   comment: 'r_test_manager_comment',
   testSet: 'r_test_manager_referenceSet',
+  isCaseUpdate: 'r_test_manager_isCaseUpdate',
 } as const;
 
 export const NotValidatorFiledKeyMapping = {
@@ -165,7 +166,7 @@ export const BuiltinFieldNameMapping = {
   executeCount: 'test_manager_executeCount',
   executeTime: 'r_test_manager_executeTime',
   caseRun: 'test_manager_caseRun',
-  testSet: 'r_test_manager_referenceSet',
+  testSet: '测试用例集',
   plan: 'test_manager_plan',
 
   // 不需要拼接

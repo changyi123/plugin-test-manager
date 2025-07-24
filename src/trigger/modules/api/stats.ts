@@ -19,6 +19,7 @@ import {
   TestCountPayload,
   TestExecutionStatsPayload,
   TestPlanStatsPayload,
+  TestSetStatsPayload,
 } from '../../../common/types/api';
 import { TestEntity } from '../../../common/types/test';
 import iqlSearchParamsBuilder from '../../../common/utils/iqlSearchParamsBuilder';
@@ -29,6 +30,7 @@ import {
   computeCaseStatus,
   computeStatusCount,
   statisticsCaseFromPlan,
+  statisticsCaseFromTestSet,
   statisticsRunFromCase,
   statisticsRunFromPlan,
 } from '../../lib/statistics';
@@ -436,5 +438,37 @@ export const testCount = async () => {
       code: '202',
       message: error?.message ?? error,
     };
+  }
+};
+
+/**
+ * 测试用例集统计数据
+ * （规划用例数）
+ */
+export const testSetStats = async () => {
+  const {
+    body: { select, testSetIds },
+  } = getReqInfoFromVMRuntime<TestSetStatsPayload>();
+  const result = buildStatsResult(testSetIds, select, {
+    caseCount: 0,
+  });
+
+  console.info('testSetStats result init', JSON.stringify(result));
+  try {
+    // 获取用例数量与各用例最新的测试执行
+
+    const { value: caseCounts } = await statisticsCaseFromTestSet(testSetIds);
+    console.info('testSetStats statisticsCaseFromTestSet', JSON.stringify(caseCounts));
+
+    // 记录数量
+    caseCounts.forEach(i => {
+      const testSetId = i[TestFiledKeyMapping.testSet];
+      if (!Object.hasOwnProperty.call(result, testSetId)) return;
+      result[testSetId].caseCount = i.count;
+    });
+    console.info('testSetStats results -> ', JSON.stringify(result));
+    return buildResponse(result);
+  } catch (err) {
+    return buildResponse(err);
   }
 };

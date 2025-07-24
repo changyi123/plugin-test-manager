@@ -190,6 +190,11 @@ const Test = () => {
 
   const existStartNode = useMemo(() => statusList?.find(s => s.isStartStatus), [statusList]);
   const enableCreateCase = useMemo(() => {
+    // 没有配置用例规划限制时能创建
+    if (!listType) {
+      return true;
+    }
+
     return listType === 'black' ? !existStartNode : statusList?.length && existStartNode;
   }, [listType, existStartNode, statusList?.length]);
 

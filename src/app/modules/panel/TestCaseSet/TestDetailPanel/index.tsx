@@ -92,6 +92,7 @@ const Test = () => {
     const { list, total } = await testCaseTableDataGetter({
       offset: 0,
       limit: 99999,
+      onlySelectId: true,
       // select: ['referenceCase', 'status', 'id'],
     });
     setAllTestEntities(list);
@@ -140,6 +141,7 @@ const Test = () => {
         message.success(t('page.testset.testEntityList.removeCaseFromSetSuccessMsg'));
         setTimeout(() => {
           refreshDepData();
+          getAllRelTestEntities();
         }, 500);
       },
       handleFail: error => {

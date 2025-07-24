@@ -67,6 +67,7 @@ export type TestEntitySelectorProps = {
   afterClose?: () => void;
   onCancel?: () => void;
   getContainer?: () => HTMLElement;
+  includesIds?: string[] | undefined;
   enableCaseVersion?: boolean; // 是否展示用例版本
 };
 
@@ -87,6 +88,7 @@ const TestEntitySelector: React.FC<TestEntitySelectorProps> = props => {
     caseSetId,
     isPlanForTestSet = false,
     enableCaseVersion = false,
+    includesIds,
   } = props;
   const [visible, setVisible] = useSafeState(false);
   const debounceSelectContainerRef = React.useRef();
@@ -234,6 +236,7 @@ const TestEntitySelector: React.FC<TestEntitySelectorProps> = props => {
         orderBy: ['修改时间', 'desc'],
         workspace: workspaceKeyCondition,
         ...params,
+        itemId: includesIds,
       });
 
       const itemDict = keyBy(items, 'objectId');
