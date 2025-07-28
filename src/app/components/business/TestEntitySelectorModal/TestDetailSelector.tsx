@@ -8,6 +8,7 @@ import { SystemFieldKeys } from '@/components/common/BusinessTable/hook';
 import FilterSearch from '@/components/common/FilterSearch';
 import { getFilterFields } from '@/components/common/FilterSearch/utils';
 import { getTestEntityByQuery, handleSelector } from '@/lib/api/item';
+import { featureFlags } from '@/lib/appEnv';
 import { TestLinkType, TestType } from '@/lib/constants';
 import { useBaseAction, useTestConfig } from '@/lib/hooks/useContext';
 import useI18n from '@/lib/hooks/useI18n';
@@ -49,11 +50,11 @@ const tabsList = [
     label: 'testPlan',
     key: 'plan',
   },
-  {
+  featureFlags('ENABLE_TEST_CASE_SET') && {
     label: 'testCaseSet',
     key: 'testcaseset',
   },
-];
+].filter(Boolean);
 
 const TestDetailSelector: React.FC<TestDetailSelectorProps> = props => {
   const {

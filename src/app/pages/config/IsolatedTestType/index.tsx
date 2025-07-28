@@ -3,6 +3,7 @@ import { Button, Checkbox, message, Select } from 'antd';
 import { difference, pick } from 'lodash';
 import React from 'react';
 
+import { featureFlags } from '@/lib/appEnv';
 import { TestType, TestTypeNameMapping } from '@/lib/constants';
 import useI18n from '@/lib/hooks/useI18n';
 
@@ -15,8 +16,8 @@ const AllIsolateTestType = [
   TestType.Case,
   TestType.Execution,
   TestType.Plan,
-  TestType.CaseSet,
-];
+  featureFlags('ENABLE_TEST_CASE_SET') && TestType.CaseSet,
+].filter(Boolean);
 
 // 判断所有测试类型是否都被设置空间隔离
 const isIsolateAllTestType = (isolation: string[]) => {
@@ -75,13 +76,16 @@ const IsolatedTestType = () => {
         <div className={cx('specific')}>
           <p>{t('page.config.isolatedTestType.crossSpaceTestDataActionConfig')}</p>
           {Object.entries(
-            pick(TestTypeNameMapping, [
-              TestType.Case,
-              TestType.Plan,
-              TestType.Execution,
-              TestType.TestDefect,
-              TestType.CaseSet,
-            ]),
+            pick(
+              TestTypeNameMapping,
+              [
+                TestType.Case,
+                TestType.Plan,
+                TestType.Execution,
+                TestType.TestDefect,
+                featureFlags('ENABLE_TEST_CASE_SET') && TestType.CaseSet,
+              ].filter(Boolean),
+            ),
           ).map(([type, name]) => (
             <div key={type}>
               <Checkbox
