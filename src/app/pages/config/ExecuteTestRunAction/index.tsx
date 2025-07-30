@@ -6,9 +6,9 @@ import React, { useState } from 'react';
 
 import { getStatusByWorkspaceAndItemType, getWorkspaceRoleMembers } from '@/lib/api/proxima';
 import { getAppEnv } from '@/lib/appEnv';
+import { CASESNAPSHOT_TYPE, caseSnapshotOpt } from '@/lib/constants';
 import useI18n from '@/lib/hooks/useI18n';
-import { caseSnapshotOpt, CASESNAPSHOT_TYPE } from '@/lib/constants'
-import type { CaseSnapshot } from '@/lib/types/Test'
+import type { CaseSnapshot } from '@/lib/types/Test';
 
 import { useCurrentTestConfig, useDataContext } from '../hooks';
 import cx from './index.less';
@@ -32,8 +32,9 @@ const DefaultTestRunAction = {
 
 const DefaultCaseSnapshot = {
   type: CASESNAPSHOT_TYPE.NO_AUTOBUILDVERSION_NO_SELVERSION,
-  enableCaseExeUpdate: false
-}
+  enableCaseExeUpdate: false,
+  restrictiveConditions: '', // 更改用例版本的iql限制条件
+};
 
 /** 获取空间成员列表 */
 export const useWorkspaceMemberUserList = ({ workspaceId: workspaceId, selectedUserList }) => {
@@ -122,7 +123,7 @@ const ExecuteTestRunAction = () => {
 
   const testConfig = useCurrentTestConfig(workspace?.key);
   const [testRunAction, setTestRunAction] = React.useState(DefaultTestRunAction);
-  const [caseSnapshot, setCaseSnapshot] = useState<CaseSnapshot>(DefaultCaseSnapshot)
+  const [caseSnapshot, setCaseSnapshot] = useState<CaseSnapshot>(DefaultCaseSnapshot);
 
   React.useEffect(() => {
     setTestRunAction(testConfig?.get('testRunAction') ?? DefaultTestRunAction);
@@ -257,26 +258,30 @@ const ExecuteTestRunAction = () => {
         <h3>{t('page.config.executeTestRunAction.defaultCaseRange')}</h3>
         <Input value={testRunAction.iql} onChange={buildConfigChange('iql')} />
       </div>
-      {getAppEnv('ENABLED_CASE_SNAPSHOT') && <div className={cx('section')}>
-        <h3>{t('page.config.testConfigInitialization.switchSnapshotLabel')}</h3>
-        <Radio.Group
-          value={caseSnapshot?.type}
-          className={cx('section-radio-group')}
-          options={caseSnapshotOpt(t)}
-          onChange={(v) => {
-            setCaseSnapshot((k) => ({ enableCaseExeUpdate: false, type: v?.target?.value }))
-          }}
-        />
-      </div>}
-      {[CASESNAPSHOT_TYPE.NO_BUILDVERSION_SELVERSION].includes(caseSnapshot?.type) && <div className={cx('section')}>
-        <h3>{t('page.config.testConfigInitialization.enableCaseExeUpdate')}</h3>
-        <Switch
-          checked={!!caseSnapshot?.enableCaseExeUpdate} 
-          onChange={(v) => {
-            setCaseSnapshot((k) => ({ ...k, enableCaseExeUpdate: v }))
-          }} 
-        />
-      </div>}
+      {getAppEnv('ENABLED_CASE_SNAPSHOT') && (
+        <div className={cx('section')}>
+          <h3>{t('page.config.testConfigInitialization.switchSnapshotLabel')}</h3>
+          <Radio.Group
+            value={caseSnapshot?.type}
+            className={cx('section-radio-group')}
+            options={caseSnapshotOpt(t)}
+            onChange={v => {
+              setCaseSnapshot(k => ({ enableCaseExeUpdate: false, type: v?.target?.value }));
+            }}
+          />
+        </div>
+      )}
+      {[CASESNAPSHOT_TYPE.NO_BUILDVERSION_SELVERSION].includes(caseSnapshot?.type) && (
+        <div className={cx('section')}>
+          <h3>{t('page.config.testConfigInitialization.enableCaseExeUpdate')}</h3>
+          <Switch
+            checked={!!caseSnapshot?.enableCaseExeUpdate}
+            onChange={v => {
+              setCaseSnapshot(k => ({ ...k, enableCaseExeUpdate: v }));
+            }}
+          />
+        </div>
+      )}
 
       <Button type="primary" className={cx('action')} onClick={handleSave}>
         {t('common.save')}

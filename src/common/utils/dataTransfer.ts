@@ -27,16 +27,16 @@ const convertToJSONStr = data => {
   }
 };
 
-export const compactNilValue = data => {
+export const compactNilValue = (data, nullable = false) => {
   const linkData = pick(data, Object.values(NotValidatorFiledKeyMapping));
   return {
     ...linkData,
-    ...omitBy(data, isNil),
+    ...(nullable ? data : omitBy(data, isNil)),
   };
 };
 
 /** 测试管理实体转换 item values只转换自定义字段。workspace，itemTypes 不进行处理 */
-export const testEntityToItemValues = data => {
+export const testEntityToItemValues = (data, nullable = false) => {
   /** 特殊字段转换策略，用于处理向 values 中存储时需要转换的处理 */
   const dataTransferStrategy = {
     runDetail: convertToJSONStr,
@@ -44,11 +44,14 @@ export const testEntityToItemValues = data => {
     comment: convertToJSONStr,
   } as Record<TestEntityKey, (data) => any>;
 
+  const dataKeys = Object.keys(data);
   const values = Object.entries(TestFiledKeyMapping).reduce((res, [key, storageKey]) => {
     const value = data[key];
 
     const storageValues =
-      value || NotValidatorFiledKeyMapping[key]
+      value ||
+      (NotValidatorFiledKeyMapping[key] && !nullable) ||
+      (nullable && dataKeys.includes(key))
         ? {
             [storageKey]: dataTransferStrategy[key]?.(value) ?? value,
           }
@@ -60,7 +63,7 @@ export const testEntityToItemValues = data => {
     };
   }, {});
 
-  return compactNilValue(values);
+  return compactNilValue(values, nullable);
 };
 
 // 重写混入的 key

@@ -129,22 +129,26 @@ export const batchUpdateItems = async (data: Partial<TestEntity>[]) => {
 export const batchUpdateItemsValues = async (
   data: Partial<TestEntity>[],
   skipPermission = false,
+  nullable = false,
 ) => {
   const itemsQueue = chunk(data, BatchChunkSize, item => {
     // 允许更新自定义字段（支持内置字段 assignee. priority
     // 其他自定义字段不能进行更新
     const customValues = pick(item.values, ['assignee', 'priority']);
-    item.values = compactNilValue({
-      ...customValues,
-      ...testEntityToItemValues(item),
-    });
+    item.values = compactNilValue(
+      {
+        ...customValues,
+        ...testEntityToItemValues(item, nullable),
+      },
+      nullable,
+    );
   });
 
   const taskQueue = itemsQueue.map(items => async () => {
     const updates = [];
     items.map(item => {
       Object.entries(item.values ?? {}).map(([key, value]) => {
-        if (item.objectId && !isNil(value)) {
+        if (item.objectId && (!isNil(value) || nullable)) {
           updates.push({
             itemIds: [item.objectId],
             customField: key,
@@ -156,7 +160,7 @@ export const batchUpdateItemsValues = async (
 
     console.info(JSON.stringify(updates), 'batchUpdateItemsValues');
 
-    return await bulkUpdateItems({ updates, parseContext: { skipPermission } }).then(
+    return await bulkUpdateItems({ updates, parseContext: { skipPermission }, nullable }).then(
       ({ code, data, message }) => {
         if (code !== 200) throw new Error(message);
         return data ?? [];

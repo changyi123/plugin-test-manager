@@ -608,19 +608,29 @@ export const groupPermission = {
   public: 1, // 公共
   private: 2, // 私有
 };
- 
+
 /** 用例快照类型caseSnapshot
  * 1. 为0 或者空时， 不自动打版本且规划用例不能选择用例版本
- * 2. 为1时，测试执行任务规划用例时自动打版本 
- * 3. 为2时，测试执行任务规划用例不打版本，可以选择用例版本  
-*/
+ * 2. 为1时，测试执行任务规划用例时自动打版本
+ * 3. 为2时，测试执行任务规划用例不打版本，可以选择用例版本
+ */
 export enum CASESNAPSHOT_TYPE {
-  NO_AUTOBUILDVERSION_NO_SELVERSION = '0',
-  AUTO_BUILDVERSION = '1',
-  NO_BUILDVERSION_SELVERSION = '2',
+  NO_AUTOBUILDVERSION_NO_SELVERSION = 0,
+  AUTO_BUILDVERSION = 1,
+  NO_BUILDVERSION_SELVERSION = 2,
 }
+
 export const caseSnapshotOpt = t => [
-  { label: t('page.config.testConfigInitialization.noAutoBuildVersionNoSelVersion'), value: CASESNAPSHOT_TYPE.NO_AUTOBUILDVERSION_NO_SELVERSION },
-  { label: t('page.config.testConfigInitialization.autoBuildVersion'), value: CASESNAPSHOT_TYPE.AUTO_BUILDVERSION },
-  { label: t('page.config.testConfigInitialization.noBuildVersionSelVersion'), value: CASESNAPSHOT_TYPE.NO_BUILDVERSION_SELVERSION },
-]
+  {
+    label: t('page.config.testConfigInitialization.noAutoBuildVersionNoSelVersion'),
+    value: CASESNAPSHOT_TYPE.NO_AUTOBUILDVERSION_NO_SELVERSION,
+  },
+  {
+    label: t('page.config.testConfigInitialization.autoBuildVersion'),
+    value: CASESNAPSHOT_TYPE.AUTO_BUILDVERSION,
+  },
+  {
+    label: t('page.config.testConfigInitialization.noBuildVersionSelVersion'),
+    value: CASESNAPSHOT_TYPE.NO_BUILDVERSION_SELVERSION,
+  },
+];

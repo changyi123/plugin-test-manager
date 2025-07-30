@@ -52,7 +52,7 @@ export const deleteTestLink = async () => {
         };
       };
       const { noSnapShotIds, updateIds } = await getReferencedTestRunIds();
-
+      console.info('deleteTestLink noSnapShotIds updateIds', noSnapShotIds, updateIds);
       // 存在关联了该用例并且没有指定版本的执行时，需要为用例打版本，并更新这批执行的referenceCaseSnapshot
       if (noSnapShotIds?.length) {
         const snapshots = await operateSnapshots({
@@ -73,8 +73,9 @@ export const deleteTestLink = async () => {
               referenceCase: '',
               referenceCaseSnapshot: baseItemId,
             })),
+            true,
+            true,
           ),
-          true,
         );
       }
       if (updateIds?.length) {
@@ -84,8 +85,9 @@ export const deleteTestLink = async () => {
               objectId: id,
               referenceCase: '',
             })),
+            true,
+            true,
           ),
-          true,
         );
       }
     }

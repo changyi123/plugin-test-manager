@@ -24,6 +24,7 @@ import {
 import { TestEntity } from '../../../common/types/test';
 import iqlSearchParamsBuilder from '../../../common/utils/iqlSearchParamsBuilder';
 import { buildResponse, getReqInfoFromVMRuntime } from '../../lib/apiUtil';
+import { CASESNAPSHOT_TYPE } from '../../lib/constants';
 import { aggsSearch } from '../../lib/coreApi';
 import { getPayload, iqlRequest } from '../../lib/iqlRequest';
 import {
@@ -34,10 +35,9 @@ import {
   statisticsRunFromCase,
   statisticsRunFromPlan,
 } from '../../lib/statistics';
-import { CASESNAPSHOT_TYPE } from '../../lib/constants';
 
 type TestRunEntityType = TestEntity<TestType.Run>;
-type TestCaseEntityType = TestEntity<TestType.Case>;
+// type TestCaseEntityType = TestEntity<TestType.Case>;
 type TestExecutionEntityType = TestEntity<TestType.Execution>;
 
 /**

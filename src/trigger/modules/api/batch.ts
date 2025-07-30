@@ -547,7 +547,7 @@ export const batchCreateTestRunJob = async () => {
 
     // 创建测试用例快照
     // 1. 获取用例所属空间是否支持规划时批量快照
-    // 2. 创建测试用例快照
+    // 2. 创建测试用例快照   这个代码废弃，用的V2创建执行接口
     const batchCreateCaseSnapshot = async needCaseList => {
       let caseSnapshotMap = {};
       if (!global.env?.ENABLED_CASE_SNAPSHOT && !global.env?.DEFAULT_ENABLED_CASE_SNAPSHOT)
@@ -574,6 +574,7 @@ export const batchCreateTestRunJob = async () => {
           }, {}),
         );
 
+      //  Notice: 这个代码废弃，用的V2创建执行接口
       const caseSnapshots = needCaseList.filter(i => workspaceConfigs[i.workspace?.key]);
       if (caseSnapshots.length) {
         const snapshots = await operateSnapshots({
@@ -879,12 +880,12 @@ export const batchCopyTestCase = async () => {
       values: dataValuesExceptionHandler(data.values),
       detail: data.detail
         ? {
-          ...data.detail,
-          steps: data.detail?.steps?.map(s => ({
-            ...s,
-            id: uuidv4(),
-          })),
-        }
+            ...data.detail,
+            steps: data.detail?.steps?.map(s => ({
+              ...s,
+              id: uuidv4(),
+            })),
+          }
         : {},
       repository: repository === undefined ? data.repository : repository,
     }));
