@@ -389,7 +389,7 @@ export const copyTesCase = async (data: CopyTestCasePayload) => {
   }
 };
 
-// 批量创建测试执行
+// 批量创建测试执行 notice  这个没地方有暂时不处理
 export const batchCreateTestRun = async data => {
   const res = await fetch.post(`${pluginWebTriggerBaseUrl}/api-batch-create-test-run`, {
     ...data,

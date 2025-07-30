@@ -23,6 +23,7 @@ import { TestEntity } from '../../../common/types/test';
 import { buildResponse } from '../../lib/apiUtil';
 import { getReqInfoFromVMRuntime } from '../../lib/apiUtil';
 import { batchUpdateItemsValues } from '../../lib/batchRequest';
+import { CASESNAPSHOT_TYPE } from '../../lib/constants';
 import {
   batchCreateItemsV2,
   batchUpdateItemsV2 as originBatchUpdateItemsV2,
@@ -38,7 +39,6 @@ import {
   updateProcessBar,
 } from '../../lib/helper';
 import { iqlRequest } from '../../lib/iqlRequest';
-import { CASESNAPSHOT_TYPE } from '../../lib/constants';
 
 type TestRunType = TestEntity<TestType.Run>;
 type ProcessJobParams<T> = T & {
@@ -189,7 +189,7 @@ const execWithProcess = async ({
 };
 
 export const createTestRuns = async (params: ProcessJobParams<BatchCreateTestRunV2Payload>) => {
-  const { execution, caseIds, workspace, processId, planId, retry } = params;
+  const { execution, caseIds, workspace, processId, planId, retry, caseVersion = {} } = params;
   const result = getResult(processId);
   result.total = caseIds.length;
   const withProcess = !!processId;
@@ -211,19 +211,22 @@ export const createTestRuns = async (params: ProcessJobParams<BatchCreateTestRun
     }
 
     // 获取快照配置
-    const getCaseSnapshotEnabled = async () => {
-      let caseSnapshot = undefined;
-      // 如果 ENABLED_CASE_SNAPSHOT 为 true 开启快照空间配置，需要查询空间的快照配置
-      if (global.env?.ENABLED_CASE_SNAPSHOT) {
-        caseSnapshot = await getParseQuery(false, 'test_manager_TestConfig')
-          .equalTo('workspaceKey', workspace.key)
-          .select(['caseSnapshot'])
-          .first({ useMasterKey: true })
-          .then(data => data?.get('caseSnapshot'));
+    const getCaseSnapshotType = async () => {
+      if (!global.env?.ENABLED_CASE_SNAPSHOT) {
+        return { type: CASESNAPSHOT_TYPE.NO_AUTOBUILDVERSION_NO_SELVERSION };
       }
 
-      // 没有快照配置 则以默认值 DEFAULT_ENABLED_CASE_SNAPSHOT 为准
-      return [CASESNAPSHOT_TYPE.AUTO_BUILDVERSION].includes(caseSnapshot?.type) ?? global.env?.DEFAULT_ENABLED_CASE_SNAPSHOT;
+      try {
+        const result = await getParseQuery(false, 'test_manager_TestConfig')
+          .equalTo('workspaceKey', workspace.key)
+          .select(['caseSnapshot'])
+          .first({ useMasterKey: true, json: true });
+        return result.caseSnapshot;
+      } catch (error) {
+        console.error('getCaseSnapshotType error:', error);
+        // 返回默认配置而不是抛出错误
+        return { type: CASESNAPSHOT_TYPE.NO_AUTOBUILDVERSION_NO_SELVERSION };
+      }
     };
 
     // 获取测试管理已关联的测试执行
@@ -241,7 +244,7 @@ export const createTestRuns = async (params: ProcessJobParams<BatchCreateTestRun
           destinationType: TestType.Run,
           linkType: TestLinkType.RunLinkExecution,
         },
-        fields: [TestFiledKeyMapping.referenceCase, ...fields],
+        fields: [TestFiledKeyMapping.referenceCase, ...fields, SystemField.Id],
       });
       console.info('batchCreateTestRunV2 getExistedTestRuns end');
 
@@ -352,8 +355,31 @@ export const createTestRuns = async (params: ProcessJobParams<BatchCreateTestRun
         });
       }
 
+      console.info('batchCreateTestRunV2 updateRunsReference', updatedRuns);
       if (!updatedRuns.length) return;
       return await batchUpdateItemsValues(updatedRuns, true);
+    };
+
+    // 给执行添加快照
+    const attachSnapshotToRun = async cases => {
+      console.info('batchCreateTestRunV2 attachSnapshotToRun start');
+      const versionCases = Object.keys(caseVersion);
+      if (versionCases.length === 0) {
+        return;
+      }
+      const existVersionCases = cases.filter(caseId => versionCases.includes(caseId));
+
+      const existedRuns = await getExistedTestRuns(existVersionCases, [
+        SystemField.Id,
+        TestFiledKeyMapping.referenceCase,
+      ]);
+      const existedRunsMap = existedRuns.reduce(
+        (prev, cur) => ({ ...prev, [cur[SystemField.Id]]: cur.referenceCase }),
+        {},
+      );
+
+      await updateRunsReference(existedRunsMap, caseVersion);
+      console.info('batchCreateTestRunV2 attachSnapshotToRun end');
     };
 
     // 创建测试用例快照
@@ -361,9 +387,6 @@ export const createTestRuns = async (params: ProcessJobParams<BatchCreateTestRun
     // 2. 创建测试用例快照
     const createCaseSnapshot = async cases => {
       console.info('batchCreateTestRunV2 createCaseSnapshot start');
-      const caseSnapshotEnabled = await getCaseSnapshotEnabled();
-      console.info(`batchCreateTestRunV2 createCaseSnapshot: ${caseSnapshotEnabled}`);
-      if (!caseSnapshotEnabled) return;
       const existedRuns = await getExistedTestRuns(cases, [
         SystemField.Id,
         TestFiledKeyMapping.referenceCase,
@@ -375,9 +398,8 @@ export const createTestRuns = async (params: ProcessJobParams<BatchCreateTestRun
       const existedReferenceCaseIdSet = new Set(existedRuns.map(item => item.referenceCase));
 
       const caseSnapshotMap = await snapshotCases([...existedReferenceCaseIdSet]);
-
       await updateRunsReference(existedRunsMap, caseSnapshotMap);
-      console.info('batchCreateTestRunV2 createCaseSnapshot end');
+      console.info('batchCreateTestRunV2 autoCreateSnapshotToRun end');
     };
 
     // 把所属计划更新到用例的引用字段上
@@ -402,15 +424,26 @@ export const createTestRuns = async (params: ProcessJobParams<BatchCreateTestRun
     // 对用例打快照
     const planCases = async cases => {
       try {
-        // 校验测试用例是否已经被规划进测试执行任务
+        // 校验测试用例是否已经被规划进测试执行任务.  需要确认，如果之前在，但是现在是否需要更新版本什么的？
         const needPlanCases = await validateCases(cases);
         if (!needPlanCases.length) return;
 
         // 创建测试执行
         await createRuns(needPlanCases);
 
-        // 根据配置，对测试用例打快照
-        await createCaseSnapshot(needPlanCases);
+        const caseSnapshot = await getCaseSnapshotType();
+        console.info(`batchCreateTestRunV2 caseSnapshotType: ${caseSnapshot?.type}`);
+
+        if (
+          !caseSnapshot ||
+          caseSnapshot?.type === CASESNAPSHOT_TYPE.NO_AUTOBUILDVERSION_NO_SELVERSION
+        ) {
+          return;
+        } else if (caseSnapshot?.type === CASESNAPSHOT_TYPE.AUTO_BUILDVERSION) {
+          await createCaseSnapshot(needPlanCases);
+        } else {
+          await attachSnapshotToRun(needPlanCases);
+        }
 
         // 更新测试用例上的
         await updateCaseLinkPlan(needPlanCases);

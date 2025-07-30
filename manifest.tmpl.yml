@@ -2,7 +2,7 @@ app:
   key: test_manager
   uuid: bf73e61c-e15a-4461-a1f7-f940c2009332
   name: test_manager
-  version: "4.38.0"
+  version: "4.38.50"
 modules:
   webtrigger:
     # TODO: Debug 使用，生产环境禁止调用下面的 trigger
@@ -180,6 +180,12 @@ modules:
       function: test-manager-export-script-function
     - key: create-repository
       function: test-manager-create-repository-function
+
+    - key: api-update-run-version
+      function: test-manager-update-run-version-function
+
+    - key: api-batch-update-run-version
+      function: test-manager-batch-update-run-version-function
 
   trigger:
     - key: test-manager-initial-script-install
@@ -471,6 +477,12 @@ modules:
 
     - key: test-manager-create-repository-function
       handler: api.createRepository
+
+    - key: test-manager-update-run-version-function
+      handler: api.updateRunVersion
+
+    - key: test-manager-batch-update-run-version-function
+      handler: api.batchUpdateRunVersion
 
     - key: init-test-config-function
       handler: api.initTestConfig
@@ -985,8 +997,15 @@ tables:
       # 关联统计报表
       chartGroups:
         type: Object
+      # 可以把这个删除
       enableCaseSnapshot:
         type: Boolean
+      # 用例快照类型  数据结构 { type: 0 | 1 | 2, enableCaseExeUpdate: true | false }
+      # 1. 为0 或者空时， 不自动打版本且规划用例不能选择用例版本
+      # 2. 为1时，测试执行任务规划用例时自动打版本
+      # 3. 为2时，测试执行任务规划用例不打版本，可以选择用例版本
+      caseSnapshot:
+        type: Object
   - className: TestRelation
     fields:
       from:
