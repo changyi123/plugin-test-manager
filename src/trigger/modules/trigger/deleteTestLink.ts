@@ -11,6 +11,7 @@ import { buildResponse } from '../../lib/apiUtil';
 import { batchDeleteItems, batchUpdateItemsValues } from '../../lib/batchRequest';
 import { operateSnapshots } from '../../lib/coreApi';
 import { iqlRequest } from '../../lib/iqlRequest';
+import { updateCaseDefects, updateExecutionCasesAndDefects } from '../../lib/update';
 
 export const deleteTestLink = async () => {
   const { item } = global as any;
@@ -21,6 +22,8 @@ export const deleteTestLink = async () => {
   const itemType = item.values.r_test_manager_type;
 
   const tasks = [];
+
+  let fn;
 
   try {
     // 测试用例删除时需要删除引用的测试执行，所以先获得用例引用的执行
@@ -38,23 +41,37 @@ export const deleteTestLink = async () => {
             ...IQLRequiredFieldKeys,
             TestFiledKeyMapping.referenceCaseSnapshot,
             TestFiledKeyMapping.referenceCase,
+            TestFiledKeyMapping.linkItems,
           ],
         });
 
-        const noSnapShotIds =
+        console.info('deleteTestLink ---testRuns', JSON.stringify(testRuns));
+
+        const deleteIds =
           testRuns?.filter(i => !i.referenceCaseSnapshot)?.map(item => item.objectId) ?? [];
         const updateIds =
           testRuns?.filter(i => i.referenceCaseSnapshot)?.map(item => item.objectId) ?? [];
 
+        const executionIdSet = new Set();
+        testRuns?.forEach(item => {
+          const executionId = item?.linkItems?.[0];
+          if (executionId) {
+            executionIdSet.add(executionId);
+          }
+        });
+
+        console.info('deleteTestLink executionIds', JSON.stringify([...executionIdSet]));
+
         return {
-          noSnapShotIds,
+          deleteIds,
           updateIds,
+          executionIdSet,
         };
       };
-      const { noSnapShotIds, updateIds } = await getReferencedTestRunIds();
-      console.info('deleteTestLink noSnapShotIds updateIds', noSnapShotIds, updateIds);
+      const { deleteIds, updateIds, executionIdSet } = await getReferencedTestRunIds();
+      console.info('deleteTestLink noSnapShotIds updateIds', deleteIds, updateIds);
       // 存在关联了该用例并且没有指定版本的执行时，需要为用例打版本，并更新这批执行的referenceCaseSnapshot
-      if (noSnapShotIds?.length) {
+      if (deleteIds?.length) {
         const snapshots = await operateSnapshots({
           add: {
             keys: [itemKey],
@@ -68,7 +85,7 @@ export const deleteTestLink = async () => {
         console.info('case baseItemId', baseItemId);
         tasks.push(
           batchUpdateItemsValues(
-            noSnapShotIds.map(id => ({
+            deleteIds.map(id => ({
               objectId: id,
               referenceCase: '',
               referenceCaseSnapshot: baseItemId,
@@ -90,12 +107,17 @@ export const deleteTestLink = async () => {
           ),
         );
       }
+      if (executionIdSet.size) {
+        fn = async () => {
+          await updateExecutionCasesAndDefects([...executionIdSet]);
+        };
+      }
     }
 
     // 删除测试执行任务，需要删除关联的测试执行
     if (itemType === TestType.Execution) {
       // 测试执行任务删除时需要删除任务下的测试执行
-      const getRunIdByLInkItem = async () => {
+      const getRunIdAndCaseIdByLInkItem = async () => {
         const {
           data: { list: runs },
         } = await iqlRequest({
@@ -108,13 +130,26 @@ export const deleteTestLink = async () => {
             destinationType: TestType.Run,
           },
           pagination: { limit: InfinityLimit },
-          fields: IQLRequiredFieldKeys,
+          fields: [...IQLRequiredFieldKeys, TestFiledKeyMapping.referenceCase],
         });
 
-        return runs?.map(item => item.objectId);
+        const runIds = [];
+        const caseIdSet = new Set();
+        runs?.forEach(item => {
+          runIds.push(item.objectId);
+          const caseId = item.referenceCase;
+          if (caseId) {
+            caseIdSet.add(caseId);
+          }
+        });
+
+        return {
+          runIds,
+          caseIds: [...caseIdSet],
+        };
       };
 
-      const runIds = await getRunIdByLInkItem();
+      const { runIds, caseIds } = await getRunIdAndCaseIdByLInkItem();
 
       const checkRun = global.env?.CHECK_RUN_FOR_DELETE_EXECUTION;
 
@@ -125,6 +160,9 @@ export const deleteTestLink = async () => {
 
       if (runIds?.length) {
         tasks.push(batchDeleteItems(runIds));
+        fn = async () => {
+          await updateCaseDefects(caseIds);
+        };
       }
     }
 
@@ -156,6 +194,8 @@ export const deleteTestLink = async () => {
 
     if (tasks.length) {
       await Promise.all(tasks);
+
+      typeof fn === 'function' && (await fn());
       return buildResponse('delete success');
     }
     return buildResponse('no data');

@@ -63,10 +63,17 @@ import {
 } from '../../lib/helper';
 import { iqlRequest } from '../../lib/iqlRequest';
 import { getItemCreateRequiredAttrs, getItemTypeFromKey } from '../../lib/item';
+import {
+  updateCaseDefects,
+  updateExecutionCases,
+  updateExecutionCasesAndDefects,
+  updateExecutionDefects,
+} from '../../lib/update';
 import { testEntityFieldTypeValidator, throwArgumentError } from '../../lib/validator';
 import {
   addExecutionToPlanWorker,
   batchDeleteItems,
+  batchDeleteRuns,
   copyFolder,
   copyTesCases,
   createTestRuns,
@@ -174,6 +181,32 @@ export const batchDeleteV2 = async () => {
   }
 };
 
+/** 批量删除 */
+export const batchDeleteRun = async () => {
+  try {
+    const { body } = getReqInfoFromVMRuntime<BatchDeleteProcessParams>();
+    const { ids, key } = body;
+    if (!Array.isArray(ids)) throwArgumentError('ids', 'objectId[]');
+
+    return await batchRequestDecorator({
+      key,
+      asyncFunc: processId =>
+        requestCoreApi(
+          'POST',
+          `/api/app/${global.env.TENANT_KEY}/${global.appKey}/webhooks/job-batch-delete-runs`,
+          {
+            ...body,
+            processId,
+          },
+          headers,
+        ),
+      syncFunc: async () => await batchDeleteRuns(body),
+    });
+  } catch (err) {
+    return buildResponse(err);
+  }
+};
+
 /** 批量更新事项V2接口 */
 export const batchUpdateItemsV2 = async () => {
   try {
@@ -251,7 +284,12 @@ const getRunDataByLinkItemDelete = async data => {
     pagination: { limit: InfinityLimit, offset: 0 },
   });
 
-  return runData?.map(d => d.objectId);
+  const runIds = runData?.map(d => d.objectId);
+  return {
+    runIds,
+    executionIds,
+    caseIds: runDataInfo.caseIds ?? [],
+  };
 };
 
 /** 批量更新 */
@@ -264,6 +302,8 @@ export const batchUpdate = async () => {
 
   // 需要更新的事项
   const needUpdateItemData = await buildTestEntityLinkData(data as TestEntityLinkActionData[]);
+
+  console.info('---needUpdateItemData', JSON.stringify(needUpdateItemData));
   // 校验需要保存的参数
   needUpdateItemData.forEach(testEntityFieldTypeValidator);
   const tasks = [
@@ -273,11 +313,21 @@ export const batchUpdate = async () => {
   ];
 
   // 移除测试计划下的测试用例关联的测试执行
-  const needDeleteTestRunIds = await getRunDataByLinkItemDelete(data);
+  const {
+    runIds: needDeleteTestRunIds,
+    executionIds,
+    caseIds,
+  } = await getRunDataByLinkItemDelete(data);
   if (needDeleteTestRunIds?.length) {
     tasks.push(batchDeleteItems({ ids: needDeleteTestRunIds }));
   }
+
   const [res] = await Promise.all(tasks);
+  // 删除测试执行后，更新测试执行任务的用例数、缺陷，测试用例的缺陷
+  if (executionIds?.length) {
+    await Promise.all([updateExecutionCasesAndDefects(executionIds), updateCaseDefects(caseIds)]);
+  }
+
   return buildResponse(res.filter(Boolean).map(data => itemToTestEntity(data.item)));
 };
 
@@ -1276,6 +1326,8 @@ export const batchLinkBugsToRun = async () => {
       ],
     });
 
+    await Promise.all([updateExecutionDefects([executionId]), updateCaseDefects([caseId])]);
+
     return buildResponse(defectItemIds);
   } catch (error) {
     return buildResponse(error);
@@ -1384,6 +1436,8 @@ export const batchRemoveBugsWithRun = async () => {
       ],
     });
 
+    await Promise.all([updateExecutionDefects([executionId]), updateCaseDefects([caseId])]);
+
     return buildResponse(defectItemIds);
   } catch (error) {
     return buildResponse(error);
@@ -1437,4 +1491,50 @@ export const batchCopyFolder = async () => {
   } catch (err) {
     return buildResponse(err);
   }
+};
+
+// 批量更新测试执行任务规划的用例数
+export const batchUpdateExecutionCases = async () => {
+  const {
+    body: { executionIds },
+  } = getReqInfoFromVMRuntime<{
+    executionIds: string[];
+  }>();
+
+  return updateExecutionCases(executionIds);
+};
+
+// 全量更新测试执行任务规划的用例数
+export const updateAllExecutionCases = async () => {
+  const executionIds = await getAllEntity({
+    query: {
+      type: TestType.Execution,
+    },
+  });
+
+  console.info('updateAllExecutionCases executionIds length', executionIds.length);
+
+  const queue = [];
+  const size = 500;
+  let index = 0;
+
+  for (let i = 0; i < executionIds.length; i += size) {
+    index++;
+    queue.push({
+      index,
+      executionIds: executionIds.slice(i, i + size),
+    });
+  }
+
+  console.info(`updateAllExecutionCases 合计 ${index} 批次`);
+
+  for (const item of queue) {
+    console.info(`updateAllExecutionCases ${item.index} 批次`, JSON.stringify(item.executionIds));
+
+    await updateExecutionCases(item.executionIds);
+
+    console.info(`updateAllExecutionCases ${item.index} 批次更新完成`);
+  }
+
+  console.info('updateAllExecutionCases-- complete');
 };

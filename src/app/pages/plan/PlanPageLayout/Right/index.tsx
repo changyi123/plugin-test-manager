@@ -185,6 +185,9 @@ const Right: React.FC<RightProps> = props => {
         [TestFiledKeyMapping.linkItems]: {
           concat: [selectedTestPlan.objectId],
         },
+        [TestFiledKeyMapping.testPlans]: {
+          concat: [selectedTestPlan.objectId],
+        },
       },
       handleSuccess: () => {
         refresh('detailTable');

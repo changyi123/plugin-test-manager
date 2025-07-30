@@ -7,6 +7,7 @@ import { buildResponse, getReqInfoFromVMRuntime } from '../../lib/apiUtil';
 
 const XSeaInfo = global.env?.SHENWAN_XSEA_INFO ?? {};
 const PerfMaInfo = global.env?.SHENWAN_PERFMA_INFO ?? {};
+const CoverRate = global.env?.SHENWAN_COVERTAYE_INFO ?? {};
 
 const PlatformInfo = {
   /** XSea 平台 */
@@ -22,6 +23,13 @@ const PlatformInfo = {
     AccessKeySecret: PerfMaInfo?.AccessKeySecret ?? '2692ff7d2aff4f55b930cc59dbc9efe9',
     AccessKeyId: PerfMaInfo?.AccessKeyId ?? 'a155224294f64734bf33aecc88e194ae',
     AccountName: PerfMaInfo?.AccountName ?? 'baidu',
+  },
+  /** 覆盖率平台 */
+  CoverRate: {
+    BaseUrl: CoverRate?.BaseUrl ?? 'http://192.168.178.116:8080',
+    AccessKeySecret: CoverRate?.AccessKeySecret ?? '2692ff7d2aff4f55b930cc59dbc9efe9',
+    AccessKeyId: CoverRate?.AccessKeyId ?? 'a155224294f64734bf33aecc88e194ae',
+    AccountName: CoverRate?.AccountName ?? 'baidu',
   },
 } as const;
 
@@ -107,7 +115,31 @@ const requestPerfMaPlan = async name => {
   }
 };
 
-/** 申万测试报告信息，对接申万笨马，XSea 平台接口 */
+/** 覆盖率平台coverRate */
+const requestCoverRate = async (versionName) => {
+  try {
+    const requestInfo = {
+      path:  `/openapi/getCovInfoByVersion?versionName=${versionName}`,
+      method: 'get',
+    } as const;
+
+    const authInfo = getAuthInfo('CoverRate', requestInfo);
+    const res = await axios({
+      timeout: RequestTimeout,
+      url: PlatformInfo.CoverRate.BaseUrl + requestInfo.path,
+      method: requestInfo.method,
+      headers: {
+        ...authInfo.headers,
+      },
+    });
+    console.info('CoverRate res ------------->', res);
+    return res;
+  } catch {
+    return '无';
+  }
+};
+
+/** 申万测试报告信息，对接申万笨马，XSea 平台接口, 覆盖率平台coverRate */
 export const shenwanTestReportInfo = async () => {
   const { body, sessionToken } = getReqInfoFromVMRuntime<{
     versionName: string;
@@ -129,20 +161,23 @@ export const shenwanTestReportInfo = async () => {
   }
 
   try {
-    const [xSeaReportPageUrl, perfMaReportPageUrl] = await Promise.all([
+    const [xSeaReportPageUrl, perfMaReportPageUrl, coverRateReportPageUrl] = await Promise.all([
       requestXSeaPlan(versionName),
       requestPerfMaPlan(versionName),
+      requestCoverRate(versionName),
     ]);
 
     return buildResponse({
       xSea: xSeaReportPageUrl,
       perfMa: perfMaReportPageUrl,
+      coverRate: coverRateReportPageUrl,
     });
   } catch (err) {
     console.info('err--------------------------------', err);
     return buildResponse({
       xSea: '无',
       perfMa: '无',
+      coverRate: '无',
     });
   }
 };

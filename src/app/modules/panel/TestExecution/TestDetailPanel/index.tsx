@@ -16,7 +16,7 @@ import React, { useCallback, useEffect, useMemo, useState } from 'react';
 
 import {
   createTestRunWithProcess,
-  deleteV1WithProcess,
+  deleteRunWithProcess,
   updateItemsWithProcess,
 } from '@/components/business/BatchResult/hooks';
 import DropDownButton from '@/components/business/DropDownButton';
@@ -30,7 +30,12 @@ import TestRunModal, {
   ActionType as TestRunModalActionType,
 } from '@/components/business/TestRunModal';
 import { useTestTypeScreenFieldKeys } from '@/components/common/BusinessTable/hook';
-import { getLinkedTestEntityByQuery, getTestEntityByQuery, getUpdateParams, updateTestStatus } from '@/lib/api/item';
+import {
+  getLinkedTestEntityByQuery,
+  getTestEntityByQuery,
+  getUpdateParams,
+  updateTestStatus,
+} from '@/lib/api/item';
 import { openBaseLineViewItemModal } from '@/lib/api/sdk';
 import { getAppEnv } from '@/lib/appEnv';
 import { CASESNAPSHOT_TYPE, TestLinkType, TestType } from '@/lib/constants';
@@ -222,7 +227,7 @@ const Test = () => {
         return;
       }
       // 删除测试和测试执行的关联
-      await deleteV1WithProcess({
+      await deleteRunWithProcess({
         ids: testRunIds,
         handleSuccess: () => {
           refreshDepData();

@@ -1,4 +1,4 @@
-import { TestType } from 'common/constant';
+import { TestFiledKeyMapping, TestType } from 'common/constant';
 
 export * from 'common/constant';
 
@@ -456,6 +456,9 @@ export const EXINCLUDE_FIELDS = [
   FIELD_TYPE_KEY_MAPPINGS.Cascade,
   FIELD_TYPE_KEY_MAPPINGS.Tree,
 ];
+
+// 筛选器忽略字段
+export const EXCLUDE_FILTER_KEYS = [TestFiledKeyMapping.testSet];
 
 export const isUseOptionValue = (component: string): boolean => {
   return [FIELD_TYPE_KEY_MAPPINGS.Dropdown].includes(component);

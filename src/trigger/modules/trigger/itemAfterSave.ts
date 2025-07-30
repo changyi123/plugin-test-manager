@@ -51,6 +51,7 @@ export const itemAfterSave = async () => {
     ...cases.map(i => ({
       objectId: i.objectId,
       linkItems: uniq([...i.values.r_test_manager_linkItems, planId]),
+      testPlans: uniq([...i.values.r_test_manager_linkItems, planId]),
     })),
   ]);
 };

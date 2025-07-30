@@ -284,6 +284,19 @@ export const deleteTestEntityV2 = async params => {
   return res;
 };
 
+// 批量删除测试执行
+export const deleteTestRun = async params => {
+  const { data: res } = await fetch.post(`${pluginWebTriggerBaseUrl}/api-batch-delete-run`, {
+    ...params,
+    sessionToken: getSessionToken(),
+  });
+
+  if (res.status === 'error') {
+    return res;
+  }
+  return res;
+};
+
 // 批量删编辑事项 v2
 export const updateItemsV2 = async params => {
   const { data: res } = await fetch.post(`${pluginWebTriggerBaseUrl}/api-batch-update-items-v2`, {
@@ -845,3 +858,14 @@ export async function fetchBatchProgress(batchId: string): Promise<{
 }> {
   return fetch.get('/parse/api/items/batch/progress/' + batchId);
 }
+
+// 批量更新测试执行任务的用例数量
+export const batchUpdateExecutionCases = async (executionIds: string[]) => {
+  const {
+    data: { data },
+  } = await fetch.post(`${pluginWebTriggerBaseUrl}/api-batch-update-execution-cases`, {
+    executionIds,
+    sessionToken: getSessionToken(),
+  });
+  return data;
+};

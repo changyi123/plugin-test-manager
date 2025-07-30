@@ -21,7 +21,7 @@ const getCurrentNodeContainer = target => target.parentNode;
 const getPopupContainer = () => document.getElementById('test-manager');
 interface OverflowTooltip {
   className?: string;
-  title?: string | React.ReactElement;
+  title?: string | React.ReactElement | React.ReactElement[];
   children: any; // TODO: 可参考 PropTypes 的 ReactNodeLike，暂时先用any
   // 是否禁用，在一些需要react-whether去判断的场景有用
   disabled?: boolean;
@@ -29,6 +29,7 @@ interface OverflowTooltip {
   mountOnCurrentNode?: boolean;
   overlayClassName?: string;
   style?: CSSProperties;
+  ignoreOverFlow?: boolean; // 是否忽略文本未超出就展示tooltip
   placement?:
     | 'top'
     | 'left'
@@ -55,6 +56,7 @@ const OverflowTooltip: React.FC<OverflowTooltip> = props => {
     overlayClassName,
     mountOnCurrentNode,
     style,
+    ignoreOverFlow,
   } = props;
   const [visible, setVisible] = useState(false);
   const elRef = useRef();
@@ -69,7 +71,7 @@ const OverflowTooltip: React.FC<OverflowTooltip> = props => {
   const handleVisibleChange = useCallback(
     async visible => {
       const overflow = await isTextOverflow(elRef.current);
-      if (visible && overflow && !disabled) {
+      if (visible && (overflow || ignoreOverFlow) && !disabled) {
         updateVisible(visible);
         setVisible(visible);
       }
@@ -78,7 +80,7 @@ const OverflowTooltip: React.FC<OverflowTooltip> = props => {
         updateVisible(visible);
       }
     },
-    [disabled, updateVisible],
+    [disabled, updateVisible, ignoreOverFlow],
   );
 
   useEffect(() => {
@@ -117,6 +119,7 @@ OverflowTooltip.defaultProps = {
   placement: 'top',
   mountOnCurrentNode: false,
   maxline: 1,
+  ignoreOverFlow: false,
 };
 
 export default memo(OverflowTooltip);

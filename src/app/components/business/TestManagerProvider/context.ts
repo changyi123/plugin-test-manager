@@ -52,6 +52,7 @@ export type BaseActionContextType = {
     hideMessage?: boolean;
     type: TestType;
     extraData?: Extra;
+    defaultValues?: Record<string, any>;
   }) => Promise<{
     extraData: Extra;
     useItemBatchCreate: boolean;

@@ -1,4 +1,5 @@
 import { useSDK } from '@giteeteam/plugin-sdk';
+
 import createProximaSdk from '@projectproxima/proxima-sdk-js';
 import { useDrag, useDrop, useMemoizedFn, useRequest } from 'ahooks';
 import { message, notification, Space, Tooltip } from 'antd';
@@ -16,7 +17,10 @@ import RepositorySelector, {
   ActionType as RepositorySelectorActionType,
 } from '@/components/business/RepositorySelector';
 import UserCell from '@/components/business/UserCell';
-import type { BusinessTableActionType, EnableCacheEpandedRowKeys } from '@/components/common/BusinessTable/type';
+import type {
+  BusinessTableActionType,
+  EnableCacheEpandedRowKeys,
+} from '@/components/common/BusinessTable/type';
 import { BusinessTable } from '@/components/dynamicComponents';
 import {
   DeleteIcon,
@@ -187,7 +191,7 @@ type TestDetailTableProps = {
   breadcrumbs?: string[];
   repository?: Record<string, any>;
   selector?: SearchSelectors | string;
-  enableCacheEpandedRowKeys?: EnableCacheEpandedRowKeys
+  enableCacheEpandedRowKeys?: EnableCacheEpandedRowKeys;
 };
 
 const TestDetailTable: React.FC<TestDetailTableProps> = props => {
@@ -398,9 +402,9 @@ const TestDetailTable: React.FC<TestDetailTableProps> = props => {
 
     // 批量创建事项关联
     const createItemLink = async () => {
-      console.info(batchQueryToIql(getBatchParams(tableActionRef.current).query), 'getBatchParams');
+      console.info(batchQueryToIql(getBatchParams(tableActionRef.current)), 'getBatchParams');
       proxima.execute('openAddLinkScreen', {
-        iql: batchQueryToIql(getBatchParams(tableActionRef.current).query),
+        iql: batchQueryToIql(getBatchParams(tableActionRef.current)),
         breadcrumbs,
         selectAll: tableActionRef.current.selectAll,
         displayContext: 'test_manager',
@@ -420,7 +424,7 @@ const TestDetailTable: React.FC<TestDetailTableProps> = props => {
         .first();
       window.localStorage.setItem(
         localIqlKey,
-        batchQueryToIql(getBatchParams(tableActionRef.current).query),
+        batchQueryToIql(getBatchParams(tableActionRef.current)),
       );
       // 构造url，打开批量编辑页面
       const itemBatchPage = `${getProximaBasePath()}/${getTenantKey()}/workspaces/${workspaceKey}/batch-operate/${testBoard.get(
@@ -567,7 +571,7 @@ const TestDetailTable: React.FC<TestDetailTableProps> = props => {
               </span>
             );
           }
-          
+
           return (
             <>
               <RowDragBox
@@ -701,7 +705,7 @@ const TestDetailTable: React.FC<TestDetailTableProps> = props => {
         }}
       />
       <RepositorySelector actionRef={repositorySelectorRef} />
-      
+
       {/* 批量创建版本 */}
       <TestBatchCreateVersionnModal
         actionRef={testBatchCreateVersionModalActionRef}
@@ -709,8 +713,8 @@ const TestDetailTable: React.FC<TestDetailTableProps> = props => {
           // 刷新依赖数据
           tableActionRef.current.resetSelectedRowKeys();
           tableActionRef.current.refresh();
-        }} 
-      />  
+        }}
+      />
     </>
   );
 };

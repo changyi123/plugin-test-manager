@@ -14,7 +14,6 @@ import {
   deleteItems,
   updateItems,
 } from './coreApi';
-
 /** 并发数量 */
 const ParallelLimit = global.env?.ParallelLimit ?? 10;
 const UnRefreshLimit = global.env?.UnRefreshLimit ?? 10;
