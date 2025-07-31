@@ -880,8 +880,8 @@ export const updateCaseVersion = async params => {
   return { data, status };
 };
 
-// 批量更新用例版本
-export const batchUpdateCaseVersion = async params => {
+// 批量更新用例
+export const batchUpdateCase = async params => {
   const {
     data: { data, status },
   } = await fetch.post(`${pluginWebTriggerBaseUrl}/api-batch-update-run-version`, {

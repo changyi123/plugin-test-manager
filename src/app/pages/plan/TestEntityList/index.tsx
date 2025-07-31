@@ -30,13 +30,14 @@ import type { BusinessTableActionType } from '@/components/common/BusinessTable/
 import Field from '@/components/common/Field';
 import {
   addTestDefect,
+  batchUpdateCase,
   getCasesByStatus,
   getLinkedTestEntityByQuery,
   getTestCaseStats,
   getTestEntityByQuery,
   getUpdateParams,
   updateTestEntity,
-  updateTestStatus,
+  updateTestStatus
 } from '@/lib/api/item';
 import { openBaseLineViewItemModal } from '@/lib/api/sdk';
 import { useCurrentUser } from '@/lib/api/user';
@@ -134,6 +135,9 @@ const TestEntityList: React.FC<TestEntityListProps> = ({
   const [hasRowSelected, setHasRowSelected] = useState(false);
   const currentRunRef = useRef(null);
   const loading = loadingFromParentElement || tableLoading;
+
+  // 批量更新执行用例
+  const [batchUpdateLoading, setBatchUpdateLoading] = useState(false);
 
   const statusesConfig = React.useMemo(() => {
     return keyBy(globalTestConfig?.statuses ?? [], 'key');
@@ -1216,11 +1220,34 @@ const TestEntityList: React.FC<TestEntityListProps> = ({
     // 批量更新执行用例
     const batchUpdateExeCases = async () => {
       const _testRunIds: string[] = getTestRunIds() || [];
-      await testBatchUpateModalActionRef.current.open({
-        testRunIds: _testRunIds,
-        tableData: actionRef.current.dataSource,
-        workspaceKey: workspaceKey,
-      });
+      setBatchUpdateLoading(true);
+
+      const runVersions = _testRunIds
+        .map(runId => {
+          const idx = executionLinkRunIds.indexOf(runId);
+          return {
+            runId,
+            caseId: runLinkCaseIds[idx], // 索引对应
+          };
+        })
+        .filter(item => item.runId && item.caseId);
+
+      try {
+        const res = await batchUpdateCase({
+          runVersions: runVersions,
+          workspaceKey: workspaceKey,
+        });
+        if (res?.status === 'ok') {
+          message.success(t('common.success'));
+          actionRef.current.refresh(); // 刷新页面
+        } else {
+          message.error(res?.data || t('common.error'));
+        }
+      } catch (error) {
+        message.error(error?.message || t('common.error'));
+      } finally {
+        setBatchUpdateLoading(false);
+      }
     };
 
     const canDesigneeSelect = canAssignTestRun();
@@ -1228,12 +1255,16 @@ const TestEntityList: React.FC<TestEntityListProps> = ({
     const handleBatchUpateExeCase = () => {
       if (config?.caseSnapshot?.enableCaseExeUpdate) {
         return (
-          <span className={cx(!hasRowSelected && 'disabled')} key="batchUpdateExeCases" onClick={() => hasRowSelected && batchUpdateExeCases()}>
+          <span
+            className={cx(!hasRowSelected || (batchUpdateLoading && 'disabled'))}
+            key="batchUpdateExeCases"
+            onClick={() => hasRowSelected && !batchUpdateLoading && batchUpdateExeCases()}
+          >
             {t('components.business.testBatchUpateModel.batchUpateExeCase')}
           </span>
-        )
+        );
       }
-    }
+    };
     return [
       <Tooltip
         key="assignee"
@@ -1454,7 +1485,7 @@ const TestEntityList: React.FC<TestEntityListProps> = ({
           selectedTestPlanId={selectedTestPlan?.objectId}
         />
       )}
-      {/* 批量更新执行用例 */}
+      {/* 更新执行用例 */}
       <TestBatchUpdateExeModal
         actionRef={testBatchUpateModalActionRef}
         refresh = {() => {
