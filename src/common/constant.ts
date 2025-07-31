@@ -152,8 +152,8 @@ export const NotValidatorFiledKeyMapping = {
 } as const;
 
 export const enum CASE_IS_UPDATE {
-  NO = 0,
-  YES = 1,
+  NO = '0',
+  YES = '1',
 }
 
 export const TestFiledKeyKeys = Object.keys(
