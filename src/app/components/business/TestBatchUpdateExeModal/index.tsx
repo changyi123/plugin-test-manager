@@ -3,6 +3,7 @@ import dayjs from 'dayjs';
 import _ from 'lodash';
 import React, { useState } from 'react';
 
+import { updateCaseVersion } from '@/lib/api/item';
 import useI18n from '@/lib/hooks/useI18n';
 import fetch from '@/lib/utils/fetch';
 import { getRootContainer } from '@/lib/utils/helper';
@@ -10,7 +11,11 @@ import { getRootContainer } from '@/lib/utils/helper';
 import cx from './index.less';
 
 export type TestBatchUpateModalActionRef = {
-  open: ({ testRunIds }: { testRunIds?: string[]; tableData?: any[] }) => Promise<void>;
+  open: (params: {
+    testRunIds?: string[];
+    tableData?: any[];
+    workspaceKey?: string;
+  }) => Promise<void>;
 };
 
 interface TestBatchUpdateExeModalProps {
@@ -27,13 +32,19 @@ const TestBatchUpdateExeModal: React.FC<TestBatchUpdateExeModalProps> = ({
   const [selOpt, setSelOpt] = useState([]);
   const [selected, setSelected] = useState('');
   const [keys, setKeys] = useState<string[]>([]);
+  const [currentTestRunIds, setCurrentTestRunIds] = useState<string[]>([]);
+  const [currentWorkspaceKey, setCurrentWorkspaceKey] = useState<string>();
 
   React.useImperativeHandle(
     actionRef,
     () => ({
       async open(data) {
         setIsVisible(true);
-        const { testRunIds = [], tableData = [] } = data || {};
+
+        const { testRunIds = [], tableData = [], workspaceKey } = data || {};
+        setCurrentTestRunIds(testRunIds);
+        setCurrentWorkspaceKey(workspaceKey);
+
         const _keys = _.chain(tableData)
           .filter(item => _.includes(testRunIds, item.objectId))
           .map('key')
@@ -71,19 +82,28 @@ const TestBatchUpdateExeModal: React.FC<TestBatchUpdateExeModalProps> = ({
   }, []);
 
   const handleBatchUpdateVersion = async () => {
-    const _name = (_.chain(selOpt).find({ value: selected }) as any).get('label', '').value();
-    await fetch.post('/api-update-run-version', {
-      add: {
-        keys: keys,
-      },
-      sourceType: global.appKey ?? 'test_manager',
-      baseLineItemVersion: {
-        name: _.head(_.split(_name, '@')),
-      },
-    });
-    message.success(t('common.success'));
-    handleCloseModal();
-    refresh && refresh();
+    const selectedOption = _.chain(selOpt).find({ value: selected }).value();
+    const itemId = selectedOption?.itemId;
+    const value = selectedOption?.value;
+    // const _name = selectedOption?.label || '';
+    try {
+      const res = await updateCaseVersion({
+        runId: currentTestRunIds[0],
+        baseLineItemId: value,
+        caseId: itemId,
+        workspaceKey: currentWorkspaceKey,
+      });
+
+      if (res?.status === 'ok') {
+        message.success(t('common.success'));
+        handleCloseModal();
+        refresh && refresh();
+      } else {
+        message.error(res?.data || t('common.error'));
+      }
+    } catch (error) {
+      message.error(error?.message || t('common.error'));
+    }
   };
 
   const handleConfirmModal = async () => {

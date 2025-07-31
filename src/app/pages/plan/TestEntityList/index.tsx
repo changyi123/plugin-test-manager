@@ -934,15 +934,14 @@ const TestEntityList: React.FC<TestEntityListProps> = ({
           return <span>{record?.executeCount ?? 0}</span>;
         },
       },
-      {
+       {
         key: 'caseVersion',
         title: '用例版本',
         width: 120,
         overflowEllipsis: false,
-        // shouldCellUpdate: (record, prevRecord) => record.quoteCount !== prevRecord.quoteCount,
-        // render(_, rowData) {
-        //   return <span>{rowData.quoteCount}</span>;
-        // },
+        render(_, rowData) {
+          return <span>{rowData.baseLineItemVersion?.name || '-'}</span>;
+        },
       },
       //  最新执行人
       {
@@ -1215,13 +1214,14 @@ const TestEntityList: React.FC<TestEntityListProps> = ({
     };
 
     // 批量更新执行用例
-    const batchUpdateExeCases = async() => {
+    const batchUpdateExeCases = async () => {
       const _testRunIds: string[] = getTestRunIds() || [];
       await testBatchUpateModalActionRef.current.open({
         testRunIds: _testRunIds,
-        tableData: actionRef.current.dataSource
+        tableData: actionRef.current.dataSource,
+        workspaceKey: workspaceKey,
       });
-    }
+    };
 
     const canDesigneeSelect = canAssignTestRun();
 
@@ -1397,7 +1397,7 @@ const TestEntityList: React.FC<TestEntityListProps> = ({
             'createdAt',
             'executor',
             'executeTime',
-            'caseVersion'
+            'caseVersion',
           ]}
           privateColumnKey={[
             'repositoryGroup',
@@ -1406,7 +1406,7 @@ const TestEntityList: React.FC<TestEntityListProps> = ({
             'executor',
             'designee',
             'executeTime',
-            'caseVersion'
+            'caseVersion',
           ]}
           rowKey="objectId"
           columns={executionColumns}
@@ -1427,10 +1427,11 @@ const TestEntityList: React.FC<TestEntityListProps> = ({
             },
             expandedRowRender: record => {
               const handleUpdateExe = async() => {
-                const _testRunIds: string[] = [record?.objectId]
+                const _testRunIds: string[] = [record?.objectId];
                 await testBatchUpateModalActionRef.current.open({
                   testRunIds: _testRunIds,
-                  tableData: actionRef.current.dataSource
+                  tableData: actionRef.current.dataSource,
+                  workspaceKey: workspaceKey,
                 });
               }
               return (

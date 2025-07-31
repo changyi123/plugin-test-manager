@@ -869,3 +869,23 @@ export const batchUpdateExecutionCases = async (executionIds: string[]) => {
   });
   return data;
 };
+
+// 更新用例版本
+export const updateCaseVersion = async params => {
+  const {
+    data: { data, status },
+  } = await fetch.post(`${pluginWebTriggerBaseUrl}/api-update-run-version`, {
+    ...params,
+  });
+  return { data, status };
+};
+
+// 批量更新用例版本
+export const batchUpdateCaseVersion = async params => {
+  const {
+    data: { data, status },
+  } = await fetch.post(`${pluginWebTriggerBaseUrl}/api-batch-update-run-version`, {
+    ...params,
+  });
+  return { data, status };
+};
