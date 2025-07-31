@@ -664,6 +664,15 @@ const TestEntityList: React.FC<TestEntityListProps> = ({
           );
         },
       },
+      {
+        key: 'caseVersion',
+        title: '用例版本',
+        width: 120,
+        overflowEllipsis: false,
+        render(_, rowData) {
+          return <span>{rowData.baseLineItemVersion?.name || '-'}</span>;
+        },
+      },
       // 最新执行人
       {
         key: 'caseLatestExecutor',
@@ -938,7 +947,7 @@ const TestEntityList: React.FC<TestEntityListProps> = ({
           return <span>{record?.executeCount ?? 0}</span>;
         },
       },
-       {
+      {
         key: 'caseVersion',
         title: '用例版本',
         width: 120,
@@ -1381,8 +1390,9 @@ const TestEntityList: React.FC<TestEntityListProps> = ({
             'repositoryGroup',
             'createdBy',
             'createdAt',
+            'caseVersion',
           ]}
-          privateColumnKey={['repositoryGroup', 'caseLatestStatus', 'runCount']}
+          privateColumnKey={['repositoryGroup', 'caseLatestStatus', 'runCount', 'caseVersion']}
           rowKey="objectId"
           columns={allTestColumns}
           name={`${workspaceKey}_AllTestEntity`}
