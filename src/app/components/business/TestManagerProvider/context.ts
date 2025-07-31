@@ -32,7 +32,7 @@ export type TestConfigContextType = {
     // 默认测试用例规划范围
     iql?: string;
     //用例快照类型
-    caseSnapshot?: CaseSnapshot
+    caseSnapshot?: CaseSnapshot;
   };
   workspace?: Workspace;
   testEntity?: BaseTestEntity;

@@ -160,7 +160,8 @@ const TestDetailsSelectorList: React.FC<TestDetailsSelectorListProps> = ({
         ...baseQueryOptions,
         offset: (current - 1) * 100,
         limit: 100,
-        select: ['id', 'name', 'status', 'key',isPlanForTestSet ? 'testSet' : ''].filter(Boolean),
+        // select: ['id', 'name', 'status', 'key',isPlanForTestSet ? 'testSet' : ''].filter(Boolean),
+        field: ['version'],
         sortByRepositoryIds: allNodeKeys,
       });
 
