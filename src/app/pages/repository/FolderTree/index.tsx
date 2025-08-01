@@ -476,13 +476,18 @@ const FolderTree: React.FC<FolderTreeProps> = ({
       } else if (actionKey === MenuKey.importTest) {
         // iframe 中跳转链接增加隐藏 header 和 sider 属性
         const appendedQueryString = inIframe() ? '&hiddenSider=true&hiddenHeader=true' : '';
+        const isEnableImportSnapShotConfig = getAppEnv('ENABLE_IMPORT_SNAP_SHOT_CONFIG');
+
+        const showSnapShotConfigString = isEnableImportSnapShotConfig
+          ? '&showSnapShotConfig=true'
+          : '';
         const baseUrl = getProximaBasePath() ? `${getProximaBasePath()}` : '/';
         // 跳转到导入页面
         const href = `${baseUrl}/${getTenantKey()}/workspaces/${workspace.key}/import/${
           workspace.objectId
         }?app=test_manager&disableToggleWorkspace=true&hiddenItemType=true${appendedQueryString}&group=${
           node.key
-        }&validateRequired=${getAppEnv('GROUP_REQUIRED_WHEN_VALIDATE')}`;
+        }&validateRequired=${getAppEnv('GROUP_REQUIRED_WHEN_VALIDATE')}${showSnapShotConfigString}`;
         window.open(href);
       }
 
