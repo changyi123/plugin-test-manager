@@ -623,6 +623,7 @@
         "detailName": "用例标题",
         "runStatus": "测试执行状态",
         "executor": "最新执行人",
+        "caseVersion": "用例版本",
         "designee": "执行人",
         "assigneeSetting": "设置负责人",
         "editorItemTips": "暂无事项编辑权限，请检查事项操作权限配置或联系管理员",

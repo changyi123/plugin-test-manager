@@ -37,6 +37,8 @@ type ScopedTestRunIds = {
   executionLinkRunIds: string[];
   runLinkCaseIds: string[];
   runLinkSnapshotIds?: string[];
+  runMap?: Record<string, string>;
+  runSnapshotMap?: Record<string, string>;
 };
 
 type ScopedTestDetailIdsParams = {
@@ -155,9 +157,14 @@ export const useGetExecutionLinkCaseRunIds = (params: ScopedTestDetailIdsParams)
       return {
         executionLinkRunIds: [...runMap.keys()],
         runLinkCaseIds: [...runMap.values()],
-        runLinkSnapshotIds: [CASESNAPSHOT_TYPE.AUTO_BUILDVERSION].includes(config?.caseSnapshot?.type)
+        runLinkSnapshotIds: [
+          CASESNAPSHOT_TYPE.AUTO_BUILDVERSION,
+          CASESNAPSHOT_TYPE.NO_BUILDVERSION_SELVERSION,
+        ].includes(config?.caseSnapshot?.type)
           ? [...runSnapshotMap.values()].filter(Boolean)
           : [],
+        runMap: Object.fromEntries(runMap),
+        runSnapshotMap: Object.fromEntries(runSnapshotMap),
       };
     },
     {

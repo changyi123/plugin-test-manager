@@ -294,7 +294,7 @@ const Right: React.FC<RightProps> = props => {
           onSearch={setSearchParams}
           className={cx('plan-page-layout-search')}
           extendFields={filterSearchExtendFieldsProps}
-          fields={getFilterFields([].concat(SystemFieldKeys, testCaseFieldKeys))}
+          fields={getFilterFields([].concat(SystemFieldKeys, testCaseFieldKeys, 'r_test_manager_isCaseUpdate'))}
           testType={TestType.Case}
           storageKey={activeType === 'TestPlan' ? 'testPlan' : 'testExecution'}
         />

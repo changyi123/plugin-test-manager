@@ -654,6 +654,7 @@
         "detailName": "Test case Title",
         "runStatus": "Test execution status",
         "executor": "Last action executor",
+        "caseVersion": "Case Version",
         "designee": "Executor",
         "assigneeSetting": "Set assignee",
         "editorItemTips": "No item editing permission at the moment, please check the item operation permission configuration or contact the administrator",

@@ -374,10 +374,9 @@ const Test = () => {
           const selectedTestDetailIds = await selectorModalRef.current.open({
             testType: TestType.Case,
           });
+          const { selectedData: caseIds, caseVersion } = selectedTestDetailIds;
 
-          const _selectedTestDetailIds = selectedTestDetailIds.filter(
-            d => !(relCase ?? []).includes(d),
-          );
+          const _selectedTestDetailIds = caseIds?.filter(d => !(relCase ?? []).includes(d));
           if (getCreatePermission(TestType.Case)) {
             message.error(t('page.plan.testEntityList.addItemTips'));
             return;
@@ -388,6 +387,7 @@ const Test = () => {
             await createTestRunWithProcess({
               execution: testEntity,
               caseIds: _selectedTestDetailIds,
+              caseVersion,
               workspace: testEntity?.workspace,
               planId: testEntity?.linkItems?.[0],
               handleSuccess: () => refreshDepData('updateTestRunStatus'),
@@ -449,6 +449,9 @@ const Test = () => {
         ignoreTestEntityIds={relCase}
         tableFieldsKeys={testExecutionFieldKeys}
         getContainer={getTestManagerContainer}
+        enableCaseVersion={[CASESNAPSHOT_TYPE.NO_BUILDVERSION_SELVERSION].includes(
+          config?.caseSnapshot?.type,
+        )}
         showDefaultRange
       />
 

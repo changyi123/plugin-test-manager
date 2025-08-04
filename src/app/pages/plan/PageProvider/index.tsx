@@ -48,6 +48,10 @@ type PageContextType = {
   setActiveExecutionPlan: (val: TestPlanEntity | null) => void;
   runLinkSnapshotIds?: string[];
   setRunLinkSnapshotIds?: (val?: string[]) => void;
+  runMap?: Record<string, string>;
+  setRunMap?: (val?: Record<string, string>) => void;
+  runSnapshotMap?: Record<string, string>;
+  setRunSnapshotMap?: (val?: Record<string, string>) => void;
 };
 
 export const PageContext = React.createContext<PageContextType>({
@@ -95,6 +99,8 @@ const PageProvider: React.FC<any> = ({ children }) => {
   const [executionLinkRunIds, setExecutionLinkRunIds] = useState<string[]>(null);
   const [runLinkCaseIds, setRunLinkCaseIds] = useState<string[]>(null);
   const [runLinkSnapshotIds, setRunLinkSnapshotIds] = useState<string[]>(null);
+  const [runMap, setRunMap] = useState<Record<string, string>>({});
+  const [runSnapshotMap, setRunSnapshotMap] = useState<Record<string, string>>({});
   const [activeExecutionPlan, setActiveExecutionPlan] = useState(null);
 
   const refresh = useCallback(key => {
@@ -155,6 +161,10 @@ const PageProvider: React.FC<any> = ({ children }) => {
             setActiveExecutionPlan,
             runLinkSnapshotIds,
             setRunLinkSnapshotIds,
+            runMap,
+            setRunMap,
+            runSnapshotMap,
+            setRunSnapshotMap,
             selectedTestExecution,
             setSelectedTestExecution,
           }}

@@ -51,6 +51,8 @@ const PlanPageLayout: React.FC<any> = () => {
     setPlanLinkCaseIds,
     setExecutionLinkRunIds,
     setRunLinkCaseIds,
+    setRunMap,
+    setRunSnapshotMap,
   } = usePageContext();
   const { t } = useI18n();
   const executionListRef = React.useRef<ExecutionListRef>();
@@ -130,6 +132,8 @@ const PlanPageLayout: React.FC<any> = () => {
     setRunLinkCaseIds(scopeTestRunIds?.runLinkCaseIds);
     setExecutionLinkRunIds(scopeTestRunIds?.executionLinkRunIds);
     setRunLinkSnapshotIds(scopeTestRunIds?.runLinkSnapshotIds);
+    setRunMap(scopeTestRunIds?.runMap || {});
+    setRunSnapshotMap(scopeTestRunIds?.runSnapshotMap || {});
   }, [scopeTestRunIds]);
 
   const treeParams = useTreeParams({

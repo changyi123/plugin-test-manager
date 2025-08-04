@@ -131,7 +131,7 @@ const VirtualScrollList: React.FC<VirtualScrollListProps> = props => {
           >
             <PathDom name={pathName} />
           </Checkbox>
-          {enableCaseVersion && <div>用例版本</div>}
+          {enableCaseVersion && <div>{t('page.plan.testEntityList.caseVersion')}</div>}
         </div>
       );
     },
@@ -189,7 +189,11 @@ const VirtualScrollList: React.FC<VirtualScrollListProps> = props => {
                 //  || !_.toArray(selectCaseIdsSet).includes(items?.[index]?.id)
               }
               option={versionMapKey[items?.[index]?.key] || []}
-              value={items?.[index]?.baseLineItemVersion?.name || '请选择'}
+              value={
+                versionMapKeySelected[items?.[index]?.id] ||
+                items?.[index]?.baseLineItemVersion?.name ||
+                '-'
+              }
               onChange={v => {
                 const _obj = {};
                 _obj[items?.[index]?.id] = v;
