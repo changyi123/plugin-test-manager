@@ -429,7 +429,9 @@
         "noAutoBuildVersionNoSelVersion": "不自动打版本且规划用例不能选择用例版本",
         "autoBuildVersion": "测试执行任务规划用例时自动打版本",
         "noBuildVersionSelVersion": "测试执行任务规划用例不打版本，可以选择用例版本",
-        "enableCaseExeUpdate": "执行任务用例是否可更新"
+        "enableCaseExeUpdate": "执行任务用例是否可更新",
+        "restrictiveConditions": "限制条件",
+        "restrictiveConditionsPlaceholder": "请输入限制条件"
       },
       "testCaseRemoveDuplicates": {
         "title": "测试用例去重",
@@ -635,7 +637,8 @@
         "notUpdateDesignee": "不可对用例更改执行人",
         "updateDesignee": "更改执行人",
         "updateRunStatus": "更改执行状态",
-        "batchEdit": "批量编辑"
+        "batchEdit": "批量编辑",
+        "updateCaseVersion": "更新用例"
       }
     },
     "repository": {
@@ -1239,7 +1242,7 @@
       },
       "testBatchUpateModel": {
         "chooseUpateVersion": "选择更新版本",
-        "batchUpateExeCase": "批量更新执行用例",
+        "batchUpateExeCase": "更新执行用例",
         "msgUpateVersion": "请选择更新版本",
         "batchCreateVersion": "批量创建版本",
         "versionName": "版本名称",

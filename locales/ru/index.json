@@ -413,7 +413,9 @@
         "noAutoBuildVersionNoSelVersion": "Примеры, которые не печатаются автоматически и не планируются, не могут быть выбраны в качестве примера",
         "autoBuildVersion": "Автоматическое печатание версий при тестировании программы выполнения задач",
         "noBuildVersionSelVersion": "Тестирование программы выполнения заданий с использованием примеров, которые не печатаются, может быть выбрано в качестве примера",
-        "enableCaseExeUpdate": "Можно ли обновлять примеры миссий"
+        "enableCaseExeUpdate": "Можно ли обновлять примеры миссий",
+        "restrictiveConditions": "Ограничивающие условия",
+        "restrictiveConditionsPlaceholder": "Введите ограничивающие условия"
       },
       "testCaseRemoveDuplicates": {
         "title": "Дедупликация тест-кейса",
@@ -665,7 +667,8 @@
         "notUpdateDesignee": "Невозможно изменить исполнителя тест-кейса",
         "updateDesignee": "Сменить исполнителя",
         "updateRunStatus": "Изменить статус выполнения",
-        "batchEdit": "Пакетное редактирование"
+        "batchEdit": "Пакетное редактирование",
+        "updateCaseVersion": "Обновить тест-кейс"
       }
     },
     "repository": {
@@ -1193,7 +1196,7 @@
       },
       "testBatchUpateModel": {
         "chooseUpateVersion": "Выбор обновленной версии",
-        "batchUpateExeCase": "Обновлять примеры внедрения оптом",
+        "batchUpateExeCase": "Обновить тестовые случаи выполнения",
         "msgUpateVersion": "Выберите обновленную версию",
         "batchCreateVersion": "Серийное создание версий",
         "versionName": "Название версии",
