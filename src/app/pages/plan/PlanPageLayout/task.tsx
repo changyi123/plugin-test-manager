@@ -42,6 +42,8 @@ const TaskPageLayout: React.FC<any> = () => {
     setSearchParams,
     setExecutionLinkRunIds,
     setRunLinkCaseIds,
+    setRunMap,
+    setRunSnapshotMap,
     setPlanId,
     setSelectedTestExecution,
   } = usePageContext();
@@ -89,6 +91,8 @@ const TaskPageLayout: React.FC<any> = () => {
     setRunLinkCaseIds(scopeTestRunIds?.runLinkCaseIds);
     setExecutionLinkRunIds(scopeTestRunIds?.executionLinkRunIds);
     setRunLinkSnapshotIds(scopeTestRunIds?.runLinkSnapshotIds);
+    setRunMap(scopeTestRunIds?.runMap || {});
+    setRunSnapshotMap(scopeTestRunIds?.runSnapshotMap || {});
   }, [scopeTestRunIds]);
 
   const treeParams = useTreeParams({
