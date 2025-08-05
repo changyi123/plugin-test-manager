@@ -638,7 +638,8 @@
         "updateDesignee": "更改执行人",
         "updateRunStatus": "更改执行状态",
         "batchEdit": "批量编辑",
-        "updateCaseVersion": "更新用例"
+        "updateCaseVersion": "更新用例",
+        "updateCaseVersionTips": "限制条件不满足，无法更新用例"
       }
     },
     "repository": {

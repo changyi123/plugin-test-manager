@@ -1510,6 +1510,31 @@ const TestEntityList: React.FC<TestEntityListProps> = ({
               },
               expandedRowRender: record => {
                 const handleUpdateExe = async () => {
+                  // 检验是否满足限制条件
+                  if (config?.caseSnapshot?.restrictiveConditions) {
+                    try {
+                      const {
+                        data: { payload },
+                      } = await fetch.post('/parse/api/search', {
+                        iql: config?.caseSnapshot?.restrictiveConditions,
+                        includeHiddenItem: true,
+                        size: 9999,
+                        fields: ['id', 'name'],
+                      });
+                      const currentCaseId = record?.caseId || record?.id;
+                      const isAllowed = payload?.items?.some(item => item.id === currentCaseId);
+
+                      if (!isAllowed) {
+                        message.error(t('page.plan.testEntityList.updateCaseVersionTips'));
+                        return;
+                      }
+                    } catch (err) {
+                      console.error(err);
+                      message.error(t('common.error'));
+                      return;
+                    }
+                  }
+                  // 更新执行用例
                   const _testRunIds: string[] = [record?.objectId || record?.id];
                   await testBatchUpateModalActionRef.current.open({
                     testRunIds: _testRunIds,
@@ -1519,6 +1544,7 @@ const TestEntityList: React.FC<TestEntityListProps> = ({
                 };
                 return (
                   <div className={cx('form')}>
+                    {/* 更新执行状态 */}
                     <TableCellTestDetailFormReadOnly
                       values={record?.runDetail ?? {}}
                       extraElement={

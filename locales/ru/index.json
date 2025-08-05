@@ -668,7 +668,8 @@
         "updateDesignee": "Сменить исполнителя",
         "updateRunStatus": "Изменить статус выполнения",
         "batchEdit": "Пакетное редактирование",
-        "updateCaseVersion": "Обновить тест-кейс"
+        "updateCaseVersion": "Обновить тест-кейс",
+        "updateCaseVersionTips": "Не удается обновить тест-кейс"
       }
     },
     "repository": {

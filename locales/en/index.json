@@ -669,7 +669,8 @@
         "updateDesignee": "Change executor",
         "updateRunStatus": "Change execution status",
         "batchEdit": "Batch edit",
-        "updateCaseVersion": "Update test case"
+        "updateCaseVersion": "Update test case",
+        "updateCaseVersionTips": "Restrictive conditions not met, cannot update test case"
       }
     },
     "repository": {
