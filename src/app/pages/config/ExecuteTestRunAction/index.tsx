@@ -31,8 +31,8 @@ const DefaultTestRunAction = {
 };
 
 const DefaultCaseSnapshot = {
-  type: CASESNAPSHOT_TYPE.NO_AUTOBUILDVERSION_NO_SELVERSION,
-  enableCaseExeUpdate: false,
+  type: CASESNAPSHOT_TYPE.NO_BUILDVERSION_SELVERSION,
+  enableCaseExeUpdate: true,
   restrictiveConditions: '', // 更改用例版本的iql限制条件
 };
 

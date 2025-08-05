@@ -69,7 +69,13 @@ const TestBatchUpdateExeModal: React.FC<TestBatchUpdateExeModalProps> = ({
           itemId: _case?.itemId,
           itemKey: _case?.key,
         }));
-        setSelOpt(_arrLableKey);
+        const latestOption = {
+          label: '最新',
+          value: 'new', // 版本 不传
+          itemId: _arrLableKey[0]?.itemId || '',
+          itemKey: _arrLableKey[0]?.itemKey || '',
+        };
+        setSelOpt([latestOption, ..._arrLableKey]);
       },
     }),
     [],
@@ -89,7 +95,7 @@ const TestBatchUpdateExeModal: React.FC<TestBatchUpdateExeModalProps> = ({
     try {
       const res = await updateCaseVersion({
         runId: currentTestRunIds[0],
-        baseLineItemId: value,
+        baseLineItemId: value === 'new' ? null : value,
         caseId: itemId,
         workspaceKey: currentWorkspaceKey,
       });

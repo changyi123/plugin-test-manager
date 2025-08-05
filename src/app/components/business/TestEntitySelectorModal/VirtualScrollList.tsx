@@ -181,24 +181,31 @@ const VirtualScrollList: React.FC<VirtualScrollListProps> = props => {
               {items?.[index]?.name}
             </Tooltip>
           </Checkbox>
-          {enableCaseVersion && (
-            <CusDropdown
-              disabled={
+          {enableCaseVersion &&
+            (() => {
+              const disabled =
                 ignoreTestDetailIdsSet?.has(items?.[index]?.id) ||
-                disabledIdsSet?.has(items?.[index]?.id)
-                //  || !_.toArray(selectCaseIdsSet).includes(items?.[index]?.id)
-              }
-              option={versionMapKey[items?.[index]?.key] || []}
-              value={versionMapKeySelected[items?.[index]?.id] || '-'}
-              onChange={v => {
-                const _obj = {};
-                _obj[items?.[index]?.id] = v;
-                setVersionMapKeySelected(_v => {
-                  return { ..._v, ..._obj };
-                });
-              }}
-            />
-          )}
+                disabledIdsSet?.has(items?.[index]?.id);
+              // || !_.toArray(selectCaseIdsSet).includes(items?.[index]?.id)
+              return (
+                <CusDropdown
+                  disabled={disabled}
+                  option={versionMapKey[items?.[index]?.key] || []}
+                  value={
+                    versionMapKeySelected[items?.[index]?.id] ||
+                    (!disabled ? versionMapKey[items?.[index]?.key]?.[0] : undefined) ||
+                    '-'
+                  }
+                  onChange={v => {
+                    const _obj = {};
+                    _obj[items?.[index]?.id] = v;
+                    setVersionMapKeySelected(_v => {
+                      return { ..._v, ..._obj };
+                    });
+                  }}
+                />
+              );
+            })()}
         </div>
       );
     },
