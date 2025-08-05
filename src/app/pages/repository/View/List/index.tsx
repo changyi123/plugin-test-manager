@@ -7,6 +7,7 @@ import React, { useCallback, useMemo, useRef } from 'react';
 import CreatePermission from '@/components/business/Contianer/CreatePermission';
 import TestCaseFilterGroup from '@/components/business/TestCaseFilterGroup';
 import { SystemFieldKeys } from '@/components/common/BusinessTable/hook';
+import { useStepAfterUpdateItemList } from '@/components/common/BusinessTable/hook';
 import FilterSearch from '@/components/common/FilterSearch';
 import { getFilterFields } from '@/components/common/FilterSearch/utils';
 import OverflowTooltip from '@/components/common/OverflowTooltip';
@@ -23,7 +24,6 @@ import { reverseTreeNodes } from '../../util';
 import { ViewComponentProps } from '../type';
 import cx from './index.less';
 import Table, { ActionType } from './Table';
-import { useStepAfterUpdateItemList } from '@/components/common/BusinessTable/hook';
 
 type GroupedMode = 'all' | 'current';
 
@@ -75,15 +75,15 @@ const ListView: React.FC<ViewComponentProps> = ({
   });
 
   // 修改弹窗的步骤后，更新table的数据
-  const { enableCacheEpandedRowKeys } = useStepAfterUpdateItemList({ 
+  const { enableCacheEpandedRowKeys } = useStepAfterUpdateItemList({
     selectNodeKey,
     refresh: () => {
       refreshAll();
       setTimeout(() => {
         tableActionRef.current.refresh();
       }, 400);
-    }
-  })
+    },
+  });
 
   const repository = useMemo(
     () => getRepositoryQuery(selectedNode, groupedMode),
@@ -275,7 +275,9 @@ const ListView: React.FC<ViewComponentProps> = ({
           className={cx('filter-search-box')}
           onSearch={handleSelectorSearch}
           fields={getFilterFields([].concat(SystemFieldKeys, testCaseFieldKeys))}
-          extendFields={getExtendFields(t)?.filter(field => field.key === RepositoryModel)}
+          extendFields={getExtendFields(t)?.filter(
+            field => field.key === RepositoryModel || field.key === '测试用例集',
+          )}
           testType={TestType.Case}
           ref={filterSearchRef}
         />
