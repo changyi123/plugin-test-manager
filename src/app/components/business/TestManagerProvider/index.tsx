@@ -621,7 +621,7 @@ const TestManagerProvider: React.FC<RepositoryDataProviderProps> = ({
         listType: testConfig?.testRunAction?.listType,
         statusList: testConfig?.testRunAction?.statusList,
         iql: testConfig?.testRunAction?.iql,
-        caseSnapshot: globalTestConfig?.extra?.caseSnapshot,
+        caseSnapshot: testConfig?.caseSnapshot,
       },
       // item,
       workspace,

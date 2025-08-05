@@ -415,7 +415,9 @@
         "noAutoBuildVersionNoSelVersion": "It does not automatically generate versions and cannot select use case versions when planning use cases",
         "autoBuildVersion": "When testing and executing task planning use cases, the version is automatically typed",
         "noBuildVersionSelVersion": "When planning test cases for the execution of test tasks, you can choose the version of the test case instead of typing a version",
-        "enableCaseExeUpdate": "Can the use cases for task execution be updated"
+        "enableCaseExeUpdate": "Can the use cases for task execution be updated",
+        "restrictiveConditions": "Restrictive conditions",
+        "restrictiveConditionsPlaceholder": "Please enter restrictive conditions"
       },
       "testCaseRemoveDuplicates": {
         "title": "Test case deduplication",
@@ -666,7 +668,9 @@
         "notUpdateDesignee": "Cannot change executor of test case",
         "updateDesignee": "Change executor",
         "updateRunStatus": "Change execution status",
-        "batchEdit": "Batch edit"
+        "batchEdit": "Batch edit",
+        "updateCaseVersion": "Update test case",
+        "updateCaseVersionTips": "Restrictive conditions not met, cannot update test case"
       }
     },
     "repository": {
@@ -1194,7 +1198,7 @@
       },
       "testBatchUpateModel": {
         "chooseUpateVersion": "Select the updated version",
-        "batchUpateExeCase": "Cas d’utilisation d’exécution de mise à jour en masse",
+        "batchUpateExeCase": "Update execution test cases",
         "msgUpateVersion": "Please select the updated version",
         "batchCreateVersion": "Batch create versions",
         "versionName": "Version name",

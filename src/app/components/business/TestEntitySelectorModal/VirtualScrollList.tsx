@@ -189,11 +189,7 @@ const VirtualScrollList: React.FC<VirtualScrollListProps> = props => {
                 //  || !_.toArray(selectCaseIdsSet).includes(items?.[index]?.id)
               }
               option={versionMapKey[items?.[index]?.key] || []}
-              value={
-                versionMapKeySelected[items?.[index]?.id] ||
-                items?.[index]?.baseLineItemVersion?.name ||
-                '-'
-              }
+              value={versionMapKeySelected[items?.[index]?.id] || '-'}
               onChange={v => {
                 const _obj = {};
                 _obj[items?.[index]?.id] = v;

@@ -248,8 +248,6 @@ const TestEntityList: React.FC<TestEntityListProps> = ({
           selector,
         });
 
-        // TODO: 计划 -》 用例 、版本查询用例最新版本，更新展示
-
         // 查询统计数据
         const stats = await getTestCaseStats({
           planId: selectedTestPlan.objectId,
@@ -705,15 +703,6 @@ const TestEntityList: React.FC<TestEntityListProps> = ({
           return (
             <StatusBadge readonly status={rowData.caseLatestStatus} className={cx('cell-min')} />
           );
-        },
-      },
-      {
-        key: 'caseVersion',
-        title: t('page.plan.testEntityList.caseVersion'),
-        width: 120,
-        overflowEllipsis: false,
-        render(_, rowData) {
-          return <span>{rowData.baseLineItemVersion?.name || '-'}</span>;
         },
       },
       // 最新执行人
@@ -1438,9 +1427,8 @@ const TestEntityList: React.FC<TestEntityListProps> = ({
             'repositoryGroup',
             'createdBy',
             'createdAt',
-            'caseVersion',
           ]}
-          privateColumnKey={['repositoryGroup', 'caseLatestStatus', 'runCount', 'caseVersion']}
+          privateColumnKey={['repositoryGroup', 'caseLatestStatus', 'runCount']}
           rowKey="objectId"
           columns={allTestColumns}
           name={`${workspaceKey}_AllTestEntity`}
@@ -1522,6 +1510,31 @@ const TestEntityList: React.FC<TestEntityListProps> = ({
               },
               expandedRowRender: record => {
                 const handleUpdateExe = async () => {
+                  // 检验是否满足限制条件
+                  if (config?.caseSnapshot?.restrictiveConditions) {
+                    try {
+                      const {
+                        data: { payload },
+                      } = await fetch.post('/parse/api/search', {
+                        iql: config?.caseSnapshot?.restrictiveConditions,
+                        includeHiddenItem: true,
+                        size: 9999,
+                        fields: ['id', 'name'],
+                      });
+                      const currentCaseId = record?.caseId || record?.id;
+                      const isAllowed = payload?.items?.some(item => item.id === currentCaseId);
+
+                      if (!isAllowed) {
+                        message.error(t('page.plan.testEntityList.updateCaseVersionTips'));
+                        return;
+                      }
+                    } catch (err) {
+                      console.error(err);
+                      message.error(t('common.error'));
+                      return;
+                    }
+                  }
+                  // 更新执行用例
                   const _testRunIds: string[] = [record?.objectId || record?.id];
                   await testBatchUpateModalActionRef.current.open({
                     testRunIds: _testRunIds,
@@ -1531,6 +1544,7 @@ const TestEntityList: React.FC<TestEntityListProps> = ({
                 };
                 return (
                   <div className={cx('form')}>
+                    {/* 更新执行状态 */}
                     <TableCellTestDetailFormReadOnly
                       values={record?.runDetail ?? {}}
                       extraElement={
@@ -1539,7 +1553,7 @@ const TestEntityList: React.FC<TestEntityListProps> = ({
                             style={{ fontSize: '14px', color: '#0c62ff', cursor: 'pointer' }}
                             onClick={() => handleUpdateExe()}
                           >
-                            更新用例
+                            {t('page.plan.testEntityList.updateCaseVersion')}
                           </h6>
                         )
                       }

@@ -277,8 +277,28 @@ const ExecuteTestRunAction = () => {
           <Switch
             checked={!!caseSnapshot?.enableCaseExeUpdate}
             onChange={v => {
-              setCaseSnapshot(k => ({ ...k, enableCaseExeUpdate: v }));
+              setCaseSnapshot(prev => ({
+                ...prev,
+                enableCaseExeUpdate: v,
+                restrictiveConditions: v ? prev.restrictiveConditions : '', // 关闭时清空
+              }));
             }}
+          />
+        </div>
+      )}
+
+      {caseSnapshot?.enableCaseExeUpdate && (
+        <div className={cx('section')}>
+          <h3>{t('page.config.testConfigInitialization.restrictiveConditions')}</h3>
+          <Input
+            value={caseSnapshot?.restrictiveConditions || ''}
+            onChange={e => {
+              setCaseSnapshot(prev => ({
+                ...prev,
+                restrictiveConditions: e.target.value,
+              }));
+            }}
+            placeholder={t('page.config.testConfigInitialization.restrictiveConditionsPlaceholder')}
           />
         </div>
       )}
