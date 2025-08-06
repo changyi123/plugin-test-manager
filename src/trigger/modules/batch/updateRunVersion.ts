@@ -113,7 +113,7 @@ export const batchUpdateRunVersion = async () => {
         const newestCaseDetail = caseIdToDetailMap[item.caseId];
         return {
           objectId: item.runId,
-          runDetail: newestCaseDetail.values?.[TestFiledKeyMapping.detail] || '',
+          runDetail: JSON.parse(newestCaseDetail.values?.[TestFiledKeyMapping.detail] || '{}'),
           referenceCaseSnapshot: '',
           baseLineItemVersion: '',
           isCaseUpdate: CASE_IS_UPDATE.NO,
@@ -194,7 +194,7 @@ export const updateRunVersion = async () => {
 
       const updateItem = {
         objectId: runId,
-        runDetail: caseDetailInfo.values?.[TestFiledKeyMapping.detail] || '',
+        runDetail: JSON.parse(caseDetailInfo.values?.[TestFiledKeyMapping.detail] || '{}'),
         referenceCaseSnapshot: '',
         baseLineItemVersion: '',
         isCaseUpdate: CASE_IS_UPDATE.YES,
