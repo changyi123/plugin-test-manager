@@ -256,7 +256,7 @@ const TaskPageLayout: React.FC<any> = () => {
 
   // 关联测试执行任务
   const addExistedTestExecution = React.useCallback(async () => {
-    const ids = await selectorModalRef.current.open({
+    const { selectedData: ids } = await selectorModalRef.current.open({
       testType: TestType.Execution,
     });
 

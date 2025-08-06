@@ -180,8 +180,7 @@ const Right: React.FC<RightProps> = props => {
   }, [menuClick, t]);
 
   const addTestDetailFromExistCase = useCallback(async () => {
-    const itemData = await testEntitySelectorRef.current.open();
-
+    const { selectedData: itemData } = await testEntitySelectorRef.current.open();
     if (!itemData.length) {
       return notification.warning({
         message: t('page.testset.CaseSetPageLayout.right.notSelectMessage'),

@@ -69,13 +69,17 @@ const TestBatchUpdateExeModal: React.FC<TestBatchUpdateExeModalProps> = ({
           itemId: _case?.itemId,
           itemKey: _case?.key,
         }));
-        const latestOption = {
-          label: '最新',
-          value: 'new', // 版本 不传
-          itemId: _arrLableKey[0]?.itemId || '',
-          itemKey: _arrLableKey[0]?.itemKey || '',
-        };
-        setSelOpt([latestOption, ..._arrLableKey]);
+        if (_arrLableKey.length > 0) {
+          const latestOption = {
+            label: '最新',
+            value: 'new', // 版本 不传
+            itemId: _arrLableKey[0]?.itemId || '',
+            itemKey: _arrLableKey[0]?.itemKey || '',
+          };
+          setSelOpt([latestOption, ..._arrLableKey]);
+        } else {
+          setSelOpt([]);
+        }
       },
     }),
     [],

@@ -124,7 +124,7 @@ const Plan = () => {
       {
         title: t('modules.panel.testDetail.testPlanPanel.menuList.0'),
         async onClick() {
-          const testPlanIds = await selectorModalRef.current.open();
+          const { selectedData: testPlanIds } = await selectorModalRef.current.open();
 
           const res = await updateRelatedAndRefresh([
             {

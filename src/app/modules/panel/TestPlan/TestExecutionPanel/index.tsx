@@ -114,7 +114,7 @@ const Test = () => {
 
   // 创建测试执行
   const addExistedTestExecution = useMemoizedFn(async () => {
-    const testExecutionIds = await selectorModalRef.current.open({
+    const { selectedData: testExecutionIds } = await selectorModalRef.current.open({
       testType: TestType.Execution,
     });
 

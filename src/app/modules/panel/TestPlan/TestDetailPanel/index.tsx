@@ -204,7 +204,7 @@ const Test = () => {
       {
         title: t('modules.panel.testExecution.testDetailPanel.existingTestCase'),
         async onClick() {
-          const testDetailIds = await selectorModalRef.current.open();
+          const { selectedData: testDetailIds } = await selectorModalRef.current.open();
           if (getCreatePermission(TestType.Case)) {
             message.error(t('page.plan.testEntityList.addItemTips'));
             return;

@@ -184,7 +184,7 @@ const AddDefectButton: React.FC<AddDefectButtonProps> = props => {
       message.error(t('page.plan.testEntityList.addItemTips'));
       return;
     }
-    const itemIds = await testEntitySelectorRef.current.open({ selectValue: [] });
+    const { selectedData: itemIds } = await testEntitySelectorRef.current.open({ selectValue: [] });
 
     if (itemIds?.length > 0) {
       onLoading?.();

@@ -185,7 +185,7 @@ const Test = () => {
    * 添加已有测试用例
    */
   const addExistTestCase = useCallback(async () => {
-    const itemData = await testEntitySelectorRef.current.open();
+    const { selectedData: itemData } = await testEntitySelectorRef.current.open();
 
     if (!itemData.length) {
       return notification.warning({
@@ -219,7 +219,7 @@ const Test = () => {
   const menuList = useMemo(() => {
     return [
       {
-        title: t('modules.panel.testCaseSet.testAddPanel.addHaveTestCase'),
+        title: t('modules.panel.testCaseSet.testAddPanel.addHaveTestCase') + '1111',
         // disabled: !getCreatePermission(TestType.Case),
         async onClick() {
           await addExistTestCase();

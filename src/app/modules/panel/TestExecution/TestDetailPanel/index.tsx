@@ -371,10 +371,9 @@ const Test = () => {
       {
         title: t('modules.panel.testExecution.testDetailPanel.existingTestCase'),
         async onClick() {
-          const selectedTestDetailIds = await selectorModalRef.current.open({
+          const { selectedData: caseIds, caseVersion } = await selectorModalRef.current.open({
             testType: TestType.Case,
           });
-          const { selectedData: caseIds, caseVersion } = selectedTestDetailIds;
 
           const _selectedTestDetailIds = caseIds?.filter(d => !(relCase ?? []).includes(d));
           if (getCreatePermission(TestType.Case)) {

@@ -149,7 +149,7 @@ const TestCaseSetPanel = () => {
       {
         title: t('modules.panel.testDetail.testCaseSetPanel.menuList.1'),
         async onClick() {
-          const testSetIds = await selectorModalRef.current.open();
+          const { selectedData: testSetIds } = await selectorModalRef.current.open();
           if (!testSetIds.length) {
             return notification.warning({
               message: t('modules.panel.testDetail.testCaseSetPanel.notSelectMessage'),
