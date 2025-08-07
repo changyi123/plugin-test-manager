@@ -490,4 +490,18 @@ export interface CommonResultType {
   message?: string;
 }
 
+export interface AddObject {
+  keys: string[];
+}
+
+export interface BaseLineItemVersion {
+  name: string;
+}
+
+export interface CreateBaselineRequestParam {
+  add: AddObject;
+  sourceType: string;
+  baseLineItemVersion: BaseLineItemVersion;
+}
+
 export type CopyFolderPayloadProcessParams = ProcessApiParams<CopyFolderPayload>;

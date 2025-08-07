@@ -35,6 +35,7 @@ import {
   BatchUpdateProcessParams,
   BatchUpdateValuePayload,
   CopyFolderPayloadProcessParams,
+  CreateBaselineRequestParam,
   RemoveCaseFromPlanProcessParams,
   RemoveExecuteFromPlanProcessParams,
   RetryPayloadProcessParams,
@@ -1537,4 +1538,84 @@ export const updateAllExecutionCases = async () => {
   }
 
   console.info('updateAllExecutionCases-- complete');
+};
+
+/**
+ * @description 批量创建版本. 在原有的接口中添加了校验版本名称是否重复的逻辑
+ * */
+export const batchCreateVersions = async () => {
+  const { body } = getReqInfoFromVMRuntime<CreateBaselineRequestParam>();
+  const { add } = body;
+  const validateParams = () => {
+    if (!add || !add?.keys?.length) {
+      throw new Error('add and add keys must not be empty');
+    }
+  };
+  const verifyNameDuplicate = async () => {
+    const { keys: addKeys } = add;
+    const { name: versionName } = body.baseLineItemVersion;
+    console.info('batchCreateVersions [verifyNameDuplicate] body', body);
+    // 修改的事项需要确定是否存在当前版本名称的历史版本事项
+    const iql = `key in ${JSON.stringify(
+      addKeys,
+    )} and 'baseLineSources' in ['BaseLineItemVersion']`;
+
+    const versionItemResult: any = await requestCoreApi('POST', '/parse/api/search', {
+      iql,
+      fields: ['id', 'key', 'baseLineItemVersion', 'name', 'itemId'],
+      includeHiddenItem: true,
+      size: 99999,
+    });
+
+    console.info('batchCreateVersions [verifyNameDuplicate] versionItemResult', versionItemResult);
+
+    const updateItemVersionMap = versionItemResult?.payload?.items.reduce((result, item) => {
+      const key = item.key;
+      if (!result[key]) {
+        result[key] = {
+          names: [],
+          items: [],
+        };
+      }
+      result[key].names.push(item.values?.baseLineItemVersion?.name);
+      result[key].items.push(item);
+      return result;
+    }, {});
+
+    const errorMessage: {
+      objectId: string; // 快照ID
+      name: string; // 事项名称
+      key: string; // 事项key
+      itemId: string; // 事项ID
+    }[] = [];
+
+    addKeys.forEach(key => {
+      const item = updateItemVersionMap[key];
+      if (item) {
+        const names = item.names;
+        const items = item.items;
+        if (names.includes(versionName)) {
+          errorMessage.push({
+            objectId: items[0]?.objectId,
+            name: items[0]?.name,
+            key: items[0]?.key,
+            itemId: items[0]?.itemId,
+          });
+        }
+      }
+    });
+
+    console.info('batchCreateVersions [verifyNameDuplicate] errorMessage', errorMessage);
+    if (errorMessage.length) {
+      throw new Error(JSON.stringify(errorMessage));
+    }
+  };
+  try {
+    validateParams();
+    await verifyNameDuplicate();
+    await operateSnapshots(body);
+    return buildResponse('success');
+  } catch (err) {
+    return buildResponse(err);
+  }
 };

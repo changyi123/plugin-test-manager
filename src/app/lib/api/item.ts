@@ -3,6 +3,7 @@ import {
   BatchCopyTestCaseV2ProcessParams,
   BatchCopyTestCaseV3ProcessParams,
   BatchCreateTestRunV2ProcessParams,
+  CreateBaselineRequestParam,
   QueryLinkedTestEntityPayload,
   QueryTestEntityPayload,
   RepositoryTreePayload,
@@ -201,6 +202,16 @@ export const getLinkedTestEntityByQuery = async (
 // 测试管理通用字段统计查询
 export const getTestStats = async (props: TestCountPayload) => {
   const { data: res } = await fetch.post(`${pluginWebTriggerBaseUrl}/api-count-test`, {
+    ...props,
+    sessionToken: getSessionToken(),
+  });
+
+  return res.data;
+};
+
+// 测试管理通用字段统计查询
+export const batchCreateVersionsFn = async (props: CreateBaselineRequestParam) => {
+  const { data: res } = await fetch.post(`${pluginWebTriggerBaseUrl}/api-batch-create-versions`, {
     ...props,
     sessionToken: getSessionToken(),
   });

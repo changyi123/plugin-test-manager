@@ -2,7 +2,7 @@ app:
   key: test_manager
   uuid: bf73e61c-e15a-4461-a1f7-f940c2009332
   name: test_manager
-  version: "4.38.50"
+  version: "4.38.58"
 modules:
   webtrigger:
     # TODO: Debug 使用，生产环境禁止调用下面的 trigger
@@ -16,6 +16,9 @@ modules:
     # 动态配置 one 路由
     - key: gitee-menus
       function: gitee-menus-function
+    # 批量创建版本
+    - key: api-batch-create-versions
+      function: batch-create-versions-function
     # 批量创建统计报表
     - key: batch-create-chart-groups
       function: batch-create-chart-groups-function
@@ -372,6 +375,11 @@ modules:
       timeout: 3600000
     - key: job-copy-test-case-function
       handler: job.copyTesCasesJob
+      # 60 分钟超时时长
+      timeout: 3600000
+    # 批量创建版本
+    - key: batch-create-versions-function
+      handler: api.batchCreateVersions
       # 60 分钟超时时长
       timeout: 3600000
     - key: job-add-execution-to-plan-function
