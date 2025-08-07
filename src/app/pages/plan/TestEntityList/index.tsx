@@ -441,16 +441,16 @@ const TestEntityList: React.FC<TestEntityListProps> = ({
 
     const referenceCase = [];
     const referenceCaseSnapshot = [];
-    // cases.forEach(i => {
-    //   if (i.itemId) referenceCaseSnapshot.push(i.id);
-    //   if (i.id) referenceCase.push(i.id);
-    // });
     cases.forEach(i => {
-      if (i.itemId) referenceCase.push(i.itemId);
-      else if (i.id) referenceCase.push(i.id);
+      if (i.itemId) referenceCaseSnapshot.push(i.id);
+      if (i.id) referenceCase.push(i.id);
     });
 
-    if ([CASESNAPSHOT_TYPE.AUTO_BUILDVERSION].includes(config?.caseSnapshot?.type))
+    if (
+      [CASESNAPSHOT_TYPE.AUTO_BUILDVERSION, CASESNAPSHOT_TYPE.NO_BUILDVERSION_SELVERSION].includes(
+        config?.caseSnapshot?.type,
+      )
+    )
       caseSearchParams.query.referenceCaseSnapshot = referenceCaseSnapshot;
     else if (referenceCase.length) caseSearchParams.query.referenceCase = referenceCase;
 
@@ -459,7 +459,10 @@ const TestEntityList: React.FC<TestEntityListProps> = ({
     const runCaseMap = new Map();
     runs.forEach(d => {
       runCaseMap.set(
-        [CASESNAPSHOT_TYPE.AUTO_BUILDVERSION].includes(config?.caseSnapshot?.type)
+        [
+          CASESNAPSHOT_TYPE.AUTO_BUILDVERSION,
+          CASESNAPSHOT_TYPE.NO_BUILDVERSION_SELVERSION,
+        ].includes(config?.caseSnapshot?.type)
           ? d.referenceCaseSnapshot
           : d.referenceCase,
         d,
@@ -468,11 +471,7 @@ const TestEntityList: React.FC<TestEntityListProps> = ({
 
     return {
       list: cases?.map(c => {
-        let key = c.id;
-        if (runLinkSnapshotIds.includes(c.id)) {
-          key = c.itemId;
-        }
-        const runData = pick(runCaseMap.get(key), [
+        const runData = pick(runCaseMap.get(c.id), [
           'id',
           'referenceCase',
           'referenceCaseSnapshot',

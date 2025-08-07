@@ -14,8 +14,8 @@ import TestEntitySelectorModal, {
 import PageLayout from '@/components/common/PageLayout';
 import BasicPageLayout from '@/components/common/PageLayout/Basic';
 import { updateTestEntity } from '@/lib/api/item';
-import { PROXIMA_EVENT_KEY, TestLinkType, TestType } from '@/lib/constants';
-import { useBaseAction } from '@/lib/hooks/useContext';
+import { CASESNAPSHOT_TYPE, PROXIMA_EVENT_KEY, TestLinkType, TestType } from '@/lib/constants';
+import { useBaseAction, useTestConfig } from '@/lib/hooks/useContext';
 import useI18n from '@/lib/hooks/useI18n';
 import { getExecutionDefaultConfig } from '@/lib/utils/execution';
 import { generateSortIndex } from '@/lib/utils/helper';
@@ -55,6 +55,8 @@ const PlanPageLayout: React.FC<any> = () => {
     setRunSnapshotMap,
   } = usePageContext();
   const { t } = useI18n();
+  const { config } = useTestConfig();
+
   const executionListRef = React.useRef<ExecutionListRef>();
   const selectorModalRef = React.useRef<ModelActionType>();
   const detailSearchRef = useRef(null);
@@ -439,6 +441,9 @@ const PlanPageLayout: React.FC<any> = () => {
               refresh();
             }}
             planId={selectedTestPlan?.objectId}
+            enableCaseVersion={[CASESNAPSHOT_TYPE.NO_BUILDVERSION_SELVERSION].includes(
+              config?.caseSnapshot?.type,
+            )}
           />
         </>
       )}
