@@ -8,7 +8,7 @@ import fetch from '@/lib/utils/fetch';
 import { batchCreateVersionsFn } from '@/lib/api/item';
 
 export type TestBatchCreateVersionModalActionRef = {
-  open: ({ testRunIds }: { testRunIds?: string[] }) => Promise<void>;
+  open: ({ testRunIds }: { testRunIds?: string[]; tableData?: any[] }) => Promise<void>;
 };
 
 interface TestBatchUpdateExeModalProps {
@@ -31,8 +31,12 @@ const TestBatchCreateVersionModal: React.FC<TestBatchUpdateExeModalProps> = ({
     () => ({
       async open(data) {
         setIsVisible(true);
-        const { testRunIds = [] } = data || {}
-        setKeys(testRunIds)
+        const { testRunIds = [], tableData = [] } = data || {};
+        const _keys = _.chain(tableData)
+          .filter(item => _.includes(testRunIds, item.id))
+          .map('key')
+          .value();
+        setKeys(_keys);
       },
     }),
     [],

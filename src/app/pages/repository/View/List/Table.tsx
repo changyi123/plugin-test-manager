@@ -438,10 +438,12 @@ const TestDetailTable: React.FC<TestDetailTableProps> = props => {
 
     const batchCreateVersion = async () => {
       const _testRunIds: string[] = await getSelectTestCaseId(tableActionRef.current);
+      const _allSelectedData = await getSelectTestCaseId(tableActionRef.current, true);
       await testBatchCreateVersionModalActionRef.current.open({
         testRunIds: _testRunIds,
+        tableData: _allSelectedData,
       });
-    }
+    };
     return [
       <span
         className={cx('action')}
