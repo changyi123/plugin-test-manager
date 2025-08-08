@@ -437,11 +437,9 @@ const TestDetailTable: React.FC<TestDetailTableProps> = props => {
     };
 
     const batchCreateVersion = async () => {
-      const getTestRunIds = () => tableActionRef.current.selectedRowKeys;
-      const _testRunIds: string[] = getTestRunIds() || [];
+      const _testRunIds: string[] = await getSelectTestCaseId(tableActionRef.current);
       await testBatchCreateVersionModalActionRef.current.open({
         testRunIds: _testRunIds,
-        tableData: tableActionRef.current.dataSource
       });
     }
     return [

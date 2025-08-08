@@ -3,11 +3,12 @@ import _ from 'lodash';
 import { Button, Modal, Space, Input, message } from 'antd';
 import { getRootContainer } from '@/lib/utils/helper';
 import useI18n from '@/lib/hooks/useI18n';
-import fetch from '@/lib/utils/fetch';
 import cx from './index.less';
+import fetch from '@/lib/utils/fetch';
+import { batchCreateVersionsFn } from '@/lib/api/item';
 
 export type TestBatchCreateVersionModalActionRef = {
-  open: ({ testRunIds }: { testRunIds?: string[], tableData?: any[] }) => Promise<void>;
+  open: ({ testRunIds }: { testRunIds?: string[] }) => Promise<void>;
 };
 
 interface TestBatchUpdateExeModalProps {
@@ -23,56 +24,77 @@ const TestBatchCreateVersionModal: React.FC<TestBatchUpdateExeModalProps> = ({
   const [isVisible, setIsVisible] = useState(false);
   const [selected, setSelected] = useState('')
   const [keys, setKeys] = useState<string[]>([])
+  const [loading, setLoading] = useState(false);
 
   React.useImperativeHandle(
     actionRef,
     () => ({
       async open(data) {
         setIsVisible(true);
-        const { testRunIds=[], tableData=[]} = data || {}
-        const _keys = _.chain(tableData).filter(item => _.includes(testRunIds, item.objectId)).map('key').value();
-        setKeys(_keys)
+        const { testRunIds = [] } = data || {}
+        setKeys(testRunIds)
       },
     }),
     [],
   );
-  
+
   const handleCloseModal = React.useCallback(() => {
     setTimeout(() => {
       setIsVisible(false);
     }, 100);
   }, []);
 
-  const handleBatchCreateVersion = _.debounce(async() => {
-    await fetch.post('/parse/api/baseLineItems', {
-      add: {
-        keys: keys,
-      },
-      sourceType: global.appKey ?? 'test_manager',
-      baseLineItemVersion: {
-        name: selected,
-      },
-    });
-    message.success(t('common.success'));
-    handleCloseModal()
-    refresh && refresh()
-  }, 500)
+  const handleBatchCreateVersion = _.debounce(async () => {
+    setLoading(true);
+    try {
+      await new Promise(resolve => setTimeout(resolve, 1500));
+
+      await fetch.post('/parse/api/baseLineItems', {
+        add: {
+          keys: keys,
+        },
+        sourceType: global.appKey ?? 'test_manager',
+        baseLineItemVersion: {
+          name: selected,
+        },
+      });
+
+      // TODO: 修改打版本接口
+      // const param = {
+      //   add: {
+      //     keys: keys,
+      //   },
+      //   sourceType: global.appKey ?? 'test_manager',
+      //   baseLineItemVersion: {
+      //     name: selected,
+      //   },
+      // };
+      // const res = await batchCreateVersionsFn(param);
+      // console.log('---res---', res)
+
+      message.success(t('common.success'));
+      handleCloseModal();
+      refresh && refresh();
+    } finally {
+      setLoading(false);
+    }
+  }, 500);
 
   const handleConfirmModal = async() => {
     if (_.isNaN(selected) || _.isEmpty(selected) || _.isNull(selected) || _.isUndefined(selected) || (selected && selected.trim()?.length === 0)) {
       message.success(t('components.business.testBatchUpateModel.placeholderVersionName'));
       return 
     }
-    await handleBatchCreateVersion()
+    await handleBatchCreateVersion();
   }
   const ModalFooterActionButtonsNode = React.useMemo(() => {
     return (
       <>
         <Button onClick={handleCloseModal}>{t('common.close')}</Button>
-        <Button type="primary" onClick={handleConfirmModal}>{t('common.confirm')}</Button>
+        <Button type="primary" onClick={handleConfirmModal} loading={loading}>{t('common.confirm')}</Button>
       </>
     );
-  }, [handleCloseModal, t, selected, keys, refresh]);
+  }, [handleCloseModal, handleConfirmModal, t, loading]);
 
   return (
     <Modal 
