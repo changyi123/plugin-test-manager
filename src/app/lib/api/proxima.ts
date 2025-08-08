@@ -491,7 +491,7 @@ export const searchFields = async (params: {
     .then(result => result.payload);
 };
 
-export const search = async (iql, fields = [], size = InfinityLimit) => {
+export const search = async (iql, fields = [], size = InfinityLimit, throwError = false) => {
   try {
     const {
       data: { payload },
@@ -505,6 +505,6 @@ export const search = async (iql, fields = [], size = InfinityLimit) => {
     return payload?.items ?? [];
   } catch (e) {
     console.info('search fail: ', e.message);
-    return [];
+    return throwError ? Promise.reject(e) : [];
   }
 };
