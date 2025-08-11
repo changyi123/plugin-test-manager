@@ -175,6 +175,10 @@ const SupportAppEnv = {
     defaultValue: false,
     transformer: value => value,
   },
+  ENABLE_IMPORT_SNAP_SHOT_CONFIG: {
+    defaultValue: false,
+    transformer: value => value,
+  },
 } as const;
 
 /**

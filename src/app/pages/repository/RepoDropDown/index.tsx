@@ -180,12 +180,18 @@ const RepoDropDown = ({
       }
       if (key === 'import') {
         const baseUrl = getProximaBasePath() ? `${getProximaBasePath()}` : '/';
+        const isEnableImportSnapShotConfig = getAppEnv('ENABLE_IMPORT_SNAP_SHOT_CONFIG');
+
+        const showSnapShotConfigString = isEnableImportSnapShotConfig
+          ? '&showSnapShotConfig=true'
+          : '';
+
         // 跳转到导入页面
         const href = `${baseUrl}/${getTenantKey()}/workspaces/${workspace.key}/import/${
           workspace.objectId
         }?app=test_manager&disableToggleWorkspace=true&hiddenItemType=true&validateRequired=${getAppEnv(
           'GROUP_REQUIRED_WHEN_VALIDATE',
-        )}${appendedQueryString}`;
+        )}${appendedQueryString}${showSnapShotConfigString}`;
         window.open(href);
       } else if (key === 'importJson') {
         const baseUrl = getProximaBasePath() ? `${getProximaBasePath()}` : '/';
