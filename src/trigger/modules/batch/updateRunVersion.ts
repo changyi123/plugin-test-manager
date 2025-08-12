@@ -2,7 +2,7 @@
 
 import { getParseQuery, requestCoreApi } from '@giteeteam/apps-team-api';
 
-import { CASE_IS_UPDATE, TestFiledKeyMapping } from '../../../common/constant';
+import { TestFiledKeyMapping } from '../../../common/constant';
 import { BatchUpdateTestRunVersionPayload, UpdateRunItem } from '../../../common/types/api';
 import { buildResponse, getReqInfoFromVMRuntime } from '../../lib/apiUtil';
 import { batchUpdateItemsValues } from '../../lib/batchRequest';
@@ -116,7 +116,7 @@ export const batchUpdateRunVersion = async () => {
           runDetail: JSON.parse(newestCaseDetail.values?.[TestFiledKeyMapping.detail] || '{}'),
           referenceCaseSnapshot: '',
           baseLineItemVersion: '',
-          isCaseUpdate: CASE_IS_UPDATE.NO,
+          // isCaseUpdate: CASE_IS_UPDATE.NO,
         };
       });
     };
@@ -197,11 +197,10 @@ export const updateRunVersion = async () => {
         runDetail: JSON.parse(caseDetailInfo.values?.[TestFiledKeyMapping.detail] || '{}'),
         referenceCaseSnapshot: '',
         baseLineItemVersion: '',
-        isCaseUpdate: CASE_IS_UPDATE.YES,
+        // isCaseUpdate: CASE_IS_UPDATE.YES,
       };
 
       if (baseLineItemId) {
-        delete updateItem.isCaseUpdate;
         updateItem.referenceCaseSnapshot = caseDetailInfo.id;
         updateItem.baseLineItemVersion = {
           ...caseDetailInfo.values?.[TestFiledKeyMapping.baseLineItemVersion],

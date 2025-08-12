@@ -7,7 +7,6 @@ import { Button, message, notification, Tooltip } from 'antd';
 import { TestFiledKeyMapping, TestLinkType, TestType } from 'common/constant';
 import dayjs from 'dayjs';
 import { isEmpty, isEqual, keyBy, omit, pick } from 'lodash';
-import _ from 'lodash';
 import React, { useCallback, useEffect, useRef, useState } from 'react';
 
 import {
@@ -39,6 +38,7 @@ import {
   getTestCaseStats,
   getTestEntityByQuery,
   getUpdateParams,
+  handleSelector,
   updateTestEntity,
   updateTestStatus,
 } from '@/lib/api/item';
@@ -61,7 +61,11 @@ import { checkRunStatus } from '@/lib/utils/checkRunStatus';
 import fetch from '@/lib/utils/fetch';
 import { getDefectDefautFieldConfig } from '@/lib/utils/getDefectDefautFieldConfig';
 import { actionConfirm, openItemViewScreen } from '@/lib/utils/helper';
-import { getTestCaseStatusModelValue, handleCustomerSelector } from '@/lib/utils/iql';
+import {
+  getTestCaseStatusModelValue,
+  handleCustomerSelector,
+  selectorToIql,
+} from '@/lib/utils/iql';
 import { getRepositoryQuery } from '@/lib/utils/tree';
 import TableCellTestDetailForm from '@/modules/beforeCreateOrUpdateModal/TableCellTestDetailForm';
 import TableCellTestDetailFormReadOnly from '@/modules/beforeCreateOrUpdateModal/TableCellTestDetailFormReadOnly';
@@ -384,6 +388,7 @@ const TestEntityList: React.FC<TestEntityListProps> = ({
 
     const repository = getRepositoryQuery(selectNode, showType);
 
+    // todo 这个地方可能还是有问题， 后期在优化
     // 对 referenceCase 和 referenceCaseSnapshot 字段分组，后面 selector 使用
     const remainingCaseIds = [];
     for (const caseId of Object.keys(runMap)) {
@@ -397,26 +402,35 @@ const TestEntityList: React.FC<TestEntityListProps> = ({
       query: {
         workspaceKey: workspaceKey,
         type: TestType.Case,
-        id: runLinkCaseIds,
+        // id: runLinkCaseIds,
         ...repository,
       },
       fields: caseFieldKeys ?? [],
       selector,
       ...queryParams,
     };
+    let iql = '';
+    if (runLinkCaseIds.length > 0) {
+      iql += `id in [${remainingCaseIds.map(id => `'${id}'`).join(',')}]`;
+    }
 
-    if (runLinkSnapshotIds.length > 0) {
-      searchParams.selector = `id in [${remainingCaseIds
-        .map(id => `'${id}'`)
-        .join(',')}] or (id in [${runLinkSnapshotIds
+    if (runLinkSnapshotIds.length) {
+      iql += remainingCaseIds?.length ? ' or ' : '';
+      iql += `(id in [${runLinkSnapshotIds
         .map(id => `'${id}'`)
         .join(',')}] and 'baseLineSources' in ['BaseLineItemVersion'])`;
-      searchParams.fields.push('itemId');
-      delete searchParams.query.id;
     }
+
+    const _transferIQL = selectorToIql(handleSelector(selector));
+    if (selector && _transferIQL) {
+      iql += ` and ${_transferIQL}`;
+    }
+
+    searchParams.selector = iql || '';
 
     const { list: cases, total } = await getTestEntityByQuery(searchParams);
 
+    console.info('cases', cases);
     const caseSearchParams = {
       query: {
         workspaceKey: workspaceKey,
@@ -437,42 +451,50 @@ const TestEntityList: React.FC<TestEntityListProps> = ({
         'status',
         'runDetail',
       ],
+      selector: '',
     };
 
     const referenceCase = [];
     const referenceCaseSnapshot = [];
     cases.forEach(i => {
-      if (i.itemId) referenceCaseSnapshot.push(i.id);
-      if (i.id) referenceCase.push(i.id);
+      if (i.itemId) {
+        referenceCaseSnapshot.push(i.id);
+      } else {
+        referenceCase.push(i.id);
+      }
     });
 
-    if (
-      [CASESNAPSHOT_TYPE.AUTO_BUILDVERSION, CASESNAPSHOT_TYPE.NO_BUILDVERSION_SELVERSION].includes(
-        config?.caseSnapshot?.type,
-      )
-    )
-      caseSearchParams.query.referenceCaseSnapshot = referenceCaseSnapshot;
-    else if (referenceCase.length) caseSearchParams.query.referenceCase = referenceCase;
+    let iql2 = '';
+    if (referenceCase.length > 0) {
+      iql2 += `'test_manager_referenceCase' in [${referenceCase.map(id => `'${id}'`).join(',')}]`;
+    }
+
+    if (referenceCaseSnapshot.length) {
+      iql2 += remainingCaseIds?.length ? ' or ' : '';
+      iql2 += `('test_manager_referenceCaseSnapshot' in [${referenceCaseSnapshot
+        .map(id => `'${id}'`)
+        .join(',')}])`;
+    }
+
+    if (iql2) {
+      caseSearchParams.selector = iql2;
+    }
+
+    console.info('caseSearchParams', caseSearchParams);
 
     const { list: runs } = await getLinkedTestEntityByQuery(caseSearchParams as any);
 
     const runCaseMap = new Map();
     runs.forEach(d => {
-      runCaseMap.set(
-        [
-          CASESNAPSHOT_TYPE.AUTO_BUILDVERSION,
-          CASESNAPSHOT_TYPE.NO_BUILDVERSION_SELVERSION,
-        ].includes(config?.caseSnapshot?.type)
-          ? d.referenceCaseSnapshot
-          : d.referenceCase,
-        d,
-      );
+      runCaseMap.set(d.referenceCaseSnapshot ? d.referenceCaseSnapshot : d.referenceCase, d);
     });
 
-    return {
+    console.info('runs', runs);
+    const result = {
       list: cases?.map(c => {
         const runData = pick(runCaseMap.get(c.id), [
           'id',
+          'itemId',
           'referenceCase',
           'referenceCaseSnapshot',
           'designee',
@@ -482,7 +504,6 @@ const TestEntityList: React.FC<TestEntityListProps> = ({
           'executeTime',
           'runDetail',
         ]);
-
         return {
           ...c,
           ...runData,
@@ -492,10 +513,13 @@ const TestEntityList: React.FC<TestEntityListProps> = ({
           objectId: runData.id,
           id: runData.id,
           repository: c.repository,
+          // baseLineItemVersion: c.baseLineItemVersion,
         };
       }),
       total,
     };
+    console.info('result', result);
+    return result;
   };
 
   const getExecutionTableData = useCallback(
@@ -546,7 +570,7 @@ const TestEntityList: React.FC<TestEntityListProps> = ({
         executionId: selectedExecution.objectId,
         selector: [systemSelectors, filterCaseSelector],
         queryParams,
-        caseFieldKeys,
+        caseFieldKeys: caseFieldKeys.concat(['itemId']),
         selectNode,
         showType,
       });
@@ -1509,7 +1533,7 @@ const TestEntityList: React.FC<TestEntityListProps> = ({
               },
               expandedRowRender: record => {
                 const handleUpdateExe = async () => {
-                  // 检验是否满足限制条件
+                  // 检验是否满足限制条件 todo  这个地方可以优化
                   if (config?.caseSnapshot?.restrictiveConditions) {
                     try {
                       const {

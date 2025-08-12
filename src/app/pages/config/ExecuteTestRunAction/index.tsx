@@ -4,9 +4,13 @@ import { pick } from 'lodash';
 import { components } from 'proxima-sdk';
 import React, { useState } from 'react';
 
-import { getStatusByWorkspaceAndItemType, getWorkspaceRoleMembers } from '@/lib/api/proxima';
+import {
+  getStatusByWorkspaceAndItemType,
+  getWorkspaceRoleMembers,
+  search,
+} from '@/lib/api/proxima';
 import { getAppEnv } from '@/lib/appEnv';
-import { CASESNAPSHOT_TYPE, caseSnapshotOpt } from '@/lib/constants';
+import { CASESNAPSHOT_TYPE, caseSnapshotOpt, SystemField } from '@/lib/constants';
 import useI18n from '@/lib/hooks/useI18n';
 import type { CaseSnapshot } from '@/lib/types/Test';
 
@@ -130,8 +134,23 @@ const ExecuteTestRunAction = () => {
     setCaseSnapshot(testConfig?.get('caseSnapshot') ?? DefaultCaseSnapshot);
   }, [testConfig]);
 
+  const verifyIQL = async iql => {
+    try {
+      await search(iql, [SystemField.Id], 1, true);
+      return true;
+    } catch (e) {
+      return false;
+    }
+  };
+
   const handleSave = async () => {
     if (testConfig) {
+      if (caseSnapshot?.restrictiveConditions) {
+        const isValid = await verifyIQL(caseSnapshot?.restrictiveConditions);
+        if (!isValid) {
+          return;
+        }
+      }
       await testConfig.save({
         caseSnapshot,
         testRunAction,

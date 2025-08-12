@@ -1,4 +1,9 @@
-import { getParseModel, getParseQuery, saveAllObject } from '@giteeteam/apps-team-api';
+import {
+  getParseModel,
+  getParseQuery,
+  requestCoreApi,
+  saveAllObject,
+} from '@giteeteam/apps-team-api';
 import { groupBy } from 'lodash';
 
 import {
@@ -356,18 +361,50 @@ export const createTestRuns = async (params: ProcessJobParams<BatchCreateTestRun
     };
 
     // 把快照更新到用例的字段上
-    const updateRunsReference = async (runCaseMap, caseSnapshotMap) => {
+    const updateRunsReference = async (
+      runCaseMap,
+      caseSnapshotMap,
+      snapshotCaseToBaseLineVersion = {},
+    ) => {
       const updatedRuns = [];
       for (const runId in runCaseMap) {
+        const snapshotId = caseSnapshotMap[runCaseMap[runId]];
         updatedRuns.push({
           objectId: runId,
-          referenceCaseSnapshot: caseSnapshotMap[runCaseMap[runId]],
+          referenceCaseSnapshot: snapshotId,
+          baseLineItemVersion: snapshotCaseToBaseLineVersion[snapshotId],
         });
       }
 
       console.info('batchCreateTestRunV2 updateRunsReference', updatedRuns);
       if (!updatedRuns.length) return;
       return await batchUpdateItemsValues(updatedRuns, true);
+    };
+
+    const getSnapshotIdToBaseLineVersion = async (baseLineIds: string[]) => {
+      const result = {};
+      if (!baseLineIds.length) {
+        return result;
+      }
+
+      const iql = `id in [${baseLineIds
+        .map(id => `'${id}'`)
+        .join(',')}] and 'baseLineSources' in ['BaseLineItemVersion']`;
+      const cases = await requestCoreApi('POST', '/parse/api/search', {
+        iql,
+        fields: [SystemField.Id, TestFiledKeyMapping.baseLineItemVersion],
+        size: 9999,
+        displayContext: 'test_manager',
+      }).then((data: any) => data?.payload.items ?? []);
+
+      cases.forEach(item => {
+        result[item.id] = {
+          ...item?.values?.baseLineItemVersion,
+          baseLineItemId: item.id,
+        };
+      });
+
+      return result;
     };
 
     // 给执行添加快照
@@ -388,7 +425,17 @@ export const createTestRuns = async (params: ProcessJobParams<BatchCreateTestRun
         {},
       );
 
-      await updateRunsReference(existedRunsMap, caseVersion);
+      let snapToBaseLineVersion = {};
+
+      if (Object.keys(caseVersion)?.length) {
+        snapToBaseLineVersion = await getSnapshotIdToBaseLineVersion(Object.values(caseVersion));
+      }
+
+      console.info(
+        'batchCreateTestRunV2 attachSnapshotToRun snapToBaseLineVersion',
+        snapToBaseLineVersion,
+      );
+      await updateRunsReference(existedRunsMap, caseVersion, snapToBaseLineVersion);
       console.info('batchCreateTestRunV2 attachSnapshotToRun end');
     };
 
@@ -408,7 +455,21 @@ export const createTestRuns = async (params: ProcessJobParams<BatchCreateTestRun
       const existedReferenceCaseIdSet = new Set(existedRuns.map(item => item.referenceCase));
 
       const caseSnapshotMap = await snapshotCases([...existedReferenceCaseIdSet]);
-      await updateRunsReference(existedRunsMap, caseSnapshotMap);
+      const snapshotCaseToBaseLineVersion = Object.values(caseSnapshotMap).reduce((prev, cur) => {
+        return {
+          ...(prev as object),
+          [cur as string]: {
+            name: execution.name,
+            baseLineItemId: cur,
+          },
+        };
+      }, {});
+
+      console.info(
+        'batchCreateTestRunV2 snapshotCaseToBaseLineVersion',
+        snapshotCaseToBaseLineVersion,
+      );
+      await updateRunsReference(existedRunsMap, caseSnapshotMap, snapshotCaseToBaseLineVersion);
       console.info('batchCreateTestRunV2 autoCreateSnapshotToRun end');
     };
 

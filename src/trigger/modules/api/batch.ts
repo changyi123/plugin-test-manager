@@ -1551,6 +1551,23 @@ export const batchCreateVersions = async () => {
       throw new Error('add and add keys must not be empty');
     }
   };
+
+  const verifyItemExist = async () => {
+    const { keys: addKeys } = add;
+    console.info('batchCreateVersions [verifyItemExist] body', body);
+    const iql = `key in [${addKeys.map(key => `'${key}'`).join(',')}]`;
+    const itemResult: any = await requestCoreApi('POST', '/parse/api/search', {
+      iql,
+      fields: ['id', 'key', 'name'],
+      includeHiddenItem: true,
+      size: 99999,
+      // displayContext: 'test_manager',
+    }).then((res: any) => res?.payload?.items ?? []);
+    const notExitsItems = itemResult.filter(item => !addKeys.includes(item.key));
+    if (notExitsItems.length) {
+      throw new Error(`${notExitsItems.map(item => item.name).join(',')} not exists`);
+    }
+  };
   const verifyNameDuplicate = async () => {
     const { keys: addKeys } = add;
     const { name: versionName } = body.baseLineItemVersion;
@@ -1612,6 +1629,7 @@ export const batchCreateVersions = async () => {
   };
   try {
     validateParams();
+    await verifyItemExist();
     await verifyNameDuplicate();
     await operateSnapshots(body);
     return buildResponse('success');

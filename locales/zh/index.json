@@ -15,6 +15,7 @@
     "createPermissionTip": "请联系管理员检查空间的类型映射，或开启",
     "haveDelete": "已删除",
     "forbiddenActive": "已禁用",
+    "newest": "最新",
     "pageTitle": {
       "repository": "测试用例库",
       "report": "测试报告",

@@ -15,6 +15,7 @@
     "createPermissionTip": "Please contact the administrator to check the type mapping of the workspace, or enable",
     "haveDelete": "deleted",
     "forbiddenActive": "disabled",
+    "newest": "Newest",
     "pageTitle": {
       "repository": "Test Repository",
       "task": "Test Task",

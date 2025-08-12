@@ -176,14 +176,20 @@ export const getLinkedTestEntityByQuery = async (
   props:
     | QueryLinkedTestEntityPayload
     | {
-        selector?: SearchSelectors;
+        selector?: string | SearchSelectors;
       },
   handleQuery?: (val: any) => any,
 ) => {
   props = handleQuery ? handleQuery(props) : props;
   const _props = Object.assign(
     { descending: [], onlySelectId: false },
-    { ...props, selector: selectorToIql(handleSelector(props.selector)) },
+    {
+      ...props,
+      selector:
+        typeof props.selector === 'string'
+          ? props.selector
+          : selectorToIql(handleSelector(props.selector)),
+    },
   );
 
   const {

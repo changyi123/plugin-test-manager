@@ -23,6 +23,9 @@ interface TestBatchUpdateExeModalProps {
   refresh?: () => void;
 }
 
+/*
+ * @description:  这个文件我合并过来的，不用看提交人是我。后续有问题不要问我为什么这样写
+ * */
 const TestBatchUpdateExeModal: React.FC<TestBatchUpdateExeModalProps> = ({
   actionRef,
   refresh,
@@ -45,10 +48,11 @@ const TestBatchUpdateExeModal: React.FC<TestBatchUpdateExeModalProps> = ({
         setCurrentTestRunIds(testRunIds);
         setCurrentWorkspaceKey(workspaceKey);
 
-        const _keys = _.chain(tableData)
+        const curItem: any = _.chain(tableData)
           .filter(item => _.includes(testRunIds, item.objectId))
-          .map('key')
           .value();
+        console.info('curItem', curItem);
+        const _keys = _.chain(curItem).map('key').value();
         setKeys(_keys);
         const res = await fetch.post('/parse/api/search', {
           iql: `'key' in ${JSON.stringify(
@@ -69,17 +73,16 @@ const TestBatchUpdateExeModal: React.FC<TestBatchUpdateExeModalProps> = ({
           itemId: _case?.itemId,
           itemKey: _case?.key,
         }));
-        if (_arrLableKey.length > 0) {
-          const latestOption = {
-            label: '最新',
-            value: 'new', // 版本 不传
-            itemId: _arrLableKey[0]?.itemId || '',
-            itemKey: _arrLableKey[0]?.itemKey || '',
-          };
-          setSelOpt([latestOption, ..._arrLableKey]);
-        } else {
-          setSelOpt([]);
-        }
+        const latestOption = {
+          label: '最新',
+          value: 'new', // 版本 不传
+          itemId: _arrLableKey[0]?.itemId || '',
+          itemKey: _arrLableKey[0]?.itemKey || '',
+          id: _newArr[0]?.value,
+        };
+
+        const isSnapShot = !!curItem?.[0].referenceCaseSnapshot && !curItem?.[0].referenceCase;
+        setSelOpt(isSnapShot ? [] : [latestOption, ..._arrLableKey]);
       },
     }),
     [],
@@ -94,13 +97,15 @@ const TestBatchUpdateExeModal: React.FC<TestBatchUpdateExeModalProps> = ({
   const handleBatchUpdateVersion = async () => {
     const selectedOption = _.chain(selOpt).find({ value: selected }).value();
     const itemId = selectedOption?.itemId;
+    const id = selectedOption?.id;
     const value = selectedOption?.value;
+    console.info('value', value);
     // const _name = selectedOption?.label || '';
     try {
       const res = await updateCaseVersion({
         runId: currentTestRunIds[0],
-        baseLineItemId: value === 'new' ? null : value,
-        caseId: itemId,
+        baseLineItemId: value === 'new' ? null : (itemId && value) || null,
+        caseId: value === 'new' ? itemId || id : value,
         workspaceKey: currentWorkspaceKey,
       });
 

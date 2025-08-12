@@ -7,20 +7,20 @@ import { difference, isEqual, omit, pick } from 'lodash';
 import React, { useEffect, useMemo, useRef } from 'react';
 import { useCallback } from 'react';
 import { Resizable } from 'react-resizable';
-import { CaretRightOutlined } from '@/icons';
 
 import OverflowTooltip from '@/components/common/OverflowTooltip';
+import { CaretRightOutlined } from '@/icons';
 import { getItemByIQL } from '@/lib/api/proxima';
 import useI18n from '@/lib/hooks/useI18n';
 import useTable from '@/lib/hooks/useTable';
 import { generateStorageKey } from '@/lib/utils/helper';
-import { hasArrayItem } from '@/lib/utils/helper';
 
+// import { hasArrayItem } from '@/lib/utils/helper';
 import cx from './BusinessTable.less';
 import ColumnSetting from './ColumnSetting';
 import TableSelection from './TableSelection';
 import type { BusinessTableActionType } from './type';
-import type { TitleCellOption, EnableCacheEpandedRowKeys } from './type';
+import type { EnableCacheEpandedRowKeys, TitleCellOption } from './type';
 
 const DEFAULT_PAGE_SIZE = 10;
 const MIN_COLUMN_WIDTH = 120;
@@ -122,7 +122,7 @@ type BusinessTableProps = TableProps<any> &
     cacheKey?: string;
     ignoreInit?: boolean;
     getContainer?: any;
-    enableCacheEpandedRowKeys?: EnableCacheEpandedRowKeys
+    enableCacheEpandedRowKeys?: EnableCacheEpandedRowKeys;
   };
 
 const BusinessTable: React.FC<BusinessTableProps> = props => {
@@ -646,12 +646,12 @@ const BusinessTable: React.FC<BusinessTableProps> = props => {
     //   initialExpandedRef.current = true;
     //   setExpandedKeys([dataSource[0]?.[props.rowKey as string]]);
     // }
-   
+
     if (['enable'].includes(enableCacheEpandedRowKeys)) {
-      setAllExpanded(allExpanded)
+      setAllExpanded(allExpanded);
       setExpandedKeys(expandedRowKeys);
     } else {
-      setAllExpanded(false)
+      setAllExpanded(false);
       setExpandedKeys([dataSource[0]?.[props?.rowKey as string]]);
     }
   }, [dataSource, props.rowKey, setExpandedKeys, enableCacheEpandedRowKeys]);
@@ -694,25 +694,31 @@ const BusinessTable: React.FC<BusinessTableProps> = props => {
                     cursor: 'pointer',
                     transition: 'transform 0.3s ease',
                     transform: allExpanded ? 'rotate(90deg)' : 'rotate(0deg)',
-                  }
+                  };
                   return (
-                  <Tooltip title={allExpanded ? t('page.repository.collapseAllCases') : t('page.repository.expandAllCases')}>
-                    <div
-                      className={cx('table-columnTitle-icon')}
-                      onClick={() => {
-                        if (allExpanded) {
-                          setExpandedKeys([]);
-                        } else {
-                          const allKeys = dataSource.map(item => item[props.rowKey as string]); 
-                          setExpandedKeys(allKeys);
-                        }
-                        setAllExpanded(!allExpanded);
-                      }}
+                    <Tooltip
+                      title={
+                        allExpanded
+                          ? t('page.repository.collapseAllCases')
+                          : t('page.repository.expandAllCases')
+                      }
                     >
-                      <CaretRightOutlined style={iconStyle}/>
-                    </div>
-                  </Tooltip>
-                  )
+                      <div
+                        className={cx('table-columnTitle-icon')}
+                        onClick={() => {
+                          if (allExpanded) {
+                            setExpandedKeys([]);
+                          } else {
+                            const allKeys = dataSource.map(item => item[props.rowKey as string]);
+                            setExpandedKeys(allKeys);
+                          }
+                          setAllExpanded(!allExpanded);
+                        }}
+                      >
+                        <CaretRightOutlined style={iconStyle} />
+                      </div>
+                    </Tooltip>
+                  );
                 },
                 indentSize: 2,
                 expandIcon: ({ expanded, onExpand, record }) => {
@@ -725,24 +731,24 @@ const BusinessTable: React.FC<BusinessTableProps> = props => {
                     <div
                       className={cx('table-columnTitle-icon')}
                       style={{ background: '#fff' }}
-                      onClick={(e) => onExpand(record, e)}
+                      onClick={e => onExpand(record, e)}
                     >
                       <CaretRightOutlined style={iconStyle} />
                     </div>
-                  )
+                  );
                 },
                 ...expandable,
                 fixed: true,
                 expandedRowKeys,
                 expandRowByClick: false,
                 // onExpandedRowsChange: rows => setExpandedKeys(rows as any[]),
-                onExpandedRowsChange:(expandedRows) => {
-                    if (expandedRows?.length === dataSource?.length) {
-                      setAllExpanded(true)
-                    } else {
-                    setAllExpanded(false)
-                    }
-                  setExpandedKeys(expandedRows as any[])
+                onExpandedRowsChange: expandedRows => {
+                  if (expandedRows?.length === dataSource?.length) {
+                    setAllExpanded(true);
+                  } else {
+                    setAllExpanded(false);
+                  }
+                  setExpandedKeys(expandedRows as any[]);
                 },
               }
             : undefined

@@ -92,7 +92,7 @@ const Input: React.ForwardRefRenderFunction<
       spellCheck={false}
       onBlur={handleBlur}
       onInput={handleInput}
-      contentEditable={true}
+      contentEditable={!restProps.readonly}
       onKeyDown={handleKeyDown}
       suppressContentEditableWarning={true}
       placeholder={placeholder ?? t('components.business.testStep.pleaseInput')}
