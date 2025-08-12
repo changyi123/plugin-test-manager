@@ -410,7 +410,7 @@ const TestEntityList: React.FC<TestEntityListProps> = ({
       ...queryParams,
     };
     let iql = '';
-    if (runLinkCaseIds.length > 0) {
+    if (remainingCaseIds.length > 0) {
       iql += `id in [${remainingCaseIds.map(id => `'${id}'`).join(',')}]`;
     }
 
