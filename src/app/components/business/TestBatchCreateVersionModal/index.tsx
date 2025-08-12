@@ -63,7 +63,7 @@ const TestBatchCreateVersionModal: React.FC<TestBatchUpdateExeModalProps> = ({
       //   },
       // });
 
-      // TODO: 修改打版本接口
+      // 修改打版本接口
       const param = {
         add: {
           keys: keys,
@@ -74,13 +74,23 @@ const TestBatchCreateVersionModal: React.FC<TestBatchUpdateExeModalProps> = ({
         },
       };
       const res = await batchCreateVersionsFn(param);
-      console.log('---res---', res)
-      if (res) {
+      if (res.status !== 'error') {
         message.success(t('common.success'));
         handleCloseModal();
         refresh && refresh();
       } else {
-        message.error('请求失败')
+        // 处理已存在版本的情况
+        try {
+          const parsedData = typeof res.data === 'string' ? JSON.parse(res.data) : res.data;
+          if (parsedData && Array.isArray(parsedData) && parsedData.length > 0) {
+            const nameStr = parsedData.map(item => item.name).join('、');
+            message.error(`【${nameStr}】这些用例上已存在该版本，不可重复打版本！`);
+          } else {
+            message.error(res.data || res.message || '请求异常');
+          }
+        } catch (error) {
+          message.error(res.data || res.message || '请求异常');
+        }
       }
     } finally {
       setLoading(false);
