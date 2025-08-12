@@ -160,7 +160,7 @@ const BusinessTable: React.FC<BusinessTableProps> = props => {
   } = props;
 
   const currentPageRowsRef = React.useRef([]);
-  // const initialExpandedRef = React.useRef(false);
+  const initialExpandedRef = React.useRef(false);
   const [tableSorter, setTableSorter] = React.useState({});
   const [expandedRowKeys, setExpandedKeys] = React.useState([]);
   const [allExpanded, setAllExpanded] = React.useState(false); // 新增状态来跟踪是否全部展开
@@ -171,6 +171,7 @@ const BusinessTable: React.FC<BusinessTableProps> = props => {
   const allSelectableRowKeysRef = React.useRef([]); // 用于虚拟全选
   const COLUMN_WIDTH_STORAGE_KEY = generateStorageKey(props.name, 'column-width');
   const PAGESIZE_STORAGE_KEY = generateStorageKey(props.name, 'default-pagesize');
+  const EXPANDED_ROW_KEYS_STORAGE_KEY = generateStorageKey(props.name, 'expanded-row-keys');
   const [tableColumns, setTableColumns] = React.useState(useColumnSetting ? [] : columns);
   const [columnsWidth, setColumnsWidth] = useLocalStorageState(COLUMN_WIDTH_STORAGE_KEY, {
     defaultValue: {},
@@ -178,6 +179,12 @@ const BusinessTable: React.FC<BusinessTableProps> = props => {
   const [pagesize, setPageSize] = useLocalStorageState(PAGESIZE_STORAGE_KEY, {
     defaultValue: DEFAULT_PAGE_SIZE,
   });
+  const [cachedExpandedRowKeys, setCachedExpandedRowKeys] = useLocalStorageState(
+    EXPANDED_ROW_KEYS_STORAGE_KEY,
+    {
+      defaultValue: [],
+    },
+  );
   const ref = useRef(null);
   const size = useSize(ref);
   const { t } = useI18n();
@@ -642,19 +649,15 @@ const BusinessTable: React.FC<BusinessTableProps> = props => {
   );
 
   React.useEffect(() => {
-    // if (!initialExpandedRef.current && hasArrayItem(dataSource)) {
-    //   initialExpandedRef.current = true;
-    //   setExpandedKeys([dataSource[0]?.[props.rowKey as string]]);
-    // }
+    if (!dataSource?.length) return;
 
-    if (['enable'].includes(enableCacheEpandedRowKeys)) {
-      setAllExpanded(allExpanded);
-      setExpandedKeys(expandedRowKeys);
-    } else {
+    if (!initialExpandedRef.current) {
+      // 只在初始加载时设置默认展开状态
       setAllExpanded(false);
       setExpandedKeys([dataSource[0]?.[props?.rowKey as string]]);
+      initialExpandedRef.current = true;
     }
-  }, [dataSource, props.rowKey, setExpandedKeys, enableCacheEpandedRowKeys]);
+  }, [dataSource, props.rowKey, enableCacheEpandedRowKeys, cachedExpandedRowKeys]);
 
   return (
     <div className={`${cx('table-container')} table-box business-debug-table`} ref={ref}>
@@ -708,9 +711,11 @@ const BusinessTable: React.FC<BusinessTableProps> = props => {
                         onClick={() => {
                           if (allExpanded) {
                             setExpandedKeys([]);
+                            setCachedExpandedRowKeys([]);
                           } else {
                             const allKeys = dataSource.map(item => item[props.rowKey as string]);
                             setExpandedKeys(allKeys);
+                            setCachedExpandedRowKeys(allKeys);
                           }
                           setAllExpanded(!allExpanded);
                         }}
@@ -749,6 +754,8 @@ const BusinessTable: React.FC<BusinessTableProps> = props => {
                     setAllExpanded(false);
                   }
                   setExpandedKeys(expandedRows as any[]);
+                  // 保存展开状态到缓存
+                  setCachedExpandedRowKeys(expandedRows as any[])
                 },
               }
             : undefined
