@@ -34,9 +34,11 @@ import {
 } from '@/lib/constants';
 import { useBaseAction, useTestConfig } from '@/lib/hooks/useContext';
 import useI18n from '@/lib/hooks/useI18n';
+import { useIqlFunctionFilter } from '@/lib/hooks/useIqlFunction';
 import { useNoExpiredRequest } from '@/lib/hooks/useRequest';
 import { generateStorageKey, getRootContainer } from '@/lib/utils/helper';
 import { isDate, SearchSelectors, Selectors } from '@/lib/utils/iql';
+import { getTargetIqlFunctionFilter, IQL_FUNCTION_ENUM } from '@/lib/utils/iqlFunction';
 import { Repository } from '@/services/models';
 
 import { useGetCustomFields } from '../BusinessTable/hook';
@@ -160,6 +162,33 @@ const FilterSearch: React.ForwardRefRenderFunction<FilterRefMethod, FilterSearch
   const [fieldsNameRequestTag, setFieldsNameRequestTag] = React.useState(1);
   const { fieldsDataMap, openFilterPopover } = useOpenFilterPopover(fields);
   const needSearch = useRef(false);
+
+  const iqlFunctionFilters = useIqlFunctionFilter({ workspaceKey });
+
+  const iqlFunctionFilterMap = useMemo(() => {
+    return iqlFunctionFilters.reduce((result, iqlFunctionFilter) => {
+      result[iqlFunctionFilter.key] = iqlFunctionFilter;
+      return result;
+    }, {});
+  }, [iqlFunctionFilters]);
+
+  const executionIqlFunctionFilters = useMemo(() => {
+    return getTargetIqlFunctionFilter(iqlFunctionFilters, IQL_FUNCTION_ENUM.testCaseExecutions);
+  }, [iqlFunctionFilters]);
+
+  const caseIqlFunctionFilters = useMemo(() => {
+    return getTargetIqlFunctionFilter(iqlFunctionFilters, IQL_FUNCTION_ENUM.testExecutionCases);
+  }, [iqlFunctionFilters]);
+
+  const targetIqlFunctionFilters = useMemo(() => {
+    if (testType === TestType.Case) {
+      return caseIqlFunctionFilters;
+    } else if (testType === TestType.Execution) {
+      return executionIqlFunctionFilters;
+    } else {
+      return [];
+    }
+  }, [executionIqlFunctionFilters, caseIqlFunctionFilters, testType]);
 
   const setSelectors = useMemoizedFn(selectors => {
     setSelectorsState(selectors);
@@ -390,10 +419,13 @@ const FilterSearch: React.ForwardRefRenderFunction<FilterRefMethod, FilterSearch
         }
         target.value = selector.value;
         target.expression = selector.expression;
+        if (iqlFunctionFilterMap[selector.objectId]) {
+          target.plugin = iqlFunctionFilterMap[selector.objectId].plugin;
+        }
         setSelectors(handleDataSelector(data));
       }
     },
-    [setSelectors],
+    [setSelectors, iqlFunctionFilterMap],
   );
 
   // 获取各个层级
@@ -485,6 +517,19 @@ const FilterSearch: React.ForwardRefRenderFunction<FilterRefMethod, FilterSearch
         dom,
         useChange: false,
       };
+
+      if (iqlFunctionFilterMap?.[data.key]) {
+        (props as any).plugin = iqlFunctionFilterMap[data.key].plugin;
+        (props as any).optionExpression = undefined;
+        (props as any).checkType = undefined;
+        (props as any).allowNull = false;
+        props.field = {
+          objectId: data.key,
+          name: data.fieldName,
+          key: data.key,
+          fieldType: { key: data.key, label: data.fieldName, component: data.key },
+        };
+      }
       if (fieldId === RepositoryModel) {
         (props as any).fetchMethod = () => extendFetch();
       }
@@ -512,6 +557,7 @@ const FilterSearch: React.ForwardRefRenderFunction<FilterRefMethod, FilterSearch
       handleSearch,
       extendFetch,
       getStatusOptions,
+      iqlFunctionFilterMap,
     ],
   );
 
@@ -627,6 +673,7 @@ const FilterSearch: React.ForwardRefRenderFunction<FilterRefMethod, FilterSearch
               selectors,
               onChange: onFilterChange,
               extendFields,
+              iqlFunctionFilters: targetIqlFunctionFilters,
               dom: document.querySelector(`#${filterId || storageKey || 'filter-btn'}`),
             });
           }}

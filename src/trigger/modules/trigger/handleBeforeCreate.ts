@@ -1,10 +1,12 @@
-export const handleBeforeCreate = async () => {
-  const APP_KEY = 'test_manager';
+import { TestFiledKeyMapping, TestType } from '../../../common/constant';
 
-  const itemContext = globalThis?.itemContext;
+const validate = () => {
+  const APP_KEY = 'test_manager';
 
   // 这里直接沿用中关村设置默认名称的环境变量
   const enable = global.env?.CREATE_EXECUTION_DEFAULT_NAME_CONFIG?.enable;
+
+  const itemContext = globalThis?.itemContext;
 
   if (!enable) {
     return;
@@ -36,4 +38,21 @@ export const handleBeforeCreate = async () => {
       }
     });
   }
+};
+
+export const handleBeforeCreate = async () => {
+  validate();
+
+  const item = globalThis?.item;
+  const testType = item?.values?.r_test_manager_type;
+  if (testType === TestType.Execution) {
+    // 测试执行任务 清空 测试缺陷、引用用例数字段
+    item.values[TestFiledKeyMapping.testDefects] = [];
+    item.values[TestFiledKeyMapping.executionCases] = 0;
+  } else if (testType === TestType.Case) {
+    // 测试用例 清空 测试缺陷字段
+
+    item.values[TestFiledKeyMapping.testDefects] = [];
+  }
+  return { item };
 };

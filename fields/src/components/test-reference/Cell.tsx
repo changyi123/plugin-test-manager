@@ -1,8 +1,10 @@
 import createProximaSdk from '@giteeteam/proxima-sdk-js';
+import { message } from 'antd';
 import axios from 'axios';
 import React, { FC, useCallback } from 'react';
 
 import { useGetWorkspaceKeyById } from '@/hooks';
+import { t } from '@/i18n';
 import { getPluginWebTriggerBaseUrl } from '@/utils';
 
 import { CellProp } from '../types';
@@ -50,11 +52,15 @@ const Cell: FC<CellProp> = props => {
       return;
     }
     const list = await getAllLinkedCase();
+    if (list.length === 0) {
+      message.error(t('dataHasRemove'));
+      return;
+    }
     proxima.execute('openItemDataQuoteListModal', {
       list,
       visible: true,
     });
-  }, [value, props, workspaceKey]);
+  }, [value, workspaceKey, getAllLinkedCase]);
 
   return (
     <div className="field-cell-layout">

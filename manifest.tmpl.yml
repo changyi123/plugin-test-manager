@@ -665,9 +665,33 @@ modules:
     - key: iql-test-execution-cases
       name: testExecutionCases
       function: iql-function-test-execution-cases
+      title: iqlFunction.executionCases
+      field: item
+      operator: in
+      arguments:
+        - name: item
+          source: 
+            type: Item  
+            mode: multiple 
+            iql: test_manager_type = 'TestExecution'
+            valueKey: objectId
+            context:
+              displayContext: test_manager
     - key: iql-test-case-executions
       name: testCaseExecutions
       function: iql-function-test-case-executions
+      title: iqlFunction.caseExecutions
+      field: item
+      operator: in
+      arguments:
+        - name: item
+          source: 
+            type: Item  
+            mode: multiple 
+            iql: test_manager_type = 'TestCase'
+            valueKey: objectId
+            context:
+              displayContext: test_manager
   proxima:exporter:
     function: test-manager-export-script
   # 初始化 dataType 为 object， array 的数据类型
@@ -837,12 +861,14 @@ modules:
       type: _self:test_reference
       undeletable: true
       locked: true
+      readonly: true
       description: 测试管理内置字段-测试执行任务引用的测试用例（勿删改）
     - key: testCases
       name: 测试用例
       type: DataQuote
       undeletable: true
       locked: true
+      readonly: true
       description: 测试管理内置字段-测试用例
       property:
         mode: multiple
@@ -852,6 +878,7 @@ modules:
       type: DataQuote
       undeletable: true
       locked: true
+      readonly: true
       description: 测试管理内置字段-测试执行任务
       property:
         mode: multiple
@@ -861,6 +888,7 @@ modules:
       type: DataQuote
       undeletable: true
       locked: true
+      readonly: true
       description: 测试管理内置字段-测试计划
       property:
         mode: multiple
@@ -870,6 +898,7 @@ modules:
       type: DataQuote
       undeletable: true
       locked: true
+      readonly: true
       description: 测试管理内置字段-测试缺陷
       property:
         mode: multiple

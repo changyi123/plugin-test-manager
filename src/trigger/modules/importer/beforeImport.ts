@@ -228,7 +228,9 @@ export const runBeforeImport = async () => {
           }),
           ...(!findData?.values?.r_test_manager_linkType && {
             ...findData?.values,
-            r_test_manager_testPlans: findData.values.r_test_manager_linkItems || [],
+            ...(!findData?.objectId
+              ? { r_test_manager_testPlans: findData.values.r_test_manager_linkItems || [] }
+              : {}),
             r_test_manager_type: 'TestCase',
             r_test_manager_linkType: 'CaseLinkPlan',
             r_test_manager_detail: JSON.stringify({

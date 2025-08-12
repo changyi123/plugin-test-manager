@@ -672,6 +672,7 @@ export const copyTesCases = async (params: ProcessJobParams<BatchCopyTestCaseV3P
         fields: {
           [TestFiledKeyMapping.linkItems]: [],
           [TestFiledKeyMapping.testPlans]: [],
+          [TestFiledKeyMapping.testDefects]: [],
           [TestFiledKeyMapping.linkType]: '',
         },
         update: {

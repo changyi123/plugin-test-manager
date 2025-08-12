@@ -14,7 +14,7 @@ const { ItemIcon } = components.Components.Common;
 import { useSDK } from '@giteeteam/plugin-sdk';
 
 import { savePanelDisplayConditions } from '@/lib/api/common';
-import { judgeTestReportVersion, TEST_REPORT_VERSION } from '@/lib/appEnv';
+import { featureFlags, judgeTestReportVersion, TEST_REPORT_VERSION } from '@/lib/appEnv';
 import Parse from '@/lib/parse';
 import { TestConfig } from '@/services/models';
 
@@ -33,11 +33,11 @@ const TestTypes = [
     type: TestType.Execution,
     title: 'testExecution',
   },
-  {
+  featureFlags('ENABLE_TEST_CASE_SET') && {
     type: TestType.CaseSet,
     title: 'testCaseSet',
   },
-];
+].filter(Boolean);
 
 async function getAllItemType() {
   const pageSize = 350;

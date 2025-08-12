@@ -86,12 +86,12 @@ export const runGiteeMenus = async () => {
 
     // 是否开启测试报告
     const enableTestReport = global.env?.FEATURE_FLAGS?.includes('ENABLE_TEST_REPORT');
-
+    const enableTestSet = global.env?.FEATURE_FLAGS?.includes('ENABLE_TEST_CASE_SET');
     const menus = [
       { pageKey: MENU_MAP.TEST_PLAN, langKey: 'plan' },
       { pageKey: MENU_MAP.TEST_TASK, langKey: 'task' },
       { pageKey: MENU_MAP.TEST_REPOSITORY, langKey: 'repository' },
-      { pageKey: MENU_MAP.TEST_CASE_SET, langKey: 'testCaseSet' },
+      enableTestSet && { pageKey: MENU_MAP.TEST_CASE_SET, langKey: 'testCaseSet' },
       enableTestReport && { pageKey: MENU_MAP.TEST_REPORT, langKey: 'report' },
     ]
       .filter(Boolean)

@@ -869,45 +869,41 @@ const TestEntityList: React.FC<TestEntityListProps> = ({
       },
     );
   });
-  /**创建缺陷*/
-  const createDefect = React.useCallback(
-    async objectId => {
-      const defaultFieldConfig = await getDefectDefautFieldConfig(selectedExecution?.objectId);
-      const content = null;
-      const { itemList: defectItemList } = await createItemUseModal({
-        type: TestType.TestDefect,
-        extraData: {
-          extraValues: { content },
-          useItemBatchCreate: true,
-        },
-        ...defaultFieldConfig,
-      });
-      const { list: testRunData } = await getTestEntityByQuery({
-        query: {
-          id: [objectId],
-          type: TestType.Run,
-        },
-        limit: 1,
-      });
+  const createDefect = useMemoizedFn(async objectId => {
+    const defaultFieldConfig = await getDefectDefautFieldConfig(selectedExecution?.objectId);
+    const content = null;
+    const { itemList: defectItemList } = await createItemUseModal({
+      type: TestType.TestDefect,
+      extraData: {
+        extraValues: { content },
+        useItemBatchCreate: true,
+      },
+      ...defaultFieldConfig,
+    });
+    const { list: testRunData } = await getTestEntityByQuery({
+      query: {
+        id: [objectId],
+        type: TestType.Run,
+      },
+      limit: 1,
+    });
 
-      // 创建事项关联
-      try {
-        const _currentDefectIds = testRunData[0].runDetail?.defectItemIds || [];
-        const needAddedItemIds = []
-          .concat(
-            _currentDefectIds,
-            defectItemList?.map(d => d.objectId),
-          )
-          .filter(Boolean);
-        await addTestDefect(TestToDefect, testRunData[0], needAddedItemIds);
-        setTimeout(() => actionRef.current?.refresh(), 500);
-        message.success(t('components.business.testRunModal.addDefectButton.createDefectSuccess'));
-      } catch (error) {
-        message.error(error?.message);
-      }
-    },
-    [createItemUseModal, getTestEntityByQuery, t],
-  );
+    // 创建事项关联
+    try {
+      const _currentDefectIds = testRunData[0].runDetail?.defectItemIds || [];
+      const needAddedItemIds = []
+        .concat(
+          _currentDefectIds,
+          defectItemList?.map(d => d.objectId),
+        )
+        .filter(Boolean);
+      await addTestDefect(TestToDefect, testRunData[0], needAddedItemIds);
+      setTimeout(() => actionRef.current?.refresh(), 500);
+      message.success(t('components.business.testRunModal.addDefectButton.createDefectSuccess'));
+    } catch (error) {
+      message.error(error?.message);
+    }
+  });
   const executionColumns = React.useMemo(
     () => [
       //  用例标题

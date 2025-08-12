@@ -1,7 +1,7 @@
 import { useMemoizedFn } from 'ahooks';
 import { Button, message, notification } from 'antd';
 import sum from 'lodash/sum';
-import React, { useCallback, useMemo, useState } from 'react';
+import React, { useCallback, useEffect, useMemo, useState } from 'react';
 
 import {
   addExecutionToPlanWithProcess,
@@ -49,8 +49,24 @@ const Test = () => {
     return allTestEntities?.map(item => item.objectId) || EMPTY_ARRAY;
   }, [allTestEntities]);
 
+  const getAllData = useCallback(async () => {
+    const sourceIds = testEntity.objectId;
+    if (!sourceIds || !config) return;
+    const { list } = await getLinkedTestEntityByQuery({
+      query: {
+        workspaceKey: workspace?.key,
+      },
+      linkType: TestLinkType.ExecutionLinkPlan,
+      sourceIds: testEntity?.objectId,
+      destinationType: TestType.Execution,
+      fields: ['id'],
+      limit: 99999,
+    });
+    setAllTestEntities(list);
+  }, [config, testEntity.objectId, workspace?.key]);
+
   // 获取计划下的测试用例
-  const getAllRelTestEntities = useCallback(
+  const getRelTestEntities = useCallback(
     async params => {
       const sourceIds = testEntity.objectId;
       if (!sourceIds || !config) return;
@@ -96,8 +112,6 @@ const Test = () => {
         });
       }
 
-      setAllTestEntities(list);
-
       return {
         list,
         total,
@@ -107,12 +121,13 @@ const Test = () => {
   );
 
   const refresh = React.useCallback(() => {
+    getAllData();
     tableActionRef.current.refresh();
-  }, []);
+  }, [getAllData]);
 
   const tableDataSourceGetter = React.useCallback(
-    params => getAllRelTestEntities(params),
-    [getAllRelTestEntities],
+    params => getRelTestEntities(params),
+    [getRelTestEntities],
   );
 
   // 创建测试执行
@@ -208,6 +223,11 @@ const Test = () => {
       },
     ];
   }, [removeTestRelation, t]);
+
+  useEffect(() => {
+    getAllData();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   return (
     <div className={cx('test')}>

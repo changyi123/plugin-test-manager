@@ -1,6 +1,7 @@
 import React, { useMemo } from 'react';
 
 import PanelLayout from '@/components/business/PanelLayout';
+import { featureFlags } from '@/lib/appEnv';
 import { TestType } from '@/lib/constants';
 import { useTestConfig } from '@/lib/hooks/useContext';
 import useI18n from '@/lib/hooks/useI18n';
@@ -40,7 +41,7 @@ const TestDetail: React.FC = () => {
               key: TestType.Run,
               Component: HistoryRUnPanel,
             },
-            {
+            featureFlags('ENABLE_TEST_CASE_SET') && {
               tab: t('modules.panel.testDetail.historyRunPanel.testCaseSet'),
               key: TestType.CaseSet,
               Component: TestCaseSetPanel,
