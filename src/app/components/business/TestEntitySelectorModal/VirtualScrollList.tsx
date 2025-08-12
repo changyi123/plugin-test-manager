@@ -3,16 +3,16 @@ import _, { clone, pullAll } from 'lodash';
 import React, { useCallback, useEffect, useMemo, useState } from 'react';
 import { GroupedVirtuoso } from 'react-virtuoso';
 
+import CusDropdown from '@/components/business/TestEntitySelectorModal/CusDropdown';
 import OverflowTooltip from '@/components/common/OverflowTooltip';
 import emptyImg from '@/icons/svg/empty-data.png';
 import useI18n from '@/lib/hooks/useI18n';
-import { getRootContainer } from '@/lib/utils/helper';
 import fetch from '@/lib/utils/fetch';
+import { getRootContainer } from '@/lib/utils/helper';
+import { usePageContext } from '@/pages/plan/hook';
 
 import { filterIgnoreTestCaseId, getCheckedByType, handleGroupPath } from './helper';
 import { useCasePlanRule, useGetGroupNodeId, useGetVirtualScrollList } from './hooks';
-
-import CusDropdown from '@/components/business/TestEntitySelectorModal/CusDropdown';
 import cx from './VirtualScrollList.less';
 
 // 版本选项类型定义
@@ -41,7 +41,7 @@ interface VirtualScrollListProps {
   loading?: boolean;
   enableCaseVersion?: boolean;
   versionMapKeySelected?: Record<string, string>;
-  setVersionMapKeySelected?: any
+  setVersionMapKeySelected?: any;
 }
 
 const VirtualScrollList: React.FC<VirtualScrollListProps> = props => {
@@ -62,10 +62,12 @@ const VirtualScrollList: React.FC<VirtualScrollListProps> = props => {
     isPlanForTestSet = false,
     enableCaseVersion = false,
     versionMapKeySelected,
-    setVersionMapKeySelected
+    setVersionMapKeySelected,
   } = props;
   const { t } = useI18n();
+  const { runVersionMap } = usePageContext();
   const { groupArray, groups, totalCount } = useGetVirtualScrollList(group, current);
+
   const [versionMapKey, setVersionMapKey] = useState<Record<string, VersionOption[]>>({});
   const handleItemsLinkKeys = useCallback(async _items => {
     if (!_items || _items.length === 0) return;
@@ -235,11 +237,15 @@ const VirtualScrollList: React.FC<VirtualScrollListProps> = props => {
                   disabled={disabled}
                   option={versionMapKey[items?.[index]?.key] || []}
                   value={
-                    versionMapKeySelected[items?.[index]?.id] !== undefined
-                      ? versionMapKeySelected[items?.[index]?.id]
-                      : !disabled
-                      ? ''
-                      : undefined
+                    versionMapKeySelected[items?.[index]?.id] ||
+                    runVersionMap?.[items?.[index]?.id]?.baseLineItemId ||
+                    ''
+                    // runVersionMap?.[items?.[index]?.id]?.baseLineItemId || ''
+                    // versionMapKeySelected[items?.[index]?.id] !== undefined
+                    //   ? versionMapKeySelected[items?.[index]?.id]
+                    //   : !disabled
+                    //   ? ''
+                    //   : undefined
                   }
                   onChange={v => {
                     const _obj = {};

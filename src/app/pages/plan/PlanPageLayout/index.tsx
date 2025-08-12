@@ -49,6 +49,7 @@ const PlanPageLayout: React.FC<any> = () => {
     setSearchParams,
     // setSelectedTestPlan,
     setPlanLinkCaseIds,
+    setRunVersionMap,
     setExecutionLinkRunIds,
     setRunLinkCaseIds,
     setRunMap,
@@ -125,6 +126,10 @@ const PlanPageLayout: React.FC<any> = () => {
       type: 'TestExecution',
       testExecutionId: activeType === 'TestExecution' ? selectedExecution?.objectId : null,
     });
+
+  useUpdateEffect(() => {
+    setRunVersionMap(scopeTestRunIds?.runVersionMap);
+  }, [scopeTestRunIds?.runVersionMap]);
 
   useUpdateEffect(() => {
     setPlanLinkCaseIds(planLinkCaseIds);

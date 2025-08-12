@@ -182,6 +182,7 @@ export const BuiltinFieldNameMapping = {
 
   // 不需要拼接
   runDetail: 'test_manager_runDetail',
+  baseLineItemVersion: 'baseLineItemVersion',
 } as const;
 
 export const SystemFieldNameMapping = {
