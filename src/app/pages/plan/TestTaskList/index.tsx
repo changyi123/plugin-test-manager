@@ -225,9 +225,7 @@ const TestTaskList: React.FC<any> = ({
           workspaceKey: workspace?.key,
           type: TestType.Run,
         },
-        selector: [CASESNAPSHOT_TYPE.AUTO_BUILDVERSION].includes(config?.caseSnapshot?.type)
-          ? `${BuiltinFieldNameMapping.referenceCaseSnapshot} is not null`
-          : `${BuiltinFieldNameMapping.referenceCase} is not null`,
+        selector: `${BuiltinFieldNameMapping.referenceCaseSnapshot} is not null or ${BuiltinFieldNameMapping.referenceCase} is not null`,
         linkType: TestLinkType.RunLinkExecution,
         sourceIds: list.map(d => [d.id]),
         destinationType: TestType.Run,
