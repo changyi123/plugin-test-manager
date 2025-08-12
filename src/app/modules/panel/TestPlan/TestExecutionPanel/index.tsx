@@ -18,7 +18,12 @@ import TestEntitySelectorModal, {
 } from '@/components/business/TestEntitySelectorModal';
 import { useTestTypeScreenFieldKeys } from '@/components/common/BusinessTable/hook';
 import { getLinkedTestEntityByQuery, getTestStats } from '@/lib/api/item';
-import { BuiltinFieldNameMapping, CASESNAPSHOT_TYPE, TestLinkType, TestType } from '@/lib/constants';
+import {
+  BuiltinFieldNameMapping,
+  CASESNAPSHOT_TYPE,
+  TestLinkType,
+  TestType,
+} from '@/lib/constants';
 import { useTestConfig } from '@/lib/hooks/useContext';
 import useI18n from '@/lib/hooks/useI18n';
 import { alert, getTestManagerContainer } from '@/lib/utils/helper';
@@ -69,9 +74,7 @@ const Test = () => {
                 workspaceKey: workspace?.key,
                 type: TestType.Run,
               },
-              selector: [CASESNAPSHOT_TYPE.AUTO_BUILDVERSION].includes(config?.caseSnapshot?.type)
-                ? `${BuiltinFieldNameMapping.referenceCaseSnapshot} is not null`
-                : `${BuiltinFieldNameMapping.referenceCase} is not null`,
+              selector: `${BuiltinFieldNameMapping.referenceCaseSnapshot} is not null or ${BuiltinFieldNameMapping.referenceCase} is not null `,
               linkType: TestLinkType.RunLinkExecution,
               sourceIds: [d.id],
               destinationType: TestType.Run,
