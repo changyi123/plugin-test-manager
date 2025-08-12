@@ -92,11 +92,20 @@ const Input: React.ForwardRefRenderFunction<
       spellCheck={false}
       onBlur={handleBlur}
       onInput={handleInput}
-      contentEditable={!restProps.readonly}
       onKeyDown={handleKeyDown}
-      suppressContentEditableWarning={true}
+      {...(!restProps.readonly
+        ? {
+            contentEditable: true,
+            suppressContentEditableWarning: true,
+          }
+        : {})}
       placeholder={placeholder ?? t('components.business.testStep.pleaseInput')}
-      className={classnames('test-step-field', 'input', isHover && 'hover', className)}
+      className={classnames(
+        'test-step-field',
+        !restProps.readonly && 'input',
+        isHover && 'hover',
+        className,
+      )}
     >
       {getEditorOrStringText(value)}
     </div>
