@@ -2,7 +2,7 @@ app:
   key: test_manager
   uuid: bf73e61c-e15a-4461-a1f7-f940c2009332
   name: test_manager
-  version: "4.38.58"
+  version: "4.38.66"
 modules:
   webtrigger:
     # TODO: Debug 使用，生产环境禁止调用下面的 trigger
@@ -670,9 +670,9 @@ modules:
       operator: in
       arguments:
         - name: item
-          source: 
-            type: Item  
-            mode: multiple 
+          source:
+            type: Item
+            mode: multiple
             iql: test_manager_type = 'TestExecution'
             valueKey: objectId
             context:
@@ -685,9 +685,9 @@ modules:
       operator: in
       arguments:
         - name: item
-          source: 
-            type: Item  
-            mode: multiple 
+          source:
+            type: Item
+            mode: multiple
             iql: test_manager_type = 'TestCase'
             valueKey: objectId
             context:
@@ -1112,13 +1112,6 @@ tables:
       # 关联统计报表
       chartGroups:
         type: Object
-      # 可以把这个删除
-      enableCaseSnapshot:
-        type: Boolean
-      # 用例快照类型  数据结构 { type: 0 | 1 | 2, enableCaseExeUpdate: true | false }
-      # 1. 为0 或者空时， 不自动打版本且规划用例不能选择用例版本
-      # 2. 为1时，测试执行任务规划用例时自动打版本
-      # 3. 为2时，测试执行任务规划用例不打版本，可以选择用例版本
       caseSnapshot:
         type: Object
   - className: TestRelation

@@ -512,7 +512,7 @@ const TestEntityList: React.FC<TestEntityListProps> = ({
           runDetail: runData.referenceCaseSnapshot ? runData.runDetail : c.detail,
           status: c.workflowStatus,
           runStatus: runData.status,
-          caseId: c.id,
+          caseId: c.itemId || c.id,
           objectId: runData.id,
           id: runData.id,
           repository: c.repository,
@@ -1554,6 +1554,7 @@ const TestEntityList: React.FC<TestEntityListProps> = ({
                         size: 9999,
                         fields: ['id', 'name'],
                       });
+                      console.info('payload', record);
                       const currentCaseId = record?.caseId || record?.id;
                       const isAllowed = payload?.items?.some(item => item.id === currentCaseId);
 
