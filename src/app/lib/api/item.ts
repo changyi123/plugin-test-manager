@@ -222,7 +222,7 @@ export const batchCreateVersionsFn = async (props: CreateBaselineRequestParam) =
     sessionToken: getSessionToken(),
   });
 
-  return res.data;
+  return res;
 };
 
 // 测试计划统计查询

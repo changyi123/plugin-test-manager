@@ -507,6 +507,9 @@ const TestEntityList: React.FC<TestEntityListProps> = ({
         return {
           ...c,
           ...runData,
+          referenceCase: runData.referenceCase,
+          referenceCaseSnapshot: runData.referenceCaseSnapshot,
+          runDetail: runData.referenceCaseSnapshot ? runData.runDetail : c.detail,
           status: c.workflowStatus,
           runStatus: runData.status,
           caseId: c.id,
@@ -1527,7 +1530,7 @@ const TestEntityList: React.FC<TestEntityListProps> = ({
           getDataSource={executionTableDataGetter}
           onHasRowSelected={setHasRowSelected}
           allSelectableRowKeys={runRowKeys}
-          selectionMode={true}
+          // selectionMode={true}
           selectionActionNodes={InnerTableSelectionActionNodes}
           onSelectionCancel={() => tableSelectionToggleEvent.emit(false)}
           handleFilterField={handleFilterField}
