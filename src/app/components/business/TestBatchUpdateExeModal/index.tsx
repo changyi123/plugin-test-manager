@@ -12,6 +12,7 @@ import cx from './index.less';
 
 export type TestBatchUpateModalActionRef = {
   open: (params: {
+    caseId?: string,
     testRunIds?: string[];
     tableData?: any[];
     workspaceKey?: string;
@@ -44,7 +45,7 @@ const TestBatchUpdateExeModal: React.FC<TestBatchUpdateExeModalProps> = ({
       async open(data) {
         setIsVisible(true);
 
-        const { testRunIds = [], tableData = [], workspaceKey } = data || {};
+        const { caseId, testRunIds = [], tableData = [], workspaceKey } = data || {};
         setCurrentTestRunIds(testRunIds);
         setCurrentWorkspaceKey(workspaceKey);
 
@@ -64,6 +65,7 @@ const TestBatchUpdateExeModal: React.FC<TestBatchUpdateExeModalProps> = ({
         const _newArr = _.map(_.get(res, 'data.payload.items', []), _case =>
           _.pick(_case, ['key', 'id', 'itemId', 'values.baseLineItemVersion.name', 'createdAt']),
         );
+        console.log('_newArr', _newArr);
         const _arrLableKey = _.map(_newArr, _case => ({
           label:
             _case?.values?.baseLineItemVersion?.name +
@@ -71,14 +73,11 @@ const TestBatchUpdateExeModal: React.FC<TestBatchUpdateExeModalProps> = ({
             dayjs(_case?.createdAt).format('YYYY-MM-DD HH:mm'),
           value: _case.id,
           itemId: _case?.itemId,
-          itemKey: _case?.key,
         }));
         const latestOption = {
           label: '最新',
           value: 'new', // 版本 不传
-          itemId: _arrLableKey[0]?.itemId || '',
-          itemKey: _arrLableKey[0]?.itemKey || '',
-          id: _newArr[0]?.value,
+          itemId: caseId,
         };
 
         const isSnapShot = !!curItem?.[0].referenceCaseSnapshot && !curItem?.[0].referenceCase;
@@ -97,7 +96,6 @@ const TestBatchUpdateExeModal: React.FC<TestBatchUpdateExeModalProps> = ({
   const handleBatchUpdateVersion = async () => {
     const selectedOption = _.chain(selOpt).find({ value: selected }).value();
     const itemId = selectedOption?.itemId;
-    const id = selectedOption?.id;
     const value = selectedOption?.value;
     console.info('value', value);
     // const _name = selectedOption?.label || '';
@@ -105,7 +103,7 @@ const TestBatchUpdateExeModal: React.FC<TestBatchUpdateExeModalProps> = ({
       const res = await updateCaseVersion({
         runId: currentTestRunIds[0],
         baseLineItemId: value === 'new' ? null : (itemId && value) || null,
-        caseId: value === 'new' ? itemId || id : value,
+        caseId: itemId,
         workspaceKey: currentWorkspaceKey,
       });
 

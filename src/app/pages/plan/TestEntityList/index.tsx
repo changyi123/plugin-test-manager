@@ -1571,6 +1571,7 @@ const TestEntityList: React.FC<TestEntityListProps> = ({
                   // 更新执行用例
                   const _testRunIds: string[] = [record?.objectId || record?.id];
                   await testBatchUpateModalActionRef.current.open({
+                    caseId: record?.itemId || record?.caseId, // 用例id： 如果是版本取itemId，如果是用例取 caseId
                     testRunIds: _testRunIds,
                     tableData: actionRef.current.dataSource,
                     workspaceKey: workspaceKey,
