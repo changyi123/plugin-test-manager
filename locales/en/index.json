@@ -671,7 +671,9 @@
         "updateRunStatus": "Change execution status",
         "batchEdit": "Batch edit",
         "updateCaseVersion": "Update test case",
-        "updateCaseVersionTips": "Restrictive conditions not met, cannot update test case"
+        "updateCaseVersionTips": "Restrictive conditions not met, cannot update test case",
+        "someItemsCannotUpdate": "Some selected items cannot be updated, there are test executions without associated test cases",
+        "noReferenceCase": "This test execution has no associated test case and cannot be updated"
       }
     },
     "repository": {

@@ -53,18 +53,7 @@ const TestBatchCreateVersionModal: React.FC<TestBatchUpdateExeModalProps> = ({
     try {
       await new Promise(resolve => setTimeout(resolve, 1500));
 
-      await fetch.post('/parse/api/baseLineItems', {
-        add: {
-          keys: keys,
-        },
-        sourceType: global.appKey ?? 'test_manager',
-        baseLineItemVersion: {
-          name: selected,
-        },
-      });
-
-      // TODO: 修改打版本接口
-      // const param = {
+      // await fetch.post('/parse/api/baseLineItems', {
       //   add: {
       //     keys: keys,
       //   },
@@ -72,13 +61,27 @@ const TestBatchCreateVersionModal: React.FC<TestBatchUpdateExeModalProps> = ({
       //   baseLineItemVersion: {
       //     name: selected,
       //   },
-      // };
-      // const res = await batchCreateVersionsFn(param);
-      // console.log('---res---', res)
+      // });
 
-      message.success(t('common.success'));
-      handleCloseModal();
-      refresh && refresh();
+      // TODO: 修改打版本接口
+      const param = {
+        add: {
+          keys: keys,
+        },
+        sourceType: global.appKey ?? 'test_manager',
+        baseLineItemVersion: {
+          name: selected,
+        },
+      };
+      const res = await batchCreateVersionsFn(param);
+      console.log('---res---', res)
+      if (res) {
+        message.success(t('common.success'));
+        handleCloseModal();
+        refresh && refresh();
+      } else {
+        message.error('请求失败')
+      }
     } finally {
       setLoading(false);
     }
@@ -120,6 +123,7 @@ const TestBatchCreateVersionModal: React.FC<TestBatchUpdateExeModalProps> = ({
           onChange={(v) => {
             setSelected(v.target.value)
           }}
+          maxLength={10}
           placeholder={t('components.business.testBatchUpateModel.placeholderVersionName')}
         />
       </Space>

@@ -108,27 +108,56 @@ const Test = () => {
         ...page,
       });
 
+      // 分离 caseIds 和 snapshotIds
+      const caseIds = [];
+      const snapshotIds = [];
+      runs?.forEach(run => {
+        if (run.referenceCaseSnapshot) {
+          snapshotIds.push(run.referenceCaseSnapshot);
+        } else {
+          caseIds.push(run.referenceCase);
+        }
+      });
+      // 构建 selector 查询条件
+      let selector = '';
+      if (caseIds.length > 0 && snapshotIds.length > 0) {
+        selector = `id in [${caseIds.map(id => `'${id}'`).join(',')}] or (id in [${snapshotIds
+          .map(id => `'${id}'`)
+          .join(',')}] and 'baseLineSources' in ['BaseLineItemVersion'])`;
+      } else if (caseIds.length > 0) {
+        selector = `id in [${caseIds.map(id => `'${id}'`).join(',')}]`;
+      } else if (snapshotIds.length > 0) {
+        selector = `id in [${snapshotIds
+          .map(id => `'${id}'`)
+          .join(',')}] and 'baseLineSources' in ['BaseLineItemVersion']`;
+      }
+
       const { list: cases } = await getTestEntityByQuery({
         query: {
           workspaceKey: workspace?.key,
           type: TestType.Case,
-          id: runs?.map(d => d.referenceCase),
+          // id: runs?.map(d => d.referenceCase),
         },
+        selector: selector,
         limit: runs?.length ?? 10,
       });
 
       const caseMap = new Map();
 
       cases?.forEach(d => {
-        caseMap.set(d.id, d.key);
+        caseMap.set(d.id, d);
       });
 
       return {
         total,
-        list: runs.map(r => ({
-          ...r,
-          key: caseMap.get(r.referenceCase),
-        })),
+        list: runs.map(r => {
+          const caseData = caseMap.get(r.referenceCase) || caseMap.get(r.referenceCaseSnapshot);
+          return {
+            ...r,
+            key: caseData?.key,
+            name: caseData?.name,
+          };
+        }),
       };
     },
     [testEntity?.objectId, workspace?.key],
@@ -139,7 +168,7 @@ const Test = () => {
     const { list, total } = await getReTestEntities({
       offset: 0,
       limit: 99999,
-      select: ['referenceCase', 'status', 'id'],
+      select: ['referenceCase', 'referenceCaseSnapshot', 'status', 'id'],
     });
 
     setAllTestEntities(list);
@@ -254,7 +283,13 @@ const Test = () => {
               ellipsis={true}
               target="_blank"
               onClick={() => {
-                if (item?.referenceCaseSnapshot && [CASESNAPSHOT_TYPE.AUTO_BUILDVERSION].includes(config?.caseSnapshot?.type))
+                if (
+                  item?.referenceCaseSnapshot &&
+                  [
+                    CASESNAPSHOT_TYPE.AUTO_BUILDVERSION,
+                    CASESNAPSHOT_TYPE.NO_BUILDVERSION_SELVERSION,
+                  ].includes(config?.caseSnapshot?.type)
+                )
                   openBaseLineViewItemModal(item?.key, item?.referenceCaseSnapshot);
                 else
                   goToItemDetailPage({

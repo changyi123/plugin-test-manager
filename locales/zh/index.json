@@ -640,7 +640,9 @@
         "updateRunStatus": "更改执行状态",
         "batchEdit": "批量编辑",
         "updateCaseVersion": "更新用例",
-        "updateCaseVersionTips": "限制条件不满足，无法更新用例"
+        "updateCaseVersionTips": "限制条件不满足，无法更新用例",
+        "someItemsCannotUpdate": "部分选中项无法更新，存在测试执行没有关联用例",
+        "noReferenceCase": "该测试执行没有关联的用例，无法更新"
       }
     },
     "repository": {

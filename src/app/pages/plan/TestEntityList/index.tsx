@@ -1010,7 +1010,7 @@ const TestEntityList: React.FC<TestEntityListProps> = ({
         width: 120,
         overflowEllipsis: false,
         render(_, rowData) {
-          return <span>{rowData.baseLineItemVersion?.name || '-'}</span>;
+          return <span>{rowData.itemId ? rowData.baseLineItemVersion?.name || '-' : '-'}</span>;
         },
       },
       //  最新执行人
@@ -1298,6 +1298,12 @@ const TestEntityList: React.FC<TestEntityListProps> = ({
         })
         .filter(item => item.runId && item.caseId);
 
+      if (runVersions.length !== _testRunIds.length) {
+        message.error(t('page.plan.testEntityList.someItemsCannotUpdate'));
+        setBatchUpdateLoading(false);
+        return;
+      }
+
       try {
         const res = await batchUpdateCase({
           runVersions: runVersions,
@@ -1386,7 +1392,7 @@ const TestEntityList: React.FC<TestEntityListProps> = ({
   ]);
 
   tableSelectionToggleEvent.useSubscription(visible => {
-    // actionRef.current.toggleSelection(visible);
+    actionRef.current.toggleSelection(visible);
     actionRef.current.resetSelectedRowKeys();
   });
 
@@ -1533,6 +1539,11 @@ const TestEntityList: React.FC<TestEntityListProps> = ({
               },
               expandedRowRender: record => {
                 const handleUpdateExe = async () => {
+                  // 检查 referenceCase 是否为空
+                  if (!record?.referenceCase) {
+                    message.error(t('page.plan.testEntityList.noReferenceCase'));
+                    return;
+                  }
                   // 检验是否满足限制条件 todo  这个地方可以优化
                   if (config?.caseSnapshot?.restrictiveConditions) {
                     try {

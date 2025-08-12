@@ -1,6 +1,6 @@
 import { Checkbox, Empty, Tooltip } from 'antd';
 import _, { clone, pullAll } from 'lodash';
-import React, { useCallback, useMemo, useState } from 'react';
+import React, { useCallback, useEffect, useMemo, useState } from 'react';
 import { GroupedVirtuoso } from 'react-virtuoso';
 
 import OverflowTooltip from '@/components/common/OverflowTooltip';
@@ -14,6 +14,14 @@ import { useCasePlanRule, useGetGroupNodeId, useGetVirtualScrollList } from './h
 
 import CusDropdown from '@/components/business/TestEntitySelectorModal/CusDropdown';
 import cx from './VirtualScrollList.less';
+
+// 版本选项类型定义
+interface VersionOption {
+  label: string;
+  value: string;
+  itemId?: string;
+  itemKey?: string;
+}
 
 interface VirtualScrollListProps {
   groupCounts?: number[];
@@ -58,26 +66,61 @@ const VirtualScrollList: React.FC<VirtualScrollListProps> = props => {
   } = props;
   const { t } = useI18n();
   const { groupArray, groups, totalCount } = useGetVirtualScrollList(group, current);
-  const [versionMapKey, setVersionMapKey] = useState({})
-  
-  const handleItemsLinkKeys = useCallback(async(_items) => {
-    const _keys = _.uniq(_.map(_items, 'key'))
-    const res = await fetch.post('/parse/api/search', {
-      iql:`'key' in ${JSON.stringify(_keys)} and 'baseLineSources' in ['BaseLineItemVersion'] order by createdAt desc`,
-      size: 9999,
-      includeHiddenItem: true
-    });
-    const _newArr = _.map(_.get(res, 'data.payload.items', []), (_case) => _.pick(_case, ['key', 'id', 'itemId', 'values.baseLineItemVersion.name']))
-    const _arrLableKey = _.map(_newArr, (_case) => ({ label:  _case?.values?.baseLineItemVersion?.name, value: _case.id, itemId: _case?.itemId, itemKey: _case?.key}))
-    const _versionMapKey = _.groupBy(_arrLableKey, 'itemKey')
-    setVersionMapKey(_versionMapKey)
-  }, [])
+  const [versionMapKey, setVersionMapKey] = useState<Record<string, VersionOption[]>>({});
+  const handleItemsLinkKeys = useCallback(async _items => {
+    if (!_items || _items.length === 0) return;
+    const _keys = _.uniq(_.map(_items, 'key'));
+    if (_keys.length === 0) return;
+    // console.log('***_keys length****', _keys.length);
+    try {
+      const res = await fetch.post('/parse/api/search', {
+        iql: `'key' in ${JSON.stringify(
+          _keys,
+        )} and 'baseLineSources' in ['BaseLineItemVersion'] order by createdAt desc`,
+        size: 9999,
+        includeHiddenItem: true,
+      });
+      const _newArr = _.map(_.get(res, 'data.payload.items', []), _case =>
+        _.pick(_case, ['key', 'id', 'itemId', 'values.baseLineItemVersion.name']),
+      );
+      const _arrLableKey: VersionOption[] = _.map(_newArr, _case => ({
+        label: _case?.values?.baseLineItemVersion?.name,
+        value: _case.id,
+        itemId: _case?.itemId,
+        itemKey: _case?.key,
+      }));
+      const _versionMapKey = _.groupBy(_arrLableKey, 'itemKey');
+
+      // 为每个 key 都添加"最新"选项，没有版本的数据也有"最新"选项
+      const versionMapKeyWithLatest: Record<string, VersionOption[]> = {};
+      _keys.forEach(key => {
+        const groupOptions = _versionMapKey[key] || [];
+        const latestOption: VersionOption = {
+          label: '最新',
+          value: '',
+          itemId: groupOptions[0]?.itemId || key, // 如果没有数据，使用 key 作为 itemId
+          itemKey: key,
+        };
+        versionMapKeyWithLatest[key] = [latestOption, ...groupOptions];
+      });
+
+      setVersionMapKey(versionMapKeyWithLatest);
+    } catch (error) {
+      console.error('Failed to fetch version data:', error);
+    }
+  }, []);
 
   const items = useMemo(() => {
-    const _items = [...caseListMap.values()].flat()
-    handleItemsLinkKeys(_items)
-    return _items
+    const _items = [...caseListMap.values()].flat();
+    return _items;
   }, [caseListMap]);
+
+  // 使用 useEffect 来处理异步的版本数据获取
+  useEffect(() => {
+    if (enableCaseVersion && items && items.length > 0) {
+      handleItemsLinkKeys(items);
+    }
+  }, [items, enableCaseVersion, handleItemsLinkKeys]);
 
   const { groupNodeMap } = useGetGroupNodeId(group, allCaseIds);
   const { getToolTipFun } = useCasePlanRule(validateCaseStatus);
@@ -192,9 +235,11 @@ const VirtualScrollList: React.FC<VirtualScrollListProps> = props => {
                   disabled={disabled}
                   option={versionMapKey[items?.[index]?.key] || []}
                   value={
-                    versionMapKeySelected[items?.[index]?.id] ||
-                    (!disabled ? versionMapKey[items?.[index]?.key]?.[0] : undefined) ||
-                    '-'
+                    versionMapKeySelected[items?.[index]?.id] !== undefined
+                      ? versionMapKeySelected[items?.[index]?.id]
+                      : !disabled
+                      ? ''
+                      : undefined
                   }
                   onChange={v => {
                     const _obj = {};
@@ -219,6 +264,7 @@ const VirtualScrollList: React.FC<VirtualScrollListProps> = props => {
       enableCaseVersion,
       versionMapKeySelected,
       setVersionMapKeySelected,
+      versionMapKey,
     ],
   );
 

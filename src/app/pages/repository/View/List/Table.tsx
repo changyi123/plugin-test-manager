@@ -685,7 +685,6 @@ const TestDetailTable: React.FC<TestDetailTableProps> = props => {
         onHasRowSelected={setHasRowSelected}
         onSelectionCancel={onSelectionCancel}
         loading={externalDataLoading || tableLoading}
-        selectionMode={true}
         selectionActionNodes={selectionActionNodes}
         handleFilterField={handleFilterField}
         queryDeps={queryDeps}

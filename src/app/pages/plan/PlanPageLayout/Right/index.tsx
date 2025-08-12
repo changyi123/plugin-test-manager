@@ -166,7 +166,7 @@ const Right: React.FC<RightProps> = props => {
   }, [activeType, t]);
 
   const addTestDetail = async () => {
-    const itemData = await testEntitySelectorRef.current.open();
+    const { selectedData: itemData } = await testEntitySelectorRef.current.open();
 
     if (!itemData.length) {
       return notification.warning({
