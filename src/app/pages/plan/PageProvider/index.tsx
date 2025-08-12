@@ -49,9 +49,11 @@ type PageContextType = {
   runLinkSnapshotIds?: string[];
   setRunLinkSnapshotIds?: (val?: string[]) => void;
   runMap?: Record<string, string>;
+  runVersionMap?: Record<string, any>;
   setRunMap?: (val?: Record<string, string>) => void;
   runSnapshotMap?: Record<string, string>;
   setRunSnapshotMap?: (val?: Record<string, string>) => void;
+  setRunVersionMap?: (val?: Record<string, any>) => void;
 };
 
 export const PageContext = React.createContext<PageContextType>({
@@ -81,6 +83,8 @@ export const PageContext = React.createContext<PageContextType>({
   runLinkSnapshotIds: null,
   setRunLinkSnapshotIds: noop,
   setSelectedTestExecution: noop,
+  runVersionMap: null,
+  setRunVersionMap: noop,
 });
 
 const PageProvider: React.FC<any> = ({ children }) => {
@@ -88,6 +92,7 @@ const PageProvider: React.FC<any> = ({ children }) => {
   const refreshCacheRef = useRef<Record<string, () => void>>();
   const [searchValue, setSearchValue] = useState('');
   const [selectors, setSelectors] = useState();
+  const [runVersionMap, setRunVersionMap] = useState<Record<string, string>>({});
   const tableSelectionToggleEvent = useEventEmitter<boolean>();
   const mutateTestPlanEvent = useEventEmitter<string | undefined>();
   const mutateStatusEvent = useEventEmitter<string | undefined>();
@@ -167,6 +172,8 @@ const PageProvider: React.FC<any> = ({ children }) => {
             setRunSnapshotMap,
             selectedTestExecution,
             setSelectedTestExecution,
+            runVersionMap,
+            setRunVersionMap,
           }}
         >
           {children}
