@@ -7,7 +7,7 @@ import {
   requestCoreApi,
   saveAllObject,
 } from '@giteeteam/apps-team-api';
-import { omit } from 'lodash';
+import { difference, omit } from 'lodash';
 import isObject from 'lodash/isObject';
 
 import {
@@ -1563,9 +1563,12 @@ export const batchCreateVersions = async () => {
       size: 99999,
       // displayContext: 'test_manager',
     }).then((res: any) => res?.payload?.items ?? []);
-    const notExitsItems = itemResult.filter(item => !addKeys.includes(item.key));
-    if (notExitsItems.length) {
-      throw new Error(`${notExitsItems.map(item => item.name).join(',')} not exists`);
+    const existKeys = itemResult.map(item => item.key);
+    console.info('batchCreateVersions [verifyItemExist] itemResult', itemResult);
+    const notExistKeys = difference(addKeys, existKeys);
+    console.info('batchCreateVersions [verifyItemExist] notExistKeys', notExistKeys);
+    if (notExistKeys.length) {
+      throw new Error(`${notExistKeys.join(',')} not exists`);
     }
   };
   const verifyNameDuplicate = async () => {
