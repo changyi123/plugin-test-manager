@@ -65,6 +65,7 @@ import {
   getTestCaseStatusModelValue,
   handleCustomerSelector,
   selectorToIql,
+  withWorkspace,
 } from '@/lib/utils/iql';
 import { getRepositoryQuery } from '@/lib/utils/tree';
 import TableCellTestDetailForm from '@/modules/beforeCreateOrUpdateModal/TableCellTestDetailForm';
@@ -535,7 +536,6 @@ const TestEntityList: React.FC<TestEntityListProps> = ({
       if (
         !selectedExecution?.objectId ||
         !executionLinkRunIds?.length ||
-        !selectNode?.key ||
         activeType === 'TestPlan' ||
         !testCaseFieldKeys
       )
@@ -1543,22 +1543,27 @@ const TestEntityList: React.FC<TestEntityListProps> = ({
                     message.error(t('page.plan.testEntityList.noReferenceCase'));
                     return;
                   }
-                  // 检验是否满足限制条件 todo  这个地方可以优化
-                  if (config?.caseSnapshot?.restrictiveConditions) {
+                  // 检验是否满足限制条件，与updateRunVersion保持一致
+                  console.info('payload', record);
+                  const updateRunIds = [record?.id];
+                  let iql = `'test_manager_linkType' = "RunLinkExecution" and 'test_manager_type' = "TestRun" and 'id' in [${updateRunIds
+                    .map(id => `'${id}'`)
+                    .join(',')}]`;
+                  iql += ` and ${config?.caseSnapshot?.restrictiveConditions}`;
+
+                  if (iql) {
                     try {
+                      const queryIql = withWorkspace(iql, workspaceKey);
                       const {
                         data: { payload },
                       } = await fetch.post('/parse/api/search', {
-                        iql: config?.caseSnapshot?.restrictiveConditions,
-                        includeHiddenItem: true,
+                        iql: queryIql,
                         size: 9999,
-                        fields: ['id', 'name'],
+                        fields: ['id'],
+                        displayContext: 'test_manager',
                       });
-                      console.info('payload', record);
-                      const currentCaseId = record?.caseId || record?.id;
-                      const isAllowed = payload?.items?.some(item => item.id === currentCaseId);
-
-                      if (!isAllowed) {
+                      const updateRunDetails = payload?.items ?? [];
+                      if (updateRunDetails.length !== 1) {
                         message.error(t('page.plan.testEntityList.updateCaseVersionTips'));
                         return;
                       }
