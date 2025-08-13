@@ -1,11 +1,14 @@
 import React, { useState } from 'react';
 import _ from 'lodash';
 import { Button, Modal, Space, Input, message } from 'antd';
+import { CopyOutlined } from '@/icons';
+
 import { getRootContainer } from '@/lib/utils/helper';
 import useI18n from '@/lib/hooks/useI18n';
 import cx from './index.less';
 import fetch from '@/lib/utils/fetch';
 import { batchCreateVersionsFn } from '@/lib/api/item';
+import copyTextToClipboard from '@/lib/utils/copyToClipboard';
 
 export type TestBatchCreateVersionModalActionRef = {
   open: ({ testRunIds }: { testRunIds?: string[]; tableData?: any[] }) => Promise<void>;
@@ -83,8 +86,32 @@ const TestBatchCreateVersionModal: React.FC<TestBatchUpdateExeModalProps> = ({
         try {
           const parsedData = typeof res.data === 'string' ? JSON.parse(res.data) : res.data;
           if (parsedData && Array.isArray(parsedData) && parsedData.length > 0) {
-            const nameStr = parsedData.map(item => item.name).join('、');
-            message.error(`【${nameStr}】这些用例上已存在该版本，不可重复打版本！`);
+            const keys = parsedData.map(item => item.key || item.name);
+            const displayKeys = keys.length > 10 ? keys.slice(0, 10) : keys;
+            const displayText = displayKeys.join('、');
+            const fullText = keys.join('、');
+            const suffix = keys.length > 10 ? `等${keys.length}个` : '';
+
+            const errorMessage = `【${displayText}${suffix}】这些用例上已存在该版本，不可重复打版本！`;
+
+            message.error(
+              <div>
+                {errorMessage}
+                {React.createElement(CopyOutlined, {
+                  style: {
+                    color: '#1890ff',
+                    cursor: 'pointer',
+                    marginLeft: '8px',
+                    fontSize: '16px',
+                  },
+                  onClick: () => {
+                    copyTextToClipboard(fullText);
+                    message.success('已复制所有key到剪贴板');
+                  },
+                  title: '复制所有key',
+                })}
+              </div>,
+            );
           } else {
             message.error(res.data || res.message || '请求异常');
           }
