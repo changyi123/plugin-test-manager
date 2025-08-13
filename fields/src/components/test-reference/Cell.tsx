@@ -31,7 +31,7 @@ const Cell: FC<CellProp> = props => {
   const workspaceKey = useGetWorkspaceKeyById(workspaceId);
 
   // 查询所有关联的测试用例
-  const getSearchIQL = useCallback(async () => {
+  const getAllLinkedCase = useCallback(async () => {
     const querySize = 50000;
     // 测试执行的用例范围
     const { list: runs } = await getLinkedTestEntityByQuery({
@@ -44,37 +44,23 @@ const Cell: FC<CellProp> = props => {
       destinationType: 'TestRun',
       select: ['id', 'referenceCase', 'referenceCaseSnapshot'],
     });
-    const caseIds = (runs || []).map(item => item.referenceCase).filter(Boolean);
-    const snapshotIds = (runs || []).map(item => item.referenceCaseSnapshot).filter(Boolean);
-    let result = '';
-    if (caseIds?.length) {
-      result += `(id in [${caseIds.map(item => `'${item}'`).join(',')}])`;
-    }
-    if (snapshotIds?.length) {
-      if (result) {
-        result += ' or ';
-      }
-      result += `(id in [${snapshotIds
-        .map(item => `'${item}'`)
-        .join(',')}] and 'baseLineSources' in ['BaseLineItemVersion'])`;
-    }
-    return result;
+    return (runs || []).map(item => item.referenceCase);
   }, [itemId, workspaceKey]);
   const showItemDataQuotoListModal = useCallback(async () => {
     // 如果关联测试用例为0，则直接返回
     if (!value || !workspaceKey) {
       return;
     }
-    const iql = await getSearchIQL();
-    if (!iql) {
+    const list = await getAllLinkedCase();
+    if (list.length === 0) {
       message.error(t('dataHasRemove'));
       return;
     }
     proxima.execute('openItemDataQuoteListModal', {
-      iql,
+      list,
       visible: true,
     });
-  }, [value, workspaceKey, getSearchIQL]);
+  }, [value, workspaceKey, getAllLinkedCase]);
 
   return (
     <div className="field-cell-layout">

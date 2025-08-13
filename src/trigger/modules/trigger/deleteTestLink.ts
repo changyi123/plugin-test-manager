@@ -9,7 +9,6 @@ import {
 } from '../../../common/constant';
 import { buildResponse } from '../../lib/apiUtil';
 import { batchDeleteItems, batchUpdateItemsValues } from '../../lib/batchRequest';
-import { operateSnapshots } from '../../lib/coreApi';
 import { iqlRequest } from '../../lib/iqlRequest';
 import { updateCaseDefects, updateExecutionCasesAndDefects } from '../../lib/update';
 
@@ -17,7 +16,6 @@ export const deleteTestLink = async () => {
   const { item } = global as any;
   if (!item) return;
   const itemId = item.objectId;
-  const itemKey = item.key;
   const workspaceKey = item.workspace.key;
   const itemType = item.values.r_test_manager_type;
 
@@ -69,58 +67,20 @@ export const deleteTestLink = async () => {
         };
       };
       const { deleteIds, updateIds, executionIdSet } = await getReferencedTestRunIds();
-      console.info('deleteTestLink noSnapShotIds updateIds', deleteIds, updateIds);
-      // 存在关联了该用例并且没有指定版本的执行时，需要为用例打版本，并更新这批执行的referenceCaseSnapshot
-      //  删除用例时是否同时删除相关执行
-      const enabledeletecaserelationexecution = global.env?.FEATURE_FLAGS?.includes(
-        'ENABLE_DELETE_CASE_RELATION_EXECUTION',
-      );
-
-      const allDeleteIds = deleteIds.concat(updateIds);
-      if (!enabledeletecaserelationexecution) {
-        if (allDeleteIds?.length) {
-          tasks.push(batchDeleteItems(deleteIds.concat(updateIds)));
-        }
-      } else {
-        if (deleteIds?.length) {
-          const snapshots = await operateSnapshots({
-            add: {
-              keys: [itemKey],
-            },
-            baseLineItemVersion: {
-              name: `${item.name}-delete-${new Date().getTime()}`,
-            },
-          });
-
-          const baseItemId = snapshots?.baselineItems?.[0].objectId;
-          console.info('case baseItemId', baseItemId);
-          tasks.push(
-            batchUpdateItemsValues(
-              deleteIds.map(id => ({
-                objectId: id,
-                referenceCase: '',
-                referenceCaseSnapshot: baseItemId,
-              })),
-              true,
-              true,
-            ),
-          );
-        }
-
-        if (updateIds?.length) {
-          tasks.push(
-            batchUpdateItemsValues(
-              updateIds.map(id => ({
-                objectId: id,
-                referenceCase: '',
-              })),
-              true,
-              true,
-            ),
-          );
-        }
+      if (deleteIds?.length) {
+        tasks.push(batchDeleteItems(deleteIds));
       }
-
+      if (updateIds?.length) {
+        tasks.push(
+          batchUpdateItemsValues(
+            updateIds.map(id => ({
+              objectId: id,
+              referenceCase: '',
+            })),
+          ),
+          true,
+        );
+      }
       if (executionIdSet.size) {
         fn = async () => {
           await updateExecutionCasesAndDefects([...executionIdSet]);

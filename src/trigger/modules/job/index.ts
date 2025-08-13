@@ -369,11 +369,18 @@ export const createTestRuns = async (params: ProcessJobParams<BatchCreateTestRun
       const updatedRuns = [];
       for (const runId in runCaseMap) {
         const snapshotId = caseSnapshotMap[runCaseMap[runId]];
-        updatedRuns.push({
+        const snapshotInfo = snapshotCaseToBaseLineVersion[snapshotId];
+        const runDetail = snapshotInfo.runDetail; // 快照执行
+        delete snapshotInfo.runDetail;
+        const updateInfo = {
           objectId: runId,
           referenceCaseSnapshot: snapshotId,
-          baseLineItemVersion: snapshotCaseToBaseLineVersion[snapshotId],
-        });
+          baseLineItemVersion: snapshotInfo,
+        } as any;
+        if (runDetail) {
+          updateInfo.runDetail = runDetail;
+        }
+        updatedRuns.push(updateInfo);
       }
 
       console.info('batchCreateTestRunV2 updateRunsReference', updatedRuns);
@@ -392,7 +399,11 @@ export const createTestRuns = async (params: ProcessJobParams<BatchCreateTestRun
         .join(',')}] and 'baseLineSources' in ['BaseLineItemVersion']`;
       const cases = await requestCoreApi('POST', '/parse/api/search', {
         iql,
-        fields: [SystemField.Id, TestFiledKeyMapping.baseLineItemVersion],
+        fields: [
+          SystemField.Id,
+          TestFiledKeyMapping.baseLineItemVersion,
+          TestFiledKeyMapping.detail,
+        ],
         size: 9999,
         displayContext: 'test_manager',
       }).then((data: any) => data?.payload.items ?? []);
@@ -401,6 +412,7 @@ export const createTestRuns = async (params: ProcessJobParams<BatchCreateTestRun
         result[item.id] = {
           ...item?.values?.baseLineItemVersion,
           baseLineItemId: item.id,
+          runDetail: JSON.parse(item?.values?.[TestFiledKeyMapping.detail] || '{}'),
         };
       });
 
@@ -425,17 +437,19 @@ export const createTestRuns = async (params: ProcessJobParams<BatchCreateTestRun
         {},
       );
 
-      let snapToBaseLineVersion = {};
+      let snapToBaseLineVersionInfo = {};
 
       if (Object.keys(caseVersion)?.length) {
-        snapToBaseLineVersion = await getSnapshotIdToBaseLineVersion(Object.values(caseVersion));
+        snapToBaseLineVersionInfo = await getSnapshotIdToBaseLineVersion(
+          Object.values(caseVersion),
+        );
       }
 
       console.info(
         'batchCreateTestRunV2 attachSnapshotToRun snapToBaseLineVersion',
-        snapToBaseLineVersion,
+        snapToBaseLineVersionInfo,
       );
-      await updateRunsReference(existedRunsMap, caseVersion, snapToBaseLineVersion);
+      await updateRunsReference(existedRunsMap, caseVersion, snapToBaseLineVersionInfo);
       console.info('batchCreateTestRunV2 attachSnapshotToRun end');
     };
 
