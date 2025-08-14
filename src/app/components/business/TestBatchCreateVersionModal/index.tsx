@@ -178,7 +178,7 @@ const TestBatchCreateVersionModal: React.FC<TestBatchUpdateExeModalProps> = ({
           onChange={v => {
             setSelected(v.target.value);
           }}
-          maxLength={10}
+          maxLength={20}
           placeholder={t('components.business.testBatchUpateModel.placeholderVersionName')}
         />
       </Space>

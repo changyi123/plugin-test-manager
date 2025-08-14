@@ -1538,15 +1538,14 @@ const TestEntityList: React.FC<TestEntityListProps> = ({
               },
               expandedRowRender: record => {
                 const handleUpdateExe = async () => {
-                  // 检查 referenceCase 是否为空
                   if (!record?.referenceCase) {
                     message.error(t('page.plan.testEntityList.noReferenceCase'));
                     return;
                   }
                   // 检验是否满足限制条件，与updateRunVersion保持一致
                   console.info('payload', record);
-                  const updateRunIds = [record?.id];
-                  let iql = `'test_manager_linkType' = "RunLinkExecution" and 'test_manager_type' = "TestRun" and 'id' in [${updateRunIds
+                  const updateCaseIds = [record?.caseId];
+                  let iql = `'test_manager_type' = 'TestCase' and 'id' in [${updateCaseIds
                     .map(id => `'${id}'`)
                     .join(',')}]`;
                   iql += ` and ${config?.caseSnapshot?.restrictiveConditions}`;
