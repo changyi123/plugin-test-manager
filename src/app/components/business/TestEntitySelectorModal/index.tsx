@@ -17,6 +17,7 @@ import cx from './index.less';
 import InheritTestDetail from './InheritTestDetail';
 import SelectorTable from './SelectorTable';
 import TestDetailSelector from './TestDetailSelector';
+import { TestEntitySelectorProvider } from './TestEntitySelectorContext';
 
 const AddExistedTestEventType = 'ADD_EXISTED_TEST';
 
@@ -69,6 +70,7 @@ export type TestEntitySelectorProps = {
   getContainer?: () => HTMLElement;
   includesIds?: string[] | undefined;
   enableCaseVersion?: boolean; // 是否展示用例版本
+  type?: string; // 操作类型，如 'add' 表示新建执行任务
 };
 
 const TestEntitySelector: React.FC<TestEntitySelectorProps> = props => {
@@ -89,6 +91,7 @@ const TestEntitySelector: React.FC<TestEntitySelectorProps> = props => {
     isPlanForTestSet = false,
     enableCaseVersion = false,
     includesIds,
+    type,
   } = props;
   const [visible, setVisible] = useSafeState(false);
   const debounceSelectContainerRef = React.useRef();
@@ -535,33 +538,35 @@ const TestEntitySelector: React.FC<TestEntitySelectorProps> = props => {
   ]);
 
   return (
-    <Modal
-      destroyOnClose
-      afterClose={() => {
-        PreviousButtonClicked = false;
-        PreviousMessageData = null;
-        afterClose?.();
-      }}
-      keyboard={false}
-      open={visible}
-      maskClosable={false}
-      className={cx('modal')}
-      getContainer={getContainer ?? getTestManagerContainer}
-      footer={ModalFooterNode}
-      onCancel={() => {
-        testType === TestType.Case && setTreeType('repository');
-        setSelectValue(isSingleMode ? undefined : []);
-        setVisible(false);
-      }}
-      title={
-        modelProps?.title ??
-        props.title ??
-        `${t('components.business.testEntitySelectorModal.pleaseSelect')}${testTypeName}`
-      }
-      width={testType === TestType.Case ? 830 : width ?? 580}
-    >
-      {testSelectNode}
-    </Modal>
+    <TestEntitySelectorProvider type={type}>
+      <Modal
+        destroyOnClose
+        afterClose={() => {
+          PreviousButtonClicked = false;
+          PreviousMessageData = null;
+          afterClose?.();
+        }}
+        keyboard={false}
+        open={visible}
+        maskClosable={false}
+        className={cx('modal')}
+        getContainer={getContainer ?? getTestManagerContainer}
+        footer={ModalFooterNode}
+        onCancel={() => {
+          testType === TestType.Case && setTreeType('repository');
+          setSelectValue(isSingleMode ? undefined : []);
+          setVisible(false);
+        }}
+        title={
+          modelProps?.title ??
+          props.title ??
+          `${t('components.business.testEntitySelectorModal.pleaseSelect')}${testTypeName}`
+        }
+        width={testType === TestType.Case ? 830 : width ?? 580}
+      >
+        {testSelectNode}
+      </Modal>
+    </TestEntitySelectorProvider>
   );
 };
 TestEntitySelector.displayName = 'TestEntitySelectorModal';

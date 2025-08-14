@@ -452,6 +452,7 @@ const PlanPageLayout: React.FC<any> = () => {
               [CASESNAPSHOT_TYPE.NO_BUILDVERSION_SELVERSION].includes(config?.caseSnapshot?.type) &&
               activeType === 'TestExecution'
             }
+            type="add"
           />
         </>
       )}

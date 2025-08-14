@@ -13,6 +13,7 @@ import { usePageContext } from '@/pages/plan/hook';
 
 import { filterIgnoreTestCaseId, getCheckedByType, handleGroupPath } from './helper';
 import { useCasePlanRule, useGetGroupNodeId, useGetVirtualScrollList } from './hooks';
+import { useTestEntitySelectorContext } from './TestEntitySelectorContext';
 import cx from './VirtualScrollList.less';
 
 // 版本选项类型定义
@@ -66,6 +67,9 @@ const VirtualScrollList: React.FC<VirtualScrollListProps> = props => {
   } = props;
   const { t } = useI18n();
   const { runVersionMap } = usePageContext();
+  const { type } = useTestEntitySelectorContext();
+  // 如果是新建执行任务类型，则使用空的 runVersionMap
+  const effectiveRunVersionMap = type === 'add' ? {} : runVersionMap;
   const { groupArray, groups, totalCount } = useGetVirtualScrollList(group, current);
 
   const [versionMapKey, setVersionMapKey] = useState<Record<string, VersionOption[]>>({});
@@ -238,9 +242,9 @@ const VirtualScrollList: React.FC<VirtualScrollListProps> = props => {
                   option={versionMapKey[items?.[index]?.key] || []}
                   value={
                     versionMapKeySelected[items?.[index]?.id] ||
-                    runVersionMap?.[items?.[index]?.id]?.baseLineItemId ||
+                    effectiveRunVersionMap?.[items?.[index]?.id]?.baseLineItemId ||
                     ''
-                    // runVersionMap?.[items?.[index]?.id]?.baseLineItemId || ''
+                    // effectiveRunVersionMap?.[items?.[index]?.id]?.baseLineItemId || ''
                     // versionMapKeySelected[items?.[index]?.id] !== undefined
                     //   ? versionMapKeySelected[items?.[index]?.id]
                     //   : !disabled
@@ -271,6 +275,8 @@ const VirtualScrollList: React.FC<VirtualScrollListProps> = props => {
       versionMapKeySelected,
       setVersionMapKeySelected,
       versionMapKey,
+      effectiveRunVersionMap,
+      type,
     ],
   );
 
