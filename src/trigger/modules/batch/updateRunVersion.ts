@@ -61,7 +61,7 @@ export const batchUpdateRunVersion = async () => {
 
     const validateRuns = async () => {
       const snapShotType = await getCaseSnapshotInfo(workspaceKey);
-      const updateRunIds = runVersions.map(item => item.runId);
+      const updateCaseIds = runVersions.map(item => item.caseId);
 
       console.info('snapShotType: ', snapShotType);
       if (!canUpdateCaseVersion(snapShotType)) {
@@ -72,7 +72,7 @@ export const batchUpdateRunVersion = async () => {
         return true;
       }
 
-      let iql = `'test_manager_linkType' = "RunLinkExecution" and 'test_manager_type' = "TestRun" and 'id' in [${updateRunIds
+      let iql = `'test_manager_type' = 'TestCase' and 'id' in [${updateCaseIds
         .map(id => `'${id}'`)
         .join(',')}]`;
 
@@ -84,13 +84,13 @@ export const batchUpdateRunVersion = async () => {
         displayContext: TEST_MANAGER_PLUGIN_KEY,
       }).then((data: any) => data?.payload.items ?? null);
 
-      if (updateRunDetails.length !== updateRunIds.length) {
+      if (updateRunDetails.length !== updateCaseIds.length) {
         throw new Error('The test execution version cannot be modified.');
       }
     };
 
     const getAllRunLinkCase = async () => {
-      const iql = `'test_manager_type' = "TestCase" and 'id' in [${runVersions
+      const iql = `'test_manager_type' = 'TestCase' and 'id' in [${runVersions
         .map(item => `'${item.caseId}'`)
         .join(',')}]`;
 
@@ -154,7 +154,7 @@ export const updateRunVersion = async () => {
         throw new Error('The version of the use case cannot be modified.');
       }
 
-      let iql = `'test_manager_linkType' = "RunLinkExecution" and 'test_manager_type' = "TestRun" and 'id' in ['${runId}']`;
+      let iql = `'test_manager_type' = 'TestCase' and 'id' in ['${caseId}']`;
 
       if (!snapShotType.restrictiveConditions) {
         return true;
