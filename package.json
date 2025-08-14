@@ -14,7 +14,7 @@
     "dev-trigger": "node scripts/triggerDev.js",
     "prepare": "husky install",
     "tunnel": "giteeteam-apps tunnel --no-server -c locales",
-    "tunnel-trigger": "giteeteam-apps tunnel -i ./src/trigger",
+    "tunnel-trigger": "giteeteam-apps tunnel -i ./src/trigger --no-proxy",
     "login-app": "giteeteam-apps login",
     "deploy": "giteeteam-apps deploy"
   },

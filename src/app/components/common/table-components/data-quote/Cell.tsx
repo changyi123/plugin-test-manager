@@ -10,6 +10,7 @@ import React, { useCallback, useEffect, useState } from 'react';
 import useCellComponent from '../useCellComponent';
 import DataQuoteActionCell from './ActionCell';
 import cx from './index.module.less';
+import { dataQuoteInit } from './util';
 
 const DataQuoteCell = React.forwardRef((props: Record<string, any>, ref) => {
   const { overlayClsName, value, text, userData, property } = props;
