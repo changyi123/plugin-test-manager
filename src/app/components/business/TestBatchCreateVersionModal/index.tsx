@@ -1,22 +1,20 @@
-import React, { useState } from 'react';
+import { Button, Input, message, Modal, Space } from 'antd';
 import _ from 'lodash';
-import { Button, Modal, Space, Input, message } from 'antd';
-import { CopyOutlined } from '@/icons';
+import React, { useState } from 'react';
 
-import { getRootContainer } from '@/lib/utils/helper';
-import useI18n from '@/lib/hooks/useI18n';
-import cx from './index.less';
-import fetch from '@/lib/utils/fetch';
+import { CopyOutlined } from '@/icons';
 import { batchCreateVersionsFn } from '@/lib/api/item';
+import useI18n from '@/lib/hooks/useI18n';
 import copyTextToClipboard from '@/lib/utils/copyToClipboard';
+import { getRootContainer } from '@/lib/utils/helper';
 
 export type TestBatchCreateVersionModalActionRef = {
   open: ({ testRunIds }: { testRunIds?: string[]; tableData?: any[] }) => Promise<void>;
 };
 
 interface TestBatchUpdateExeModalProps {
-  actionRef?: React.ForwardedRef<TestBatchCreateVersionModalActionRef>,
-  refresh?: () => void,
+  actionRef?: React.ForwardedRef<TestBatchCreateVersionModalActionRef>;
+  refresh?: () => void;
 }
 
 const TestBatchCreateVersionModal: React.FC<TestBatchUpdateExeModalProps> = ({
@@ -25,8 +23,8 @@ const TestBatchCreateVersionModal: React.FC<TestBatchUpdateExeModalProps> = ({
 }) => {
   const { t } = useI18n();
   const [isVisible, setIsVisible] = useState(false);
-  const [selected, setSelected] = useState('')
-  const [keys, setKeys] = useState<string[]>([])
+  const [selected, setSelected] = useState('');
+  const [keys, setKeys] = useState<string[]>([]);
   const [loading, setLoading] = useState(false);
 
   React.useImperativeHandle(
@@ -56,16 +54,6 @@ const TestBatchCreateVersionModal: React.FC<TestBatchUpdateExeModalProps> = ({
     try {
       await new Promise(resolve => setTimeout(resolve, 1500));
 
-      // await fetch.post('/parse/api/baseLineItems', {
-      //   add: {
-      //     keys: keys,
-      //   },
-      //   sourceType: global.appKey ?? 'test_manager',
-      //   baseLineItemVersion: {
-      //     name: selected,
-      //   },
-      // });
-
       // 修改打版本接口
       const param = {
         add: {
@@ -90,9 +78,17 @@ const TestBatchCreateVersionModal: React.FC<TestBatchUpdateExeModalProps> = ({
             const displayKeys = keys.length > 10 ? keys.slice(0, 10) : keys;
             const displayText = displayKeys.join('、');
             const fullText = keys.join('、');
-            const suffix = keys.length > 10 ? `等${keys.length}个` : '';
+            const suffix =
+              keys.length > 10
+                ? t('components.business.testBatchUpateModel.moreItemsSuffix', {
+                    count: keys.length,
+                  })
+                : '';
 
-            const errorMessage = `【${displayText}${suffix}】这些用例上已存在该版本，不可重复打版本！`;
+            const errorMessage = t('components.business.testBatchUpateModel.versionExistsError', {
+              displayText,
+              suffix,
+            });
 
             message.error(
               <div>
@@ -106,17 +102,27 @@ const TestBatchCreateVersionModal: React.FC<TestBatchUpdateExeModalProps> = ({
                   },
                   onClick: () => {
                     copyTextToClipboard(fullText);
-                    message.success('已复制所有key到剪贴板');
+                    message.success(
+                      t('components.business.testBatchUpateModel.copyAllKeysSuccess'),
+                    );
                   },
-                  title: '复制所有key',
+                  title: t('components.business.testBatchUpateModel.copyAllKeysTitle'),
                 })}
               </div>,
             );
           } else {
-            message.error(res.data || res.message || '请求异常');
+            message.error(
+              res.data ||
+                res.message ||
+                t('components.business.testBatchUpateModel.requestException'),
+            );
           }
         } catch (error) {
-          message.error(res.data || res.message || '请求异常');
+          message.error(
+            res.data ||
+              res.message ||
+              t('components.business.testBatchUpateModel.requestException'),
+          );
         }
       }
     } finally {
@@ -124,24 +130,32 @@ const TestBatchCreateVersionModal: React.FC<TestBatchUpdateExeModalProps> = ({
     }
   }, 500);
 
-  const handleConfirmModal = async() => {
-    if (_.isNaN(selected) || _.isEmpty(selected) || _.isNull(selected) || _.isUndefined(selected) || (selected && selected.trim()?.length === 0)) {
+  const handleConfirmModal = async () => {
+    if (
+      _.isNaN(selected) ||
+      _.isEmpty(selected) ||
+      _.isNull(selected) ||
+      _.isUndefined(selected) ||
+      (selected && selected.trim()?.length === 0)
+    ) {
       message.success(t('components.business.testBatchUpateModel.placeholderVersionName'));
-      return 
+      return;
     }
     await handleBatchCreateVersion();
-  }
+  };
   const ModalFooterActionButtonsNode = React.useMemo(() => {
     return (
       <>
         <Button onClick={handleCloseModal}>{t('common.close')}</Button>
-        <Button type="primary" onClick={handleConfirmModal} loading={loading}>{t('common.confirm')}</Button>
+        <Button type="primary" onClick={handleConfirmModal} loading={loading}>
+          {t('common.confirm')}
+        </Button>
       </>
     );
   }, [handleCloseModal, handleConfirmModal, t, loading]);
 
   return (
-    <Modal 
+    <Modal
       width={500}
       title={t('components.business.testBatchUpateModel.batchCreateVersion')}
       destroyOnClose
@@ -149,16 +163,20 @@ const TestBatchCreateVersionModal: React.FC<TestBatchUpdateExeModalProps> = ({
       maskClosable={false}
       onCancel={handleCloseModal}
       getContainer={getRootContainer}
-      className={cx('testBatchUpdateExeModal')}
       footer={ModalFooterActionButtonsNode}
-      bodyStyle={{ height: '150px', display: 'flex', justifyContent: 'center', alignItems: 'center' }}
+      bodyStyle={{
+        height: '150px',
+        display: 'flex',
+        justifyContent: 'center',
+        alignItems: 'center',
+      }}
     >
       <Space>
         <span>{t('components.business.testBatchUpateModel.versionName')}: </span>
         <Input
           style={{ width: 200 }}
-          onChange={(v) => {
-            setSelected(v.target.value)
+          onChange={v => {
+            setSelected(v.target.value);
           }}
           maxLength={10}
           placeholder={t('components.business.testBatchUpateModel.placeholderVersionName')}

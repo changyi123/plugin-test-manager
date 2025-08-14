@@ -98,7 +98,7 @@ const VirtualScrollList: React.FC<VirtualScrollListProps> = props => {
       _keys.forEach(key => {
         const groupOptions = _versionMapKey[key] || [];
         const latestOption: VersionOption = {
-          label: '最新',
+          label: t('common.newest'),
           value: '',
           itemId: groupOptions[0]?.itemId || key, // 如果没有数据，使用 key 作为 itemId
           itemKey: key,

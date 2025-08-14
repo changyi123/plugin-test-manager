@@ -219,7 +219,7 @@ const Test = () => {
   const menuList = useMemo(() => {
     return [
       {
-        title: t('modules.panel.testCaseSet.testAddPanel.addHaveTestCase') + '1111',
+        title: t('modules.panel.testCaseSet.testAddPanel.addHaveTestCase'),
         // disabled: !getCreatePermission(TestType.Case),
         async onClick() {
           await addExistTestCase();

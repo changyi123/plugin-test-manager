@@ -8,8 +8,6 @@ import useI18n from '@/lib/hooks/useI18n';
 import fetch from '@/lib/utils/fetch';
 import { getRootContainer } from '@/lib/utils/helper';
 
-import cx from './index.less';
-
 export type TestBatchUpateModalActionRef = {
   open: (params: {
     caseId?: string,
@@ -52,7 +50,7 @@ const TestBatchUpdateExeModal: React.FC<TestBatchUpdateExeModalProps> = ({
         const curItem: any = _.chain(tableData)
           .filter(item => _.includes(testRunIds, item.objectId))
           .value();
-        console.info('curItem', curItem);
+        // console.info('curItem', curItem);
         const _keys = _.chain(curItem).map('key').value();
         setKeys(_keys);
         const res = await fetch.post('/parse/api/search', {
@@ -65,7 +63,6 @@ const TestBatchUpdateExeModal: React.FC<TestBatchUpdateExeModalProps> = ({
         const _newArr = _.map(_.get(res, 'data.payload.items', []), _case =>
           _.pick(_case, ['key', 'id', 'itemId', 'values.baseLineItemVersion.name', 'createdAt']),
         );
-        console.log('_newArr', _newArr);
         const _arrLableKey = _.map(_newArr, _case => ({
           label:
             _case?.values?.baseLineItemVersion?.name +
@@ -75,7 +72,7 @@ const TestBatchUpdateExeModal: React.FC<TestBatchUpdateExeModalProps> = ({
           itemId: _case?.itemId,
         }));
         const latestOption = {
-          label: '最新',
+          label: t('common.newest'),
           value: 'new', // 版本 不传
           itemId: caseId,
         };
@@ -151,7 +148,6 @@ const TestBatchUpdateExeModal: React.FC<TestBatchUpdateExeModalProps> = ({
       maskClosable={false}
       onCancel={handleCloseModal}
       getContainer={getRootContainer}
-      className={cx('testBatchUpdateExeModal')}
       footer={ModalFooterActionButtonsNode}
       bodyStyle={{
         height: '150px',

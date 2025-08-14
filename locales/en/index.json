@@ -1205,7 +1205,12 @@
         "msgUpateVersion": "Please select the updated version",
         "batchCreateVersion": "Batch create versions",
         "versionName": "Version name",
-        "placeholderVersionName": "Please enter the version name"
+        "placeholderVersionName": "Please enter the version name",
+        "versionExistsError": "【{{displayText}}{{suffix}}】These test cases already have this version, cannot create duplicate versions!",
+        "copyAllKeysSuccess": "All keys have been copied to clipboard",
+        "copyAllKeysTitle": "Copy all keys",
+        "requestException": "Request exception",
+        "moreItemsSuffix": " and {{count}} more"
       },
       "testStep": {
         "stepField": ["Step", "Expected", "Data", "Data"],

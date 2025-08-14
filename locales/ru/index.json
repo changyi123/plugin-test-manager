@@ -1204,7 +1204,12 @@
         "msgUpateVersion": "Выберите обновленную версию",
         "batchCreateVersion": "Серийное создание версий",
         "versionName": "Название версии",
-        "placeholderVersionName": "Пожалуйста, введите имя версии"
+        "placeholderVersionName": "Пожалуйста, введите имя версии",
+        "versionExistsError": "【{{displayText}}{{suffix}}】Эти тестовые случаи уже имеют эту версию, нельзя создавать дублирующие версии!",
+        "copyAllKeysSuccess": "Все ключи скопированы в буфер обмена",
+        "copyAllKeysTitle": "Копировать все ключи",
+        "requestException": "Исключение запроса",
+        "moreItemsSuffix": " и еще {{count}}"
       },
       "testStep": {
         "stepField": ["Шаг", "?->Ожидал", "Данные"],

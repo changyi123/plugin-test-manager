@@ -1250,7 +1250,12 @@
         "msgUpateVersion": "请选择更新版本",
         "batchCreateVersion": "批量创建版本",
         "versionName": "版本名称",
-        "placeholderVersionName": "请输入版本名称"
+        "placeholderVersionName": "请输入版本名称",
+        "versionExistsError": "【{{displayText}}{{suffix}}】这些用例上已存在该版本，不可重复打版本！",
+        "copyAllKeysSuccess": "已复制所有key到剪贴板",
+        "copyAllKeysTitle": "复制所有key",
+        "requestException": "请求异常",
+        "moreItemsSuffix": "等{{count}}个"
       },
       "testStep": {
         "stepField": ["步骤", "预期", "数据", "准备数据"],
