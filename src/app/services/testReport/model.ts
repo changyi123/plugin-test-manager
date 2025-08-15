@@ -11,7 +11,12 @@ import {
   getTestEntityByQuery,
 } from '@/lib/api/item';
 import { search } from '@/lib/api/proxima';
-import { getAppEnv, judgeCaseSnapshot, judgeTestReportVersion, TEST_REPORT_VERSION } from '@/lib/appEnv';
+import {
+  getAppEnv,
+  judgeCaseSnapshot,
+  judgeTestReportVersion,
+  TEST_REPORT_VERSION,
+} from '@/lib/appEnv';
 import {
   BuiltinFieldNameMapping,
   CASESNAPSHOT_TYPE,
@@ -171,7 +176,7 @@ const getPlanRefTestEntityIds = async (
       destinationType: TestType.Run,
       limit: 99999,
       onlySelectId: true,
-      selector: [CASESNAPSHOT_TYPE.AUTO_BUILDVERSION].includes(caseSnapshot.type)
+      selector: [CASESNAPSHOT_TYPE.AUTO_BUILDVERSION].includes(caseSnapshot?.type)
         ? [{}, {}, `${BuiltinFieldNameMapping.referenceCaseSnapshot} is not null`]
         : [{}, {}, `${BuiltinFieldNameMapping.referenceCase} is not null`],
     });
@@ -262,7 +267,9 @@ const getExecutionRefTestEntityIds = async (
 
     return {
       runIds: data.list.map(i => i.id),
-      caseIds: [CASESNAPSHOT_TYPE.AUTO_BUILDVERSION].includes(caseSnapshot?.type) ? [] : uniq(data.list.map(i => i.referenceCase).filter(Boolean)),
+      caseIds: [CASESNAPSHOT_TYPE.AUTO_BUILDVERSION].includes(caseSnapshot?.type)
+        ? []
+        : uniq(data.list.map(i => i.referenceCase).filter(Boolean)),
       snapshotIds: [CASESNAPSHOT_TYPE.AUTO_BUILDVERSION].includes(caseSnapshot?.type)
         ? uniq(data.list.map(i => i.referenceCaseSnapshot).filter(Boolean))
         : [],
@@ -390,7 +397,7 @@ const getCustomDataSourceResults = async (dsConfigs, reportParams, dsIqlConfig) 
     if (!customDataSourceConfigResult.report)
       customDataSourceConfigResult.report = reportParams.report;
   }
-  console.log('customDataSourceConfigResult--->1', customDataSourceConfigResult)
+  console.log('customDataSourceConfigResult--->1', customDataSourceConfigResult);
   return customDataSourceConfigResult;
 };
 
@@ -673,36 +680,40 @@ const chainChartDataAdaptor = (chartData, dataSource) => {
     },
     /** 自定义数据源 */
     customDataSource(customDataSourceResults) {
-      const formatValue = (v) => {
-        return (_.isNull(v) || _.isUndefined(v) || _.isNaN(v) )? '-' : toString(round(v, 2).toFixed(2)) + '%'
-      }
+      const formatValue = v => {
+        return _.isNull(v) || _.isUndefined(v) || _.isNaN(v)
+          ? '-'
+          : toString(round(v, 2).toFixed(2)) + '%';
+      };
       function handleEmptyData(_reportDetail) {
-        const _noData = [{
-          type: 'p',
-          children: [
-            {
-              type: 'p',
-              children: [
-                {
-                  text: t('report.coverRate.noData'),
-                },
-              ],
-              align: "center",
-              id: Date.now(),
-            },
-          ],
-        }]
-        if (_.isEmpty(_reportDetail)) return _noData
-        return []
+        const _noData = [
+          {
+            type: 'p',
+            children: [
+              {
+                type: 'p',
+                children: [
+                  {
+                    text: t('report.coverRate.noData'),
+                  },
+                ],
+                align: 'center',
+                id: Date.now(),
+              },
+            ],
+          },
+        ];
+        if (_.isEmpty(_reportDetail)) return _noData;
+        return [];
       }
 
       function handleReportType(_reportType) {
         if ([1].includes(_reportType)) {
-          return t('report.coverRate.typeIncrement')
+          return t('report.coverRate.typeIncrement');
         } else if ([2].includes(_reportType)) {
-          return t('report.coverRate.typeAll')
+          return t('report.coverRate.typeAll');
         }
-        return t('report.coverRate.typeEmpty')
+        return t('report.coverRate.typeEmpty');
       }
       const adaptors = {
         richText(chartOption, chartOptionAdaptor, result) {
@@ -730,91 +741,90 @@ const chainChartDataAdaptor = (chartData, dataSource) => {
             });
             richTextValue = replaceValue ?? JSON.parse(richTextValueString);
           } else if (['table_coverRate'].includes(type)) {
-            const { reportType, reportUrl, reportDetail } = result?.data || {}
-            const _dataJson = []
-            forEach(reportDetail, (item) => {
-              const { baseVersionNumber, branchCov, functionCov, rowCov, servicesName, remarks } =  item || {}
-              _dataJson.push(
-                {
-                  type: 'tr',
-                  id: Math.random(),
-                  children: [
-                    {
-                      type: 'td',
-                      id: Math.random(),
-                      children: [
-                        {
-                          children: [{text: servicesName || '-'}],
-                          id: Math.random(),
-                          type: "p",
-                          align: "center"
-                        }
-                      ]
-                    },
-                    {
-                      type: 'td',
-                      id: Math.random(),
-                      children: [
-                        {
-                          children: [{text: formatValue(branchCov)}],
-                          id: Math.random(),
-                          type: "p",
-                          align: "right"
-                        }
-                      ]
-                    },
-                    {
-                      type: 'td',
-                      id: Math.random(),
-                      children: [
-                        {
-                          children: [{text: formatValue(functionCov)}],
-                          id: Math.random(),
-                          type: "p",
-                          align: "right"
-                        }
-                      ]
-                    },
-                    {
-                      type: 'td',
-                      id: Math.random(),
-                      children: [
-                        {
-                          children: [{text: formatValue(rowCov)}],
-                          id: Math.random(),
-                          type: "p",
-                          align: "right"
-                        }
-                      ]
-                    },
-                    {
-                      type: 'td',
-                      id: Math.random(),
-                      children: [
-                        {
-                          children: [{text: baseVersionNumber || '-'}],
-                          id: Math.random(),
-                          type: "p",
-                          align: "center"
-                        }
-                      ]
-                    },
-                    {
-                      type: 'td',
-                      id: Math.random(),
-                      children: [
-                        {
-                          children: [{text: remarks || '-'}],
-                          id: Math.random(),
-                          type: "p",
-                          align: "center"
-                        }
-                      ]
-                    },
-                  ],
-                }
-              )
-            })
+            const { reportType, reportUrl, reportDetail } = result?.data || {};
+            const _dataJson = [];
+            forEach(reportDetail, item => {
+              const { baseVersionNumber, branchCov, functionCov, rowCov, servicesName, remarks } =
+                item || {};
+              _dataJson.push({
+                type: 'tr',
+                id: Math.random(),
+                children: [
+                  {
+                    type: 'td',
+                    id: Math.random(),
+                    children: [
+                      {
+                        children: [{ text: servicesName || '-' }],
+                        id: Math.random(),
+                        type: 'p',
+                        align: 'center',
+                      },
+                    ],
+                  },
+                  {
+                    type: 'td',
+                    id: Math.random(),
+                    children: [
+                      {
+                        children: [{ text: formatValue(branchCov) }],
+                        id: Math.random(),
+                        type: 'p',
+                        align: 'right',
+                      },
+                    ],
+                  },
+                  {
+                    type: 'td',
+                    id: Math.random(),
+                    children: [
+                      {
+                        children: [{ text: formatValue(functionCov) }],
+                        id: Math.random(),
+                        type: 'p',
+                        align: 'right',
+                      },
+                    ],
+                  },
+                  {
+                    type: 'td',
+                    id: Math.random(),
+                    children: [
+                      {
+                        children: [{ text: formatValue(rowCov) }],
+                        id: Math.random(),
+                        type: 'p',
+                        align: 'right',
+                      },
+                    ],
+                  },
+                  {
+                    type: 'td',
+                    id: Math.random(),
+                    children: [
+                      {
+                        children: [{ text: baseVersionNumber || '-' }],
+                        id: Math.random(),
+                        type: 'p',
+                        align: 'center',
+                      },
+                    ],
+                  },
+                  {
+                    type: 'td',
+                    id: Math.random(),
+                    children: [
+                      {
+                        children: [{ text: remarks || '-' }],
+                        id: Math.random(),
+                        type: 'p',
+                        align: 'center',
+                      },
+                    ],
+                  },
+                ],
+              });
+            });
             richTextValue = [
               {
                 type: 'p',
@@ -860,85 +870,87 @@ const chainChartDataAdaptor = (chartData, dataSource) => {
                         id: Math.random(),
                         children: [
                           {
-                            children: [{text: t('report.coverRate.servicesName'), bold: true}],
+                            children: [{ text: t('report.coverRate.servicesName'), bold: true }],
                             id: Math.random(),
-                            type: "p",
-                            align: "center"
-                          }
-                        ]
+                            type: 'p',
+                            align: 'center',
+                          },
+                        ],
                       },
                       {
                         type: 'td',
                         id: Math.random(),
                         children: [
                           {
-                            children: [{text: t('report.coverRate.branchCov'), bold: true}],
+                            children: [{ text: t('report.coverRate.branchCov'), bold: true }],
                             id: Math.random(),
-                            type: "p",
-                            align: "right"
-                          }
-                        ]
+                            type: 'p',
+                            align: 'right',
+                          },
+                        ],
                       },
                       {
                         type: 'td',
                         id: Math.random(),
                         children: [
                           {
-                            children: [{text: t('report.coverRate.functionCov'), bold: true}],
+                            children: [{ text: t('report.coverRate.functionCov'), bold: true }],
                             id: Math.random(),
-                            type: "p",
-                            align: "right"
-                          }
-                        ]
+                            type: 'p',
+                            align: 'right',
+                          },
+                        ],
                       },
                       {
                         type: 'td',
                         id: Math.random(),
                         children: [
                           {
-                            children: [{text: t('report.coverRate.rowCov'), bold: true}],
+                            children: [{ text: t('report.coverRate.rowCov'), bold: true }],
                             id: Math.random(),
-                            type: "p",
-                            align: "right"
-                          }
-                        ]
+                            type: 'p',
+                            align: 'right',
+                          },
+                        ],
                       },
                       {
                         type: 'td',
                         id: Math.random(),
                         children: [
                           {
-                            children: [{text: t('report.coverRate.baseVersionNumber'), bold: true}],
+                            children: [
+                              { text: t('report.coverRate.baseVersionNumber'), bold: true },
+                            ],
                             id: Math.random(),
-                            type: "p",
-                            align: "center"
-                          }
-                        ]
+                            type: 'p',
+                            align: 'center',
+                          },
+                        ],
                       },
                       {
                         type: 'td',
                         id: Math.random(),
                         children: [
                           {
-                            children: [{text: t('report.coverRate.remarks'), bold: true}],
+                            children: [{ text: t('report.coverRate.remarks'), bold: true }],
                             id: Math.random(),
-                            type: "p",
-                            align: "center"
-                          }
-                        ]
+                            type: 'p',
+                            align: 'center',
+                          },
+                        ],
                       },
                     ],
                   },
-                  ..._dataJson
+                  ..._dataJson,
                 ],
               },
-              ...handleEmptyData(reportDetail)
+              ...handleEmptyData(reportDetail),
             ];
             return {
               ...chartOption,
               richTextValue,
             };
-          }  else {
+          } else {
             richTextValue = [
               {
                 type: 'p',
