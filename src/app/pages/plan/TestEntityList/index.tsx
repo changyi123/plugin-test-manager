@@ -1548,7 +1548,9 @@ const TestEntityList: React.FC<TestEntityListProps> = ({
                   let iql = `'test_manager_type' = 'TestCase' and 'id' in [${updateCaseIds
                     .map(id => `'${id}'`)
                     .join(',')}]`;
-                  iql += ` and ${config?.caseSnapshot?.restrictiveConditions}`;
+                  if (config?.caseSnapshot?.restrictiveConditions) {
+                    iql += ` and ${config?.caseSnapshot?.restrictiveConditions}`;
+                  }
 
                   if (iql) {
                     try {

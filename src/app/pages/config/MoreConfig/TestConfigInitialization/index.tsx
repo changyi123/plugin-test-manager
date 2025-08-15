@@ -1,7 +1,6 @@
 import { useMutation } from '@tanstack/react-query';
 import { useMemoizedFn } from 'ahooks';
 import { Button, Form, message, Switch, Radio } from 'antd';
-import { pick } from 'lodash';
 import React from 'react';
 import { useTranslation } from 'react-i18next';
 
@@ -39,7 +38,14 @@ const TestConfigInitialization = () => {
   const caseSnapshotType = Form.useWatch(['caseSnapshot', 'type'], form);
 
   React.useEffect(() => {
-    form.setFieldsValue(pick(globalConfig?.extra, Object.keys(FormFieldKey)));
+    const extra = globalConfig?.extra || {};
+    const formData = {
+      enableItemTypeAutoBind: extra.enableItemTypeAutoBind,
+      initialItemTypeMapping: extra.initialItemTypeMapping,
+      caseSnapshot: extra.caseSnapshot,
+    };
+
+    form.setFieldsValue(formData);
   }, [form, globalConfig?.extra]);
 
   const resetItemTypeMapping = useMemoizedFn(() => {
