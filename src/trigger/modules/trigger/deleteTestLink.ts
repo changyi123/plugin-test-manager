@@ -63,24 +63,24 @@ export const deleteTestLink = async () => {
         return {
           deleteIds,
           updateIds,
+          allIds: [...deleteIds, ...updateIds],
           executionIdSet,
         };
       };
-      const { deleteIds, updateIds, executionIdSet } = await getReferencedTestRunIds();
-      if (deleteIds?.length) {
-        tasks.push(batchDeleteItems(deleteIds));
+      const { executionIdSet, allIds } = await getReferencedTestRunIds();
+      if (allIds?.length) {
+        tasks.push(batchDeleteItems(allIds));
       }
-      if (updateIds?.length) {
-        tasks.push(
-          batchUpdateItemsValues(
-            updateIds.map(id => ({
-              objectId: id,
-              referenceCase: '',
-            })),
-          ),
-          true,
-        );
-      }
+      // if (updateIds?.length) {      //   tasks.push(
+      //     batchUpdateItemsValues(
+      //       updateIds.map(id => ({
+      //         objectId: id,
+      //         referenceCase: '',
+      //       })),
+      //     ),
+      //     true,
+      //   );
+      // }
       if (executionIdSet.size) {
         fn = async () => {
           await updateExecutionCasesAndDefects([...executionIdSet]);
