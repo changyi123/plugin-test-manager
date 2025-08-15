@@ -1011,7 +1011,9 @@ const TestEntityList: React.FC<TestEntityListProps> = ({
           return (
             <span>
               {`[${t('common.snapshot')}]` +
-                (rowData.baseLineItemVersion?.name ? ` ${rowData.baseLineItemVersion?.name}` : '')}
+                (rowData.referenceCaseSnapshot && rowData.baseLineItemVersion?.name
+                  ? ` ${rowData.baseLineItemVersion?.name}`
+                  : '')}
             </span>
           );
         },
@@ -1553,7 +1555,7 @@ const TestEntityList: React.FC<TestEntityListProps> = ({
                     .map(id => `'${id}'`)
                     .join(',')}]`;
                   if (config?.caseSnapshot?.restrictiveConditions) {
-                    iql += ` and ${config?.caseSnapshot?.restrictiveConditions}`;
+                    iql += ` and (${config?.caseSnapshot?.restrictiveConditions})`;
                   }
 
                   if (iql) {

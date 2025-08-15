@@ -76,7 +76,7 @@ export const batchUpdateRunVersion = async () => {
         .map(id => `'${id}'`)
         .join(',')}]`;
 
-      iql += ` and ${snapShotType.restrictiveConditions}`;
+      iql += ` and (${snapShotType.restrictiveConditions})`;
       const updateRunDetails = await requestCoreApi('POST', '/parse/api/search', {
         iql,
         fields: ['id'],
@@ -160,7 +160,7 @@ export const updateRunVersion = async () => {
         return true;
       }
 
-      iql += ` and ${snapShotType.restrictiveConditions}`;
+      iql += ` and (${snapShotType.restrictiveConditions})`;
 
       const canUpdateRuns = await requestCoreApi('POST', '/parse/api/search', {
         iql,
