@@ -1011,7 +1011,9 @@ const TestEntityList: React.FC<TestEntityListProps> = ({
           return (
             <span>
               {`[${t('common.snapshot')}]` +
-                (rowData.baseLineItemVersion?.name ? ` ${rowData.baseLineItemVersion?.name}` : '')}
+                (rowData.referenceCaseSnapshot && rowData.baseLineItemVersion?.name
+                  ? ` ${rowData.baseLineItemVersion?.name}`
+                  : '')}
             </span>
           );
         },
