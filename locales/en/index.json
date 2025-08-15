@@ -12,6 +12,7 @@
     "cannotExecuteTestCase": "The current test case is not assigned to an executor and cannot be executed"
   },
   "common": {
+    "snapshot": "Snapshot",
     "createPermissionTip": "Please contact the administrator to check the type mapping of the workspace, or enable",
     "haveDelete": "deleted",
     "forbiddenActive": "disabled",

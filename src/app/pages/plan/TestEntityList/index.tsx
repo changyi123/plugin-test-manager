@@ -1009,7 +1009,12 @@ const TestEntityList: React.FC<TestEntityListProps> = ({
         width: 120,
         overflowEllipsis: false,
         render(_, rowData) {
-          return <span>{rowData.itemId ? rowData.baseLineItemVersion?.name || '-' : '-'}</span>;
+          return (
+            <span>
+              {`[${t('common.snapshot')}]` +
+                (rowData.baseLineItemVersion?.name ? ` ${rowData.baseLineItemVersion?.name}` : '')}
+            </span>
+          );
         },
       },
       //  最新执行人
