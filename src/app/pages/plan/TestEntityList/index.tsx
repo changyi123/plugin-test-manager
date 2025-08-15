@@ -1553,7 +1553,7 @@ const TestEntityList: React.FC<TestEntityListProps> = ({
                     .map(id => `'${id}'`)
                     .join(',')}]`;
                   if (config?.caseSnapshot?.restrictiveConditions) {
-                    iql += ` and ${config?.caseSnapshot?.restrictiveConditions}`;
+                    iql += ` and (${config?.caseSnapshot?.restrictiveConditions})`;
                   }
 
                   if (iql) {
