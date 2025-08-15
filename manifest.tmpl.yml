@@ -2,7 +2,7 @@ app:
   key: test_manager
   uuid: bf73e61c-e15a-4461-a1f7-f940c2009332
   name: test_manager
-  version: "4.38.26"
+  version: "4.38.69"
 modules:
   webtrigger:
     # TODO: Debug 使用，生产环境禁止调用下面的 trigger
@@ -16,6 +16,9 @@ modules:
     # 动态配置 one 路由
     - key: gitee-menus
       function: gitee-menus-function
+    # 批量创建版本
+    - key: api-batch-create-versions
+      function: batch-create-versions-function
     # 批量创建统计报表
     - key: batch-create-chart-groups
       function: batch-create-chart-groups-function
@@ -189,6 +192,12 @@ modules:
     - key: create-repository
       function: test-manager-create-repository-function
 
+    - key: api-update-run-version
+      function: test-manager-update-run-version-function
+
+    - key: api-batch-update-run-version
+      function: test-manager-batch-update-run-version-function
+
   trigger:
     - key: test-manager-initial-script-install
       events:
@@ -208,6 +217,11 @@ modules:
       events:
         - gei:proxima:item:beforeCreate
       function: item-before-create-trigger-function
+      async: false
+    - key: item-before-update-trigger
+      events:
+        - gei:proxima:item:beforeUpdate
+      function: item-before-update-trigger-function
       async: false
     # - key: test-manager-item-after-save-trigger
     #   events:
@@ -245,6 +259,8 @@ modules:
       handler: trigger.deleteTestLink
     - key: item-before-create-trigger-function
       handler: trigger.handleBeforeCreate
+    - key: item-before-update-trigger-function
+      handler: trigger.handleBeforeUpdate
     - key: item-created-trigger-function
       handler: trigger.createdItemLinkType
     - key: test-manager-validate-script-function
@@ -359,6 +375,11 @@ modules:
       timeout: 3600000
     - key: job-copy-test-case-function
       handler: job.copyTesCasesJob
+      # 60 分钟超时时长
+      timeout: 3600000
+    # 批量创建版本
+    - key: batch-create-versions-function
+      handler: api.batchCreateVersions
       # 60 分钟超时时长
       timeout: 3600000
     - key: job-add-execution-to-plan-function
@@ -484,6 +505,12 @@ modules:
 
     - key: test-manager-create-repository-function
       handler: api.createRepository
+
+    - key: test-manager-update-run-version-function
+      handler: api.updateRunVersion
+
+    - key: test-manager-batch-update-run-version-function
+      handler: api.batchUpdateRunVersion
 
     - key: init-test-config-function
       handler: api.initTestConfig
@@ -643,9 +670,9 @@ modules:
       operator: in
       arguments:
         - name: item
-          source: 
-            type: Item  
-            mode: multiple 
+          source:
+            type: Item
+            mode: multiple
             iql: test_manager_type = 'TestExecution'
             valueKey: objectId
             context:
@@ -658,9 +685,9 @@ modules:
       operator: in
       arguments:
         - name: item
-          source: 
-            type: Item  
-            mode: multiple 
+          source:
+            type: Item
+            mode: multiple
             iql: test_manager_type = 'TestCase'
             valueKey: objectId
             context:
@@ -818,6 +845,17 @@ modules:
       name: test_manager_runMapCaseKey
       description: 测试管理内置字段-测试执行关联的测试用例 key（勿删改）
       type: Text
+    - key: isCaseUpdate
+      name: 是否有更新
+      type: Radio
+      undeletable: true
+      locked: true
+      readonly: true
+      description: 测试管理内置字段-用例是否有更新
+      data:
+        customData:
+          - label: '是'
+            value: '1'
     - key: executionCases
       name: 引用测试用例
       type: _self:test_reference
@@ -1074,8 +1112,8 @@ tables:
       # 关联统计报表
       chartGroups:
         type: Object
-      enableCaseSnapshot:
-        type: Boolean
+      caseSnapshot:
+        type: Object
   - className: TestRelation
     fields:
       from:

@@ -10,7 +10,7 @@ import { getTestEntityByQuery, updateTestRunDetail } from '@/lib/api/item';
 import { getItemByIds } from '@/lib/api/proxima';
 import { getItemLinkRelation, getTestStepsByTestDetailId } from '@/lib/api/runs';
 import { getAppEnv } from '@/lib/appEnv';
-import { PASS_STATUS_TYPE, TestType } from '@/lib/constants';
+import { CASESNAPSHOT_TYPE, PASS_STATUS_TYPE, TestType } from '@/lib/constants';
 import { useBaseAction, useTestConfig } from '@/lib/hooks/useContext';
 import useI18n from '@/lib/hooks/useI18n';
 import { TestEntity } from '@/lib/types/Test';
@@ -142,12 +142,11 @@ const TestRunV2: React.FC<TestRunType> = props => {
         objectId: testRunEntity.referenceCase,
       };
 
-      // 未被初始化的测试用例详情字段为 {} 或 null
       if (
         (!testRunEntity.runDetail ||
           !Object.keys(testRunEntity.runDetail).length ||
           testRunEntity.runDetail.init) &&
-        !config.enableCaseSnapshot
+        [CASESNAPSHOT_TYPE.NO_AUTOBUILDVERSION_NO_SELVERSION].includes(config?.caseSnapshot?.type)
       ) {
         const testCaseId = testRunEntity.referenceCase;
         const [testCaseEntity, stepsDataFromTestCase] = await Promise.all([

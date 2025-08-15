@@ -16,6 +16,9 @@ import {
 } from '@/components/business/BatchResult/hooks';
 import RenderRepository from '@/components/business/RenderRepository';
 import { StatusBadge } from '@/components/business/Status';
+import TestBatchUpdateExeModal, {
+  TestBatchUpateModalActionRef,
+} from '@/components/business/TestBatchUpdateExeModal';
 import TestRunModal, {
   ActionType as TestRunModalActionType,
   VERSION,
@@ -29,11 +32,13 @@ import type { BusinessTableActionType } from '@/components/common/BusinessTable/
 import Field from '@/components/common/Field';
 import {
   addTestDefect,
+  batchUpdateCase,
   getCasesByStatus,
   getLinkedTestEntityByQuery,
   getTestCaseStats,
   getTestEntityByQuery,
   getUpdateParams,
+  handleSelector,
   updateTestEntity,
   updateTestStatus,
 } from '@/lib/api/item';
@@ -42,15 +47,26 @@ import { useCurrentUser } from '@/lib/api/user';
 import { getCurrentUserSetting, saveUserSetting } from '@/lib/api/userSetting';
 import { getAppEnv } from '@/lib/appEnv';
 import { featureFlags, SupportFeatureFlags } from '@/lib/appEnv';
-import { TestCaseStatusModel, TestRunDesigneeModel, TestRunExecutorModel } from '@/lib/constants';
+import {
+  CASESNAPSHOT_TYPE,
+  TestCaseStatusModel,
+  TestRunDesigneeModel,
+  TestRunExecutorModel,
+} from '@/lib/constants';
 import { useBaseAction, useTestConfig } from '@/lib/hooks/useContext';
 import useI18n from '@/lib/hooks/useI18n';
 import { useUserCellUserDataProp } from '@/lib/hooks/useProxima';
 import { useCanExecuteTestRunIdSequence, useTestRunActionAuth } from '@/lib/hooks/useTest';
 import { checkRunStatus } from '@/lib/utils/checkRunStatus';
+import fetch from '@/lib/utils/fetch';
 import { getDefectDefautFieldConfig } from '@/lib/utils/getDefectDefautFieldConfig';
 import { actionConfirm, openItemViewScreen } from '@/lib/utils/helper';
-import { getTestCaseStatusModelValue, handleCustomerSelector } from '@/lib/utils/iql';
+import {
+  getTestCaseStatusModelValue,
+  handleCustomerSelector,
+  selectorToIql,
+  withWorkspace,
+} from '@/lib/utils/iql';
 import { getRepositoryQuery } from '@/lib/utils/tree';
 import TableCellTestDetailForm from '@/modules/beforeCreateOrUpdateModal/TableCellTestDetailForm';
 import TableCellTestDetailFormReadOnly from '@/modules/beforeCreateOrUpdateModal/TableCellTestDetailFormReadOnly';
@@ -110,6 +126,8 @@ const TestEntityList: React.FC<TestEntityListProps> = ({
     executionLinkRunIds,
     runLinkCaseIds,
     runLinkSnapshotIds,
+    runMap,
+    runSnapshotMap,
     tableSelectionToggleEvent,
     mutateTestTableList,
   } = usePageContext();
@@ -123,6 +141,7 @@ const TestEntityList: React.FC<TestEntityListProps> = ({
 
   const actionRef = React.useRef<BusinessTableActionType>();
   const testRunModalActionRef = React.useRef<TestRunModalActionType>();
+  const testBatchUpateModalActionRef = React.useRef<TestBatchUpateModalActionRef>(); // 批量更新执行用例
   const userData = useUserCellUserDataProp(workspaceKey);
   const { canExecuteTestRun, canAssignTestRun } = useTestRunActionAuth({ workspaceKey });
   const { data: currentUser } = useCurrentUser();
@@ -132,6 +151,9 @@ const TestEntityList: React.FC<TestEntityListProps> = ({
   const [hasRowSelected, setHasRowSelected] = useState(false);
   const currentRunRef = useRef(null);
   const loading = loadingFromParentElement || tableLoading;
+
+  // 批量更新执行用例
+  const [batchUpdateLoading, setBatchUpdateLoading] = useState(false);
 
   const statusesConfig = React.useMemo(() => {
     return keyBy(globalTestConfig?.statuses ?? [], 'key');
@@ -355,6 +377,8 @@ const TestEntityList: React.FC<TestEntityListProps> = ({
       workspaceKey,
       runLinkCaseIds,
       runLinkSnapshotIds,
+      runMap,
+      runSnapshotMap,
       executionId,
       selector,
       queryParams,
@@ -364,27 +388,50 @@ const TestEntityList: React.FC<TestEntityListProps> = ({
     } = params;
 
     const repository = getRepositoryQuery(selectNode, showType);
+
+    // todo 这个地方可能还是有问题， 后期在优化
+    // 对 referenceCase 和 referenceCaseSnapshot 字段分组，后面 selector 使用
+    const remainingCaseIds = [];
+    for (const caseId of Object.keys(runMap)) {
+      if (runSnapshotMap[caseId] === undefined) {
+        remainingCaseIds.push(runMap[caseId]);
+      }
+    }
+
     // 筛选条件作用在测试用例，所以需要先查询出所有的测试用例，再查出测试执行
     const searchParams = {
       query: {
         workspaceKey: workspaceKey,
         type: TestType.Case,
-        id: runLinkCaseIds,
+        // id: runLinkCaseIds,
         ...repository,
       },
       fields: caseFieldKeys ?? [],
       selector,
       ...queryParams,
     };
-
-    if (config?.enableCaseSnapshot) {
-      searchParams.query.id = runLinkSnapshotIds;
-      searchParams.selector.push(`'baseLineSources' in ['${executionId}']`);
-      searchParams.fields.push('itemId');
+    let iql = '';
+    if (remainingCaseIds.length > 0) {
+      iql += `id in [${remainingCaseIds.map(id => `'${id}'`).join(',')}]`;
     }
+
+    if (runLinkSnapshotIds.length) {
+      iql += remainingCaseIds?.length ? ' or ' : '';
+      iql += `(id in [${runLinkSnapshotIds
+        .map(id => `'${id}'`)
+        .join(',')}] and 'baseLineSources' in ['BaseLineItemVersion'])`;
+    }
+
+    const _transferIQL = selectorToIql(handleSelector(selector));
+    if (selector && _transferIQL) {
+      iql += ` and ${_transferIQL}`;
+    }
+
+    searchParams.selector = iql || '';
 
     const { list: cases, total } = await getTestEntityByQuery(searchParams);
 
+    console.info('cases', cases);
     const caseSearchParams = {
       query: {
         workspaceKey: workspaceKey,
@@ -405,30 +452,50 @@ const TestEntityList: React.FC<TestEntityListProps> = ({
         'status',
         'runDetail',
       ],
+      selector: '',
     };
 
     const referenceCase = [];
     const referenceCaseSnapshot = [];
     cases.forEach(i => {
-      if (i.itemId) referenceCaseSnapshot.push(i.id);
-      if (i.id) referenceCase.push(i.id);
+      if (i.itemId) {
+        referenceCaseSnapshot.push(i.id);
+      } else {
+        referenceCase.push(i.id);
+      }
     });
 
-    if (config?.enableCaseSnapshot)
-      caseSearchParams.query.referenceCaseSnapshot = referenceCaseSnapshot;
-    else if (referenceCase.length) caseSearchParams.query.referenceCase = referenceCase;
+    let iql2 = '';
+    if (referenceCase.length > 0) {
+      iql2 += `'test_manager_referenceCase' in [${referenceCase.map(id => `'${id}'`).join(',')}]`;
+    }
+
+    if (referenceCaseSnapshot.length) {
+      iql2 += remainingCaseIds?.length ? ' or ' : '';
+      iql2 += `('test_manager_referenceCaseSnapshot' in [${referenceCaseSnapshot
+        .map(id => `'${id}'`)
+        .join(',')}])`;
+    }
+
+    if (iql2) {
+      caseSearchParams.selector = iql2;
+    }
+
+    console.info('caseSearchParams', caseSearchParams);
 
     const { list: runs } = await getLinkedTestEntityByQuery(caseSearchParams as any);
 
     const runCaseMap = new Map();
     runs.forEach(d => {
-      runCaseMap.set(config?.enableCaseSnapshot ? d.referenceCaseSnapshot : d.referenceCase, d);
+      runCaseMap.set(d.referenceCaseSnapshot ? d.referenceCaseSnapshot : d.referenceCase, d);
     });
 
-    return {
+    console.info('runs', runs);
+    const result = {
       list: cases?.map(c => {
         const runData = pick(runCaseMap.get(c.id), [
           'id',
+          'itemId',
           'referenceCase',
           'referenceCaseSnapshot',
           'designee',
@@ -438,20 +505,24 @@ const TestEntityList: React.FC<TestEntityListProps> = ({
           'executeTime',
           'runDetail',
         ]);
-
         return {
           ...c,
           ...runData,
+          referenceCase: runData.referenceCase,
+          referenceCaseSnapshot: runData.referenceCaseSnapshot,
           status: c.workflowStatus,
           runStatus: runData.status,
-          caseId: c.id,
+          caseId: c.itemId || c.id,
           objectId: runData.id,
           id: runData.id,
           repository: c.repository,
+          // baseLineItemVersion: c.baseLineItemVersion,
         };
       }),
       total,
     };
+    console.info('result', result);
+    return result;
   };
 
   const getExecutionTableData = useCallback(
@@ -464,7 +535,6 @@ const TestEntityList: React.FC<TestEntityListProps> = ({
       if (
         !selectedExecution?.objectId ||
         !executionLinkRunIds?.length ||
-        !selectNode?.key ||
         activeType === 'TestPlan' ||
         !testCaseFieldKeys
       )
@@ -497,10 +567,12 @@ const TestEntityList: React.FC<TestEntityListProps> = ({
         workspaceKey,
         runLinkCaseIds,
         runLinkSnapshotIds,
+        runMap,
+        runSnapshotMap,
         executionId: selectedExecution.objectId,
         selector: [systemSelectors, filterCaseSelector],
         queryParams,
-        caseFieldKeys,
+        caseFieldKeys: caseFieldKeys.concat(['itemId']),
         selectNode,
         showType,
       });
@@ -855,7 +927,13 @@ const TestEntityList: React.FC<TestEntityListProps> = ({
         },
         extraProps: {
           onClick: record => {
-            if (record?.referenceCaseSnapshot && config?.enableCaseSnapshot)
+            if (
+              record?.referenceCaseSnapshot &&
+              [
+                CASESNAPSHOT_TYPE.AUTO_BUILDVERSION,
+                CASESNAPSHOT_TYPE.NO_BUILDVERSION_SELVERSION,
+              ].includes(config?.caseSnapshot?.type)
+            )
               openBaseLineViewItemModal(record?.key, record.referenceCaseSnapshot);
             else openItemViewScreen(record?.caseId);
           },
@@ -922,6 +1000,20 @@ const TestEntityList: React.FC<TestEntityListProps> = ({
         width: 200,
         render(_, record) {
           return <span>{record?.executeCount ?? 0}</span>;
+        },
+      },
+      {
+        key: 'caseVersion',
+        title: t('page.plan.testEntityList.caseVersion'),
+        width: 120,
+        overflowEllipsis: false,
+        render(_, rowData) {
+          return (
+            <span>
+              {`[${t('common.snapshot')}]` +
+                (rowData.baseLineItemVersion?.name ? ` ${rowData.baseLineItemVersion?.name}` : '')}
+            </span>
+          );
         },
       },
       //  最新执行人
@@ -1011,7 +1103,6 @@ const TestEntityList: React.FC<TestEntityListProps> = ({
                 style={{ marginLeft: 10, color: 'red' }}
                 disabled={getCreatePermission(TestType.Case)}
                 onClick={async () => {
-                  console.info('--record', record);
                   deleteTestRunByIds([record.id]);
                 }}
               >
@@ -1195,7 +1286,63 @@ const TestEntityList: React.FC<TestEntityListProps> = ({
       });
     };
 
+    // 批量更新执行用例
+    const batchUpdateExeCases = async () => {
+      const _testRunIds: string[] = getTestRunIds() || [];
+      setBatchUpdateLoading(true);
+
+      const runVersions = _testRunIds
+        .map(runId => {
+          const idx = executionLinkRunIds.indexOf(runId);
+          return {
+            runId,
+            caseId: runLinkCaseIds[idx], // 索引对应
+          };
+        })
+        .filter(item => item.runId && item.caseId);
+
+      if (runVersions.length !== _testRunIds.length) {
+        message.error(t('page.plan.testEntityList.someItemsCannotUpdate'));
+        setBatchUpdateLoading(false);
+        return;
+      }
+
+      try {
+        const res = await batchUpdateCase({
+          runVersions: runVersions,
+          workspaceKey: workspaceKey,
+        });
+        if (res?.status === 'ok') {
+          message.success(t('common.success'));
+          refreshTreeAndScopeTestCase?.();
+          setTimeout(() => {
+            actionRef.current.refresh();
+          }, 400);
+        } else {
+          message.error(res?.data || t('common.error'));
+        }
+      } catch (error) {
+        message.error(error?.message || t('common.error'));
+      } finally {
+        setBatchUpdateLoading(false);
+      }
+    };
+
     const canDesigneeSelect = canAssignTestRun();
+
+    const handleBatchUpateExeCase = () => {
+      if (config?.caseSnapshot?.enableCaseExeUpdate) {
+        return (
+          <span
+            className={cx(!hasRowSelected || (batchUpdateLoading && 'disabled'))}
+            key="batchUpdateExeCases"
+            onClick={() => hasRowSelected && !batchUpdateLoading && batchUpdateExeCases()}
+          >
+            {t('components.business.testBatchUpateModel.batchUpateExeCase')}
+          </span>
+        );
+      }
+    };
     return [
       <Tooltip
         key="assignee"
@@ -1231,6 +1378,7 @@ const TestEntityList: React.FC<TestEntityListProps> = ({
       <span className={cx('danger')} key="delete" onClick={() => hasRowSelected && deleteTestRun()}>
         <DeleteOutlined /> {t('common.remove')}
       </span>,
+      handleBatchUpateExeCase(),
     ];
   }, [
     canAssignTestRun,
@@ -1242,6 +1390,7 @@ const TestEntityList: React.FC<TestEntityListProps> = ({
     mutateStatusEvent,
     deleteTestRunByIds,
     t,
+    config?.caseSnapshot?.enableCaseExeUpdate,
     selectedExecution?.objectId,
   ]);
 
@@ -1343,7 +1492,7 @@ const TestEntityList: React.FC<TestEntityListProps> = ({
           }
         />
       ) : (
-        //  测试计划--测试执行任务
+        // 测试计划--测试执行任务
         <BusinessTable
           className={cx(`${tableSelectionVisible ? 'batch-action' : ''}`)}
           titleCellOption={{
@@ -1362,6 +1511,7 @@ const TestEntityList: React.FC<TestEntityListProps> = ({
             'createdAt',
             'executor',
             'executeTime',
+            'caseVersion',
           ]}
           privateColumnKey={[
             'repositoryGroup',
@@ -1370,6 +1520,7 @@ const TestEntityList: React.FC<TestEntityListProps> = ({
             'executor',
             'designee',
             'executeTime',
+            'caseVersion',
           ]}
           rowKey="objectId"
           columns={executionColumns}
@@ -1379,6 +1530,7 @@ const TestEntityList: React.FC<TestEntityListProps> = ({
           getDataSource={executionTableDataGetter}
           onHasRowSelected={setHasRowSelected}
           allSelectableRowKeys={runRowKeys}
+          // selectionMode={true}
           selectionActionNodes={InnerTableSelectionActionNodes}
           onSelectionCancel={() => tableSelectionToggleEvent.emit(false)}
           handleFilterField={handleFilterField}
@@ -1389,9 +1541,68 @@ const TestEntityList: React.FC<TestEntityListProps> = ({
                 return cx('expandedRowClassName');
               },
               expandedRowRender: record => {
+                const handleUpdateExe = async () => {
+                  if (!record?.referenceCase) {
+                    message.error(t('page.plan.testEntityList.noReferenceCase'));
+                    return;
+                  }
+                  // 检验是否满足限制条件，与updateRunVersion保持一致
+                  console.info('payload', record);
+                  const updateCaseIds = [record?.caseId];
+                  let iql = `'test_manager_type' = 'TestCase' and 'id' in [${updateCaseIds
+                    .map(id => `'${id}'`)
+                    .join(',')}]`;
+                  if (config?.caseSnapshot?.restrictiveConditions) {
+                    iql += ` and ${config?.caseSnapshot?.restrictiveConditions}`;
+                  }
+
+                  if (iql) {
+                    try {
+                      const queryIql = withWorkspace(iql, workspaceKey);
+                      const {
+                        data: { payload },
+                      } = await fetch.post('/parse/api/search', {
+                        iql: queryIql,
+                        size: 9999,
+                        fields: ['id'],
+                        displayContext: 'test_manager',
+                      });
+                      const updateRunDetails = payload?.items ?? [];
+                      if (updateRunDetails.length !== 1) {
+                        message.error(t('page.plan.testEntityList.updateCaseVersionTips'));
+                        return;
+                      }
+                    } catch (err) {
+                      console.error(err);
+                      message.error(t('common.error'));
+                      return;
+                    }
+                  }
+                  // 更新执行用例
+                  const _testRunIds: string[] = [record?.objectId || record?.id];
+                  await testBatchUpateModalActionRef.current.open({
+                    caseId: record?.itemId || record?.caseId, // 用例id： 如果是版本取itemId，如果是用例取 caseId
+                    testRunIds: _testRunIds,
+                    tableData: actionRef.current.dataSource,
+                    workspaceKey: workspaceKey,
+                  });
+                };
                 return (
                   <div className={cx('form')}>
-                    <TableCellTestDetailFormReadOnly values={record?.runDetail ?? {}} />
+                    {/* 更新执行状态 */}
+                    <TableCellTestDetailFormReadOnly
+                      values={record?.runDetail ?? {}}
+                      extraElement={
+                        config?.caseSnapshot?.enableCaseExeUpdate && (
+                          <h6
+                            style={{ fontSize: '14px', color: '#0c62ff', cursor: 'pointer' }}
+                            onClick={() => handleUpdateExe()}
+                          >
+                            {t('page.plan.testEntityList.updateCaseVersion')}
+                          </h6>
+                        )
+                      }
+                    />
                   </div>
                 );
               },
@@ -1407,6 +1618,17 @@ const TestEntityList: React.FC<TestEntityListProps> = ({
           selectedTestPlanId={selectedTestPlan?.objectId}
         />
       )}
+      {/* 更新执行用例 */}
+      <TestBatchUpdateExeModal
+        actionRef={testBatchUpateModalActionRef}
+        refresh={() => {
+          // 刷新依赖数据
+          refreshTreeAndScopeTestCase?.();
+          setTimeout(() => {
+            actionRef.current.refresh();
+          }, 400);
+        }}
+      />
     </div>
   );
 };

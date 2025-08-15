@@ -9,13 +9,14 @@ import {
 } from '../../../../common/constant';
 import { buildResponse, getReqInfoFromVMRuntime } from '../../../lib/apiUtil';
 import { batchUpdateItemsValues } from '../../../lib/batchRequest';
+import { CASESNAPSHOT_TYPE } from '../../../lib/constants';
 import { operateSnapshots } from '../../../lib/coreApi';
 
 const RUN_BASE_IQL = `${BuiltinFieldNameMapping.type} = ${TestType.Run} and ${BuiltinFieldNameMapping.referenceCaseSnapshot} is null`;
 
 const judgeCaseSnapshot = testConfig => {
   return global.env.ENABLED_CASE_SNAPSHOT
-    ? testConfig?.enableCaseSnapshot
+    ? [CASESNAPSHOT_TYPE.AUTO_BUILDVERSION].includes(testConfig?.caseSnapshot?.type)
     : global.env.DEFAULT_ENABLED_CASE_SNAPSHOT;
 };
 
@@ -55,7 +56,7 @@ export const handleSnapshotScript = async () => {
     }>();
     // 判断环境变量是否支持全局快照
     const enableCaseSnapshot =
-      !global.env.ENABLED_CASE_SNAPSHOT && global.env.DEFAULT_ENABLED_CASE_SNAPSHOT;
+      global.env.ENABLED_CASE_SNAPSHOT && global.env.DEFAULT_ENABLED_CASE_SNAPSHOT;
     const ParseBaseQueryOptions = {
       useMasterKey: true,
     };
@@ -64,7 +65,7 @@ export const handleSnapshotScript = async () => {
     // 查询需要处理的测试执行任务的iql
     let runIql = ``;
     // 全局快照
-    if (enableCaseSnapshot) {
+    if (!enableCaseSnapshot) {
       runIql = RUN_BASE_IQL;
     } else {
       // 获取所有空间
@@ -93,7 +94,7 @@ export const handleSnapshotScript = async () => {
       // 获取需要处理的空间配置
       const configs = await getParseQuery(false, TestConfigClassName)
         .containedIn('workspaceKey', installedWorkspaceKeys)
-        .select(['enableCaseSnapshot', 'workspaceKey'])
+        .select(['workspaceKey', 'caseSnapshot'])
         .findAll(ParseBaseQueryOptions);
       const configMap = configs.reduce(
         (m, i) => ({ ...m, [i.get('workspaceKey')]: judgeCaseSnapshot(i) }),

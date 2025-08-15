@@ -12,9 +12,11 @@
     "cannotExecuteTestCase": "The current test case is not assigned to an executor and cannot be executed"
   },
   "common": {
+    "snapshot": "Snapshot",
     "createPermissionTip": "Please contact the administrator to check the type mapping of the workspace, or enable",
     "haveDelete": "deleted",
     "forbiddenActive": "disabled",
+    "newest": "Newest",
     "pageTitle": {
       "repository": "Test Repository",
       "task": "Test Task",
@@ -411,7 +413,13 @@
         "builtInItemTypeHasBeenModified": "Built-in matter types have been modified.",
         "messageSuccess": "Test management configuration initialization successful.",
         "initialItemTypeMappingLabel": "Configuring Initialization Type Mapping",
-        "resetButtonText": "Reset"
+        "resetButtonText": "Reset",
+        "noAutoBuildVersionNoSelVersion": "It does not automatically generate versions and cannot select use case versions when planning use cases",
+        "autoBuildVersion": "When testing and executing task planning use cases, the version is automatically typed",
+        "noBuildVersionSelVersion": "When planning test cases for the execution of test tasks, you can choose the version of the test case instead of typing a version",
+        "enableCaseExeUpdate": "Can the use cases for task execution be updated",
+        "restrictiveConditions": "Restrictive conditions",
+        "restrictiveConditionsPlaceholder": "Please enter restrictive conditions"
       },
       "testCaseRemoveDuplicates": {
         "title": "Test case deduplication",
@@ -650,6 +658,7 @@
         "detailName": "Test case Title",
         "runStatus": "Test execution status",
         "executor": "Last action executor",
+        "caseVersion": "Case Version",
         "designee": "Executor",
         "assigneeSetting": "Set assignee",
         "editorItemTips": "No item editing permission at the moment, please check the item operation permission configuration or contact the administrator",
@@ -661,7 +670,11 @@
         "notUpdateDesignee": "Cannot change executor of test case",
         "updateDesignee": "Change executor",
         "updateRunStatus": "Change execution status",
-        "batchEdit": "Batch edit"
+        "batchEdit": "Batch edit",
+        "updateCaseVersion": "Update test case",
+        "updateCaseVersionTips": "Restrictive conditions not met, cannot update test case",
+        "someItemsCannotUpdate": "Some selected items cannot be updated, there are test executions without associated test cases",
+        "noReferenceCase": "The test cases associated with this test execution have been deleted and cannot be updated"
       }
     },
     "repository": {
@@ -1187,6 +1200,19 @@
           "stepName": "Step name"
         }
       },
+      "testBatchUpateModel": {
+        "chooseUpateVersion": "Select the updated version",
+        "batchUpateExeCase": "Update execution test cases",
+        "msgUpateVersion": "Please select the updated version",
+        "batchCreateVersion": "Batch create versions",
+        "versionName": "Version name",
+        "placeholderVersionName": "Please enter the version name",
+        "versionExistsError": "【{{displayText}}{{suffix}}】These test cases already have this version, cannot create duplicate versions!",
+        "copyAllKeysSuccess": "All keys have been copied to clipboard",
+        "copyAllKeysTitle": "Copy all keys",
+        "requestException": "Request exception",
+        "moreItemsSuffix": " and {{count}} more"
+      },
       "testStep": {
         "stepField": ["Step", "Expected", "Data", "Data"],
         "hasCircularInheritance": "The test case: [{{testCaseName}}] has a circular inheritance",
@@ -1217,7 +1243,8 @@
         "removeSearch": "Remove search item",
         "addSearch": " Add search item",
         "checkAllPages": "Select all",
-        "checkCurrentPage": "Select all on this page"
+        "checkCurrentPage": "Select all on this page",
+        "caseVersion": "Use case version"
       },
       "filterSearch": {
         "screenPlaceholder": "Please enter the search term keyword",

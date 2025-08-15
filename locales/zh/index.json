@@ -12,9 +12,11 @@
     "cannotExecuteTestCase": "当前测试用例未分配执行人，无法执行"
   },
   "common": {
+    "snapshot": "快照",
     "createPermissionTip": "请联系管理员检查空间的类型映射，或开启",
     "haveDelete": "已删除",
     "forbiddenActive": "已禁用",
+    "newest": "最新",
     "pageTitle": {
       "repository": "测试用例库",
       "report": "测试报告",
@@ -421,11 +423,17 @@
         "title": "测试管理空间配置初始化",
         "description": "开启自动类型关联会将测试管理内置的事项类型关联配置修改为内置的事项类型",
         "switchLabel": "开启自动类型关联",
-        "switchSnapshotLabel": "向测试执行任务中规划用例时自动打快照",
+        "switchSnapshotLabel": "用例快照类型",
         "builtInItemTypeHasBeenModified": "内置事项类型已被修改",
         "messageSuccess": "测试管理初始化配置修改成功",
         "initialItemTypeMappingLabel": "配置初始化类型映射",
-        "resetButtonText": "重置类型映射"
+        "resetButtonText": "重置类型映射",
+        "noAutoBuildVersionNoSelVersion": "不自动打版本且规划用例不能选择用例版本",
+        "autoBuildVersion": "测试执行任务规划用例时自动打版本",
+        "noBuildVersionSelVersion": "测试执行任务规划用例不打版本，可以选择用例版本",
+        "enableCaseExeUpdate": "执行任务用例是否可更新",
+        "restrictiveConditions": "限制条件",
+        "restrictiveConditionsPlaceholder": "请输入限制条件"
       },
       "testCaseRemoveDuplicates": {
         "title": "测试用例去重",
@@ -619,6 +627,7 @@
         "detailName": "用例标题",
         "runStatus": "测试执行状态",
         "executor": "最新执行人",
+        "caseVersion": "用例版本",
         "designee": "执行人",
         "assigneeSetting": "设置负责人",
         "editorItemTips": "暂无事项编辑权限，请检查事项操作权限配置或联系管理员",
@@ -630,7 +639,11 @@
         "notUpdateDesignee": "不可对用例更改执行人",
         "updateDesignee": "更改执行人",
         "updateRunStatus": "更改执行状态",
-        "batchEdit": "批量编辑"
+        "batchEdit": "批量编辑",
+        "updateCaseVersion": "更新用例",
+        "updateCaseVersionTips": "限制条件不满足，无法更新用例",
+        "someItemsCannotUpdate": "部分选中项无法更新，存在测试执行没有关联用例",
+        "noReferenceCase": "该测试执行上的用例被删除了，无法更新"
       }
     },
     "repository": {
@@ -1231,6 +1244,19 @@
           "stepNumber": "步骤序号",
           "stepName": "步骤名称"
         }
+      },
+      "testBatchUpateModel": {
+        "chooseUpateVersion": "选择更新版本",
+        "batchUpateExeCase": "更新执行用例",
+        "msgUpateVersion": "请选择更新版本",
+        "batchCreateVersion": "批量创建版本",
+        "versionName": "版本名称",
+        "placeholderVersionName": "请输入版本名称",
+        "versionExistsError": "【{{displayText}}{{suffix}}】这些用例上已存在该版本，不可重复打版本！",
+        "copyAllKeysSuccess": "已复制所有key到剪贴板",
+        "copyAllKeysTitle": "复制所有key",
+        "requestException": "请求异常",
+        "moreItemsSuffix": "等{{count}}个"
       },
       "testStep": {
         "stepField": ["步骤", "预期", "数据", "准备数据"],

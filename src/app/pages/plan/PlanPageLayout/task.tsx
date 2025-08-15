@@ -2,7 +2,7 @@ import { ArrowLeftOutlined } from '@ant-design/icons';
 import { useListener } from '@projectproxima/proxima-sdk-js';
 import { useUpdateEffect } from 'ahooks';
 import { message, notification, Space } from 'antd';
-import React, { useCallback, useEffect, useRef, useState } from 'react';
+import React, { useCallback, useRef, useState } from 'react';
 import { useLocation } from 'react-router-dom';
 
 import {
@@ -42,6 +42,8 @@ const TaskPageLayout: React.FC<any> = () => {
     setSearchParams,
     setExecutionLinkRunIds,
     setRunLinkCaseIds,
+    setRunMap,
+    setRunSnapshotMap,
     setPlanId,
     setSelectedTestExecution,
   } = usePageContext();
@@ -89,6 +91,8 @@ const TaskPageLayout: React.FC<any> = () => {
     setRunLinkCaseIds(scopeTestRunIds?.runLinkCaseIds);
     setExecutionLinkRunIds(scopeTestRunIds?.executionLinkRunIds);
     setRunLinkSnapshotIds(scopeTestRunIds?.runLinkSnapshotIds);
+    setRunMap(scopeTestRunIds?.runMap || {});
+    setRunSnapshotMap(scopeTestRunIds?.runSnapshotMap || {});
   }, [scopeTestRunIds]);
 
   const treeParams = useTreeParams({
@@ -252,7 +256,7 @@ const TaskPageLayout: React.FC<any> = () => {
 
   // 关联测试执行任务
   const addExistedTestExecution = React.useCallback(async () => {
-    const ids = await selectorModalRef.current.open({
+    const { selectedData: ids } = await selectorModalRef.current.open({
       testType: TestType.Execution,
     });
 

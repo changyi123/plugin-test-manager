@@ -13,3 +13,4 @@ release/*
 stats.json
 cache
 .cursorrules
+.history

@@ -24,6 +24,7 @@ import {
 import { TestEntity } from '../../../common/types/test';
 import iqlSearchParamsBuilder from '../../../common/utils/iqlSearchParamsBuilder';
 import { buildResponse, getReqInfoFromVMRuntime } from '../../lib/apiUtil';
+import { CASESNAPSHOT_TYPE } from '../../lib/constants';
 import { aggsSearch } from '../../lib/coreApi';
 import { getPayload, iqlRequest } from '../../lib/iqlRequest';
 import {
@@ -36,7 +37,7 @@ import {
 } from '../../lib/statistics';
 
 type TestRunEntityType = TestEntity<TestType.Run>;
-type TestCaseEntityType = TestEntity<TestType.Case>;
+// type TestCaseEntityType = TestEntity<TestType.Case>;
 type TestExecutionEntityType = TestEntity<TestType.Execution>;
 
 /**
@@ -171,14 +172,14 @@ export const testExecutionStats = async () => {
 
   // 测试执行用例统计数据
   taskPool.register(['runStatus', 'runCount'], async function (result) {
-    let enableCaseSnapshot = false;
+    let caseSnapshot: any = {};
     if (workspaceKey) {
-      enableCaseSnapshot = await getParseQuery(false, TestConfigClassName)
+      caseSnapshot = await getParseQuery(false, TestConfigClassName)
         .equalTo('workspaceKey', workspaceKey)
         .first({ useMasterKey: true })
         .then(item =>
           global.env?.ENABLED_CASE_SNAPSHOT
-            ? item.get('enableCaseSnapshot')
+            ? item.get('caseSnapshot')
             : global.env?.DEFAULT_ENABLED_CASE_SNAPSHOT,
         );
     }
@@ -192,7 +193,7 @@ export const testExecutionStats = async () => {
       },
       fields: [TestFiledKeyMapping.status, TestFiledKeyMapping.linkItems],
       pagination: { limit: InfinityLimit, offset: 0 },
-      selector: enableCaseSnapshot
+      selector: [CASESNAPSHOT_TYPE.AUTO_BUILDVERSION].includes(caseSnapshot?.type)
         ? `${BuiltinFieldNameMapping.referenceCaseSnapshot} is not null`
         : `${BuiltinFieldNameMapping.referenceCase} is not null`,
     });

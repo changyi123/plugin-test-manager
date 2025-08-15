@@ -2,11 +2,17 @@ import { useMemoizedFn, useMount } from 'ahooks';
 import { Button, Input, message, Radio, Switch } from 'antd';
 import { pick } from 'lodash';
 import { components } from 'proxima-sdk';
-import React from 'react';
+import React, { useState } from 'react';
 
-import { getStatusByWorkspaceAndItemType, getWorkspaceRoleMembers } from '@/lib/api/proxima';
+import {
+  getStatusByWorkspaceAndItemType,
+  getWorkspaceRoleMembers,
+  search,
+} from '@/lib/api/proxima';
 import { getAppEnv } from '@/lib/appEnv';
+import { CASESNAPSHOT_TYPE, caseSnapshotOpt, SystemField } from '@/lib/constants';
 import useI18n from '@/lib/hooks/useI18n';
+import type { CaseSnapshot } from '@/lib/types/Test';
 
 import { useCurrentTestConfig, useDataContext } from '../hooks';
 import cx from './index.less';
@@ -28,8 +34,11 @@ const DefaultTestRunAction = {
   iql: '',
 };
 
-// 向测试执行任务中规划用例时自动打快照
-const DefaultEnableCaseSnapshot = false;
+const DefaultCaseSnapshot = {
+  type: CASESNAPSHOT_TYPE.NO_BUILDVERSION_SELVERSION,
+  enableCaseExeUpdate: true,
+  restrictiveConditions: '', // 更改用例版本的iql限制条件
+};
 
 /** 获取空间成员列表 */
 export const useWorkspaceMemberUserList = ({ workspaceId: workspaceId, selectedUserList }) => {
@@ -118,17 +127,32 @@ const ExecuteTestRunAction = () => {
 
   const testConfig = useCurrentTestConfig(workspace?.key);
   const [testRunAction, setTestRunAction] = React.useState(DefaultTestRunAction);
-  const [enableCaseSnapshot, setEnableCaseSnapshot] = React.useState(DefaultEnableCaseSnapshot);
+  const [caseSnapshot, setCaseSnapshot] = useState<CaseSnapshot>(DefaultCaseSnapshot);
 
   React.useEffect(() => {
     setTestRunAction(testConfig?.get('testRunAction') ?? DefaultTestRunAction);
-    setEnableCaseSnapshot(testConfig?.get('enableCaseSnapshot') ?? DefaultEnableCaseSnapshot);
+    setCaseSnapshot(testConfig?.get('caseSnapshot') ?? DefaultCaseSnapshot);
   }, [testConfig]);
+
+  const verifyIQL = async iql => {
+    try {
+      await search(iql, [SystemField.Id], 1, true);
+      return true;
+    } catch (e) {
+      return false;
+    }
+  };
 
   const handleSave = async () => {
     if (testConfig) {
+      if (caseSnapshot?.restrictiveConditions) {
+        const isValid = await verifyIQL(caseSnapshot?.restrictiveConditions);
+        if (!isValid) {
+          return;
+        }
+      }
       await testConfig.save({
-        enableCaseSnapshot,
+        caseSnapshot,
         testRunAction,
       });
       message.success(t('common.saveSuccess'));
@@ -256,9 +280,48 @@ const ExecuteTestRunAction = () => {
       {getAppEnv('ENABLED_CASE_SNAPSHOT') && (
         <div className={cx('section')}>
           <h3>{t('page.config.testConfigInitialization.switchSnapshotLabel')}</h3>
-          <Switch checked={!!enableCaseSnapshot} onChange={setEnableCaseSnapshot} />
+          <Radio.Group
+            value={caseSnapshot?.type}
+            className={cx('section-radio-group')}
+            options={caseSnapshotOpt(t)}
+            onChange={v => {
+              setCaseSnapshot(k => ({ enableCaseExeUpdate: false, type: v?.target?.value }));
+            }}
+          />
         </div>
       )}
+      {[CASESNAPSHOT_TYPE.NO_BUILDVERSION_SELVERSION].includes(caseSnapshot?.type) && (
+        <div className={cx('section')}>
+          <h3>{t('page.config.testConfigInitialization.enableCaseExeUpdate')}</h3>
+          <Switch
+            checked={!!caseSnapshot?.enableCaseExeUpdate}
+            onChange={v => {
+              setCaseSnapshot(prev => ({
+                ...prev,
+                enableCaseExeUpdate: v,
+                restrictiveConditions: v ? prev.restrictiveConditions : '', // 关闭时清空
+              }));
+            }}
+          />
+        </div>
+      )}
+
+      {caseSnapshot?.enableCaseExeUpdate && (
+        <div className={cx('section')}>
+          <h3>{t('page.config.testConfigInitialization.restrictiveConditions')}</h3>
+          <Input
+            value={caseSnapshot?.restrictiveConditions || ''}
+            onChange={e => {
+              setCaseSnapshot(prev => ({
+                ...prev,
+                restrictiveConditions: e.target.value,
+              }));
+            }}
+            placeholder={t('page.config.testConfigInitialization.restrictiveConditionsPlaceholder')}
+          />
+        </div>
+      )}
+
       <Button type="primary" className={cx('action')} onClick={handleSave}>
         {t('common.save')}
       </Button>

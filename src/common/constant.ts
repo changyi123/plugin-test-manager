@@ -142,12 +142,19 @@ export const TestFiledKeyMapping = {
   runDetail: 'r_test_manager_runDetail',
   comment: 'r_test_manager_comment',
   testSet: 'r_test_manager_referenceSet',
+  isCaseUpdate: 'r_test_manager_isCaseUpdate',
+  baseLineItemVersion: 'baseLineItemVersion', // 快照key
 } as const;
 
 export const NotValidatorFiledKeyMapping = {
   linkType: 'r_test_manager_linkType',
   linkItems: 'r_test_manager_linkItems',
 } as const;
+
+export const enum CASE_IS_UPDATE {
+  NO = '0',
+  YES = '1',
+}
 
 export const TestFiledKeyKeys = Object.keys(
   TestFiledKeyMapping,
@@ -175,6 +182,7 @@ export const BuiltinFieldNameMapping = {
 
   // 不需要拼接
   runDetail: 'test_manager_runDetail',
+  baseLineItemVersion: 'baseLineItemVersion',
 } as const;
 
 export const SystemFieldNameMapping = {

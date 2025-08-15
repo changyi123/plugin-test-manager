@@ -6,7 +6,12 @@ import React, { useEffect, useState } from 'react';
 import { useLocation } from 'react-router-dom';
 
 import { getCasesByStatus, getLinkedTestEntityByQuery, getTestEntityByQuery } from '@/lib/api/item';
-import { TestCaseStatusModel, TestRunDesigneeModel, TestRunExecutorModel } from '@/lib/constants';
+import {
+  CASESNAPSHOT_TYPE,
+  TestCaseStatusModel,
+  TestRunDesigneeModel,
+  TestRunExecutorModel,
+} from '@/lib/constants';
 import { useTestConfig } from '@/lib/hooks/useContext';
 import {
   getTestCaseStatusModelValue,
@@ -37,6 +42,9 @@ type ScopedTestRunIds = {
   executionLinkRunIds: string[];
   runLinkCaseIds: string[];
   runLinkSnapshotIds?: string[];
+  runMap?: Record<string, string>;
+  runSnapshotMap?: Record<string, string>;
+  runVersionMap?: Record<string, object>;
 };
 
 type ScopedTestDetailIdsParams = {
@@ -127,6 +135,11 @@ export const useGetFilterPlanLinkCaseIds = props => {
   );
 };
 
+const isOpenSnapshot = (type: undefined | number) =>
+  [CASESNAPSHOT_TYPE.AUTO_BUILDVERSION, CASESNAPSHOT_TYPE.NO_BUILDVERSION_SELVERSION].includes(
+    type,
+  );
+
 export const useGetExecutionLinkCaseRunIds = (params: ScopedTestDetailIdsParams) => {
   const { workspaceKey, testExecutionId, type } = params;
   const { config } = useTestConfig();
@@ -143,21 +156,29 @@ export const useGetExecutionLinkCaseRunIds = (params: ScopedTestDetailIdsParams)
         linkType: TestLinkType.RunLinkExecution,
         sourceIds: [testExecutionId],
         destinationType: TestType.Run,
-        select: ['id', 'referenceCase', 'referenceCaseSnapshot'],
+        select: ['id', 'referenceCase', 'referenceCaseSnapshot', 'baseLineItemVersion'],
       });
       const runMap = new Map();
       const runSnapshotMap = new Map();
+      const runVersionMap = new Map();
       runs.forEach(run => {
         runMap.set(run.id, run.referenceCase);
         runSnapshotMap.set(run.id, run.referenceCaseSnapshot);
+        if (isOpenSnapshot(config?.caseSnapshot?.type) && run.baseLineItemVersion) {
+          runVersionMap.set(run.referenceCase, run.baseLineItemVersion);
+        }
       });
 
       return {
         executionLinkRunIds: [...runMap.keys()],
         runLinkCaseIds: [...runMap.values()],
-        runLinkSnapshotIds: config.enableCaseSnapshot
+        runLinkSnapshotIds: isOpenSnapshot(config?.caseSnapshot?.type)
           ? [...runSnapshotMap.values()].filter(Boolean)
           : [],
+        runMap: Object.fromEntries(runMap),
+        runSnapshotMap: Object.fromEntries(runSnapshotMap),
+        runSnapshotType: config?.caseSnapshot?.type,
+        runVersionMap: Object.fromEntries(runVersionMap),
       };
     },
     {
@@ -177,7 +198,7 @@ export const useGetFilterExecutionLinkCaseRunIds = props => {
     executionId,
     selectNode,
     selectors,
-    enableCaseSnapshot,
+    caseSnapshot,
   } = props;
   // 先查询 testRun 再查询 testCase
   const getTableDataByFilterRun = async params => {
@@ -223,7 +244,7 @@ export const useGetFilterExecutionLinkCaseRunIds = props => {
       selectNode,
       executionId,
       selector,
-      enableCaseSnapshot,
+      caseSnapshot,
     } = params;
 
     const repository = getRepositoryQuery(selectNode, 'all');
@@ -239,7 +260,7 @@ export const useGetFilterExecutionLinkCaseRunIds = props => {
       onlySelectId: true,
     };
 
-    if (enableCaseSnapshot) {
+    if ([CASESNAPSHOT_TYPE.AUTO_BUILDVERSION].includes(caseSnapshot?.type)) {
       searchParams.query.id = runLinkSnapshotIds;
       searchParams.selector.push(`'baseLineSources' in ['${executionId}']`);
     }
@@ -256,7 +277,8 @@ export const useGetFilterExecutionLinkCaseRunIds = props => {
       onlySelectId: true,
     };
 
-    if (enableCaseSnapshot) runSearchParams.query.referenceCaseSnapshot = caseIds;
+    if ([CASESNAPSHOT_TYPE.AUTO_BUILDVERSION].includes(caseSnapshot?.type))
+      runSearchParams.query.referenceCaseSnapshot = caseIds;
     else runSearchParams.query.referenceCase = caseIds;
 
     const { list: runId } = await getLinkedTestEntityByQuery({
@@ -305,7 +327,7 @@ export const useGetFilterExecutionLinkCaseRunIds = props => {
         executionId,
         selector: [systemSelectors, filterCaseSelector],
         selectNode,
-        enableCaseSnapshot,
+        caseSnapshot,
       });
     },
     {
@@ -375,7 +397,7 @@ export const useTreeParams = (props: {
         selector: '',
       };
 
-      if (config?.enableCaseSnapshot) {
+      if ([CASESNAPSHOT_TYPE.AUTO_BUILDVERSION].includes(config?.caseSnapshot?.type)) {
         treeParams.query.id = runLinkSnapshotIds;
         treeParams.selector = `'baseLineSources' in ['${selectedExecution.objectId}']`;
       }
@@ -398,26 +420,33 @@ export const useTreeParams = (props: {
     workspaceKey,
     selectedExecution,
     runLinkSnapshotIds,
-    config?.enableCaseSnapshot,
+    config?.caseSnapshot?.type,
   ]);
 
   return treeParams;
 };
 
-export function useExecutionList({ activeType, workspaceKey, planId, setExecutionKeys, selectedExecution, setSelectedExecution }) {
+export function useExecutionList({
+  activeType,
+  workspaceKey,
+  planId,
+  setExecutionKeys,
+  selectedExecution,
+  setSelectedExecution,
+}) {
   const { query } = useLocation();
   const [activeId, setActiveId] = useState('');
   const [selectors, setSelectors] = useState(null);
   const {
-      refresh,
-      loading,
-      data: executionList,
+    refresh,
+    loading,
+    data: executionList,
   } = useRequest(
     async () => {
       if (activeType !== 'TestExecution') {
-        setSelectors(null)
-        return []
-      };
+        setSelectors(null);
+        return [];
+      }
       const { list } = await getLinkedTestEntityByQuery({
         query: {
           workspaceKey: workspaceKey,
@@ -463,5 +492,5 @@ export function useExecutionList({ activeType, workspaceKey, planId, setExecutio
     setActiveId,
     selectors,
     setSelectors,
-  }
+  };
 }

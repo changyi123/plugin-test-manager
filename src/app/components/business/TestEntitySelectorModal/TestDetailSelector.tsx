@@ -34,11 +34,14 @@ type TestDetailSelectorProps = {
   selectValue?: string[];
   planId?: string;
   isPlanForTestSet?: boolean;
+  enableCaseVersion?: boolean;
   caseSetId?: string;
   treeType?: string;
   setTreeType?: (val: string) => void;
   validateCaseStatus?: boolean;
   showDefaultRange?: boolean;
+  versionMapKeySelected?: Record<string, string>;
+  setVersionMapKeySelected?: any
 };
 
 const tabsList = [
@@ -71,6 +74,9 @@ const TestDetailSelector: React.FC<TestDetailSelectorProps> = props => {
     setTreeType,
     validateCaseStatus,
     showDefaultRange,
+    enableCaseVersion = false,
+    versionMapKeySelected,
+    setVersionMapKeySelected
   } = props;
 
   const { testCaseFieldKeys } = useBaseAction();
@@ -535,6 +541,9 @@ const TestDetailSelector: React.FC<TestDetailSelectorProps> = props => {
                 isPlanForTestSet={isPlanForTestSet}
                 treeProps={treeProps}
                 validateCaseStatus={validateCaseStatus}
+                enableCaseVersion={enableCaseVersion}
+                versionMapKeySelected={versionMapKeySelected}
+                setVersionMapKeySelected={setVersionMapKeySelected}
               />
             ) : (
               <Table

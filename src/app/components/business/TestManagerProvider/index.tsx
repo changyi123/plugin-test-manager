@@ -611,12 +611,6 @@ const TestManagerProvider: React.FC<RepositoryDataProviderProps> = ({
   useOnItemCreateSuccess(messageKey, itemCreateSuccessCb, itemBatchCreateSuccessCb);
 
   const testConfigContextValues = React.useMemo(() => {
-    console.info(
-      judgeCaseSnapshot({
-        enableCaseSnapshot: testConfig?.enableCaseSnapshot,
-      }),
-      'judgeCaseSnapshot',
-    );
     return {
       // TODO: fetch config
       config: {
@@ -627,9 +621,7 @@ const TestManagerProvider: React.FC<RepositoryDataProviderProps> = ({
         listType: testConfig?.testRunAction?.listType,
         statusList: testConfig?.testRunAction?.statusList,
         iql: testConfig?.testRunAction?.iql,
-        enableCaseSnapshot: judgeCaseSnapshot({
-          enableCaseSnapshot: testConfig?.enableCaseSnapshot,
-        }),
+        caseSnapshot: testConfig?.caseSnapshot,
       },
       // item,
       workspace,
@@ -646,7 +638,7 @@ const TestManagerProvider: React.FC<RepositoryDataProviderProps> = ({
     testConfig?.testRunAction?.listType,
     testConfig?.testRunAction?.statusList,
     testConfig?.testRunAction?.iql,
-    testConfig?.enableCaseSnapshot,
+    testConfig?.caseSnapshot,
     workspace,
     testEntity,
     baseLineItemId,

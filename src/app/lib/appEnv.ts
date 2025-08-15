@@ -1,5 +1,7 @@
 import { get } from 'lodash';
 
+import { CASESNAPSHOT_TYPE } from './constants';
+
 export enum TEST_REPORT_VERSION {
   V0,
   V1,
@@ -179,6 +181,11 @@ const SupportAppEnv = {
     defaultValue: false,
     transformer: value => value,
   },
+  // 用例删除时是否删除关联执行
+  ENABLE_DELETE_CASE_RELATION_EXECUTION: {
+    defaultValue: false,
+    transformer: value => value,
+  },
 } as const;
 
 /**
@@ -206,7 +213,7 @@ export function judgeTestReportVersion(version: TEST_REPORT_VERSION | TEST_REPOR
  */
 export function judgeCaseSnapshot(testConfig) {
   return getAppEnv('ENABLED_CASE_SNAPSHOT')
-    ? testConfig?.enableCaseSnapshot
+    ? [CASESNAPSHOT_TYPE.AUTO_BUILDVERSION].includes(testConfig?.caseSnapshot?.type)
     : getAppEnv('DEFAULT_ENABLED_CASE_SNAPSHOT');
 }
 

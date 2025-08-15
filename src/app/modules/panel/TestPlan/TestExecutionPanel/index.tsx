@@ -18,7 +18,12 @@ import TestEntitySelectorModal, {
 } from '@/components/business/TestEntitySelectorModal';
 import { useTestTypeScreenFieldKeys } from '@/components/common/BusinessTable/hook';
 import { getLinkedTestEntityByQuery, getTestStats } from '@/lib/api/item';
-import { BuiltinFieldNameMapping, TestLinkType, TestType } from '@/lib/constants';
+import {
+  BuiltinFieldNameMapping,
+  CASESNAPSHOT_TYPE,
+  TestLinkType,
+  TestType,
+} from '@/lib/constants';
 import { useTestConfig } from '@/lib/hooks/useContext';
 import useI18n from '@/lib/hooks/useI18n';
 import { alert, getTestManagerContainer } from '@/lib/utils/helper';
@@ -85,9 +90,7 @@ const Test = () => {
                 workspaceKey: workspace?.key,
                 type: TestType.Run,
               },
-              selector: config?.enableCaseSnapshot
-                ? `${BuiltinFieldNameMapping.referenceCaseSnapshot} is not null`
-                : `${BuiltinFieldNameMapping.referenceCase} is not null`,
+              selector: `${BuiltinFieldNameMapping.referenceCaseSnapshot} is not null or ${BuiltinFieldNameMapping.referenceCase} is not null `,
               linkType: TestLinkType.RunLinkExecution,
               sourceIds: [d.id],
               destinationType: TestType.Run,
@@ -114,7 +117,7 @@ const Test = () => {
         total,
       };
     },
-    [config?.enableCaseSnapshot, testEntity.objectId, workspace?.key],
+    [config?.caseSnapshot, testEntity.objectId, workspace?.key],
   );
 
   const refresh = React.useCallback(() => {
@@ -129,7 +132,7 @@ const Test = () => {
 
   // 创建测试执行
   const addExistedTestExecution = useMemoizedFn(async () => {
-    const testExecutionIds = await selectorModalRef.current.open({
+    const { selectedData: testExecutionIds } = await selectorModalRef.current.open({
       testType: TestType.Execution,
     });
 

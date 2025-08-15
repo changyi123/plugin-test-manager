@@ -7,7 +7,7 @@ import {
   requestCoreApi,
   saveAllObject,
 } from '@giteeteam/apps-team-api';
-import { omit } from 'lodash';
+import { difference, omit } from 'lodash';
 import isObject from 'lodash/isObject';
 
 import {
@@ -35,6 +35,7 @@ import {
   BatchUpdateProcessParams,
   BatchUpdateValuePayload,
   CopyFolderPayloadProcessParams,
+  CreateBaselineRequestParam,
   RemoveCaseFromPlanProcessParams,
   RemoveExecuteFromPlanProcessParams,
   RetryPayloadProcessParams,
@@ -597,7 +598,7 @@ export const batchCreateTestRunJob = async () => {
 
     // 创建测试用例快照
     // 1. 获取用例所属空间是否支持规划时批量快照
-    // 2. 创建测试用例快照
+    // 2. 创建测试用例快照   这个代码废弃，用的V2创建执行接口
     const batchCreateCaseSnapshot = async needCaseList => {
       let caseSnapshotMap = {};
       if (!global.env?.ENABLED_CASE_SNAPSHOT && !global.env?.DEFAULT_ENABLED_CASE_SNAPSHOT)
@@ -611,19 +612,20 @@ export const batchCreateTestRunJob = async () => {
       }, []);
       const workspaceConfigs = await getParseQuery(false, 'test_manager_TestConfig')
         .containedIn('workspaceKey', workspaceKeys)
-        .select(['workspaceKey', 'enableCaseSnapshot'])
+        .select(['workspaceKey', 'caseSnapshot'])
         .findAll({ useMasterKey: true })
         .then(data =>
           data?.reduce((m, i) => {
             return {
               ...m,
               [i.get('workspaceKey')]: global.env?.ENABLED_CASE_SNAPSHOT
-                ? i.get('enableCaseSnapshot')
+                ? i.get('caseSnapshot')
                 : global.env?.DEFAULT_ENABLED_CASE_SNAPSHOT,
             };
           }, {}),
         );
 
+      //  Notice: 这个代码废弃，用的V2创建执行接口
       const caseSnapshots = needCaseList.filter(i => workspaceConfigs[i.workspace?.key]);
       if (caseSnapshots.length) {
         const snapshots = await operateSnapshots({
@@ -1536,4 +1538,105 @@ export const updateAllExecutionCases = async () => {
   }
 
   console.info('updateAllExecutionCases-- complete');
+};
+
+/**
+ * @description 批量创建版本. 在原有的接口中添加了校验版本名称是否重复的逻辑
+ * */
+export const batchCreateVersions = async () => {
+  const { body } = getReqInfoFromVMRuntime<CreateBaselineRequestParam>();
+  const { add } = body;
+  const validateParams = () => {
+    if (!add || !add?.keys?.length) {
+      throw new Error('add and add keys must not be empty');
+    }
+  };
+
+  const verifyItemExist = async () => {
+    const { keys: addKeys } = add;
+    console.info('batchCreateVersions [verifyItemExist] body', body);
+    const iql = `key in [${addKeys.map(key => `'${key}'`).join(',')}]`;
+    const itemResult: any = await requestCoreApi('POST', '/parse/api/search', {
+      iql,
+      fields: ['id', 'key', 'name'],
+      includeHiddenItem: true,
+      size: 99999,
+      // displayContext: 'test_manager',
+    }).then((res: any) => res?.payload?.items ?? []);
+    const existKeys = itemResult.map(item => item.key);
+    console.info('batchCreateVersions [verifyItemExist] itemResult', itemResult);
+    const notExistKeys = difference(addKeys, existKeys);
+    console.info('batchCreateVersions [verifyItemExist] notExistKeys', notExistKeys);
+    if (notExistKeys.length) {
+      throw new Error(`${notExistKeys.join(',')} not exists`);
+    }
+  };
+  const verifyNameDuplicate = async () => {
+    const { keys: addKeys } = add;
+    const { name: versionName } = body.baseLineItemVersion;
+    console.info('batchCreateVersions [verifyNameDuplicate] body', body);
+    // 修改的事项需要确定是否存在当前版本名称的历史版本事项
+    const iql = `key in ${JSON.stringify(
+      addKeys,
+    )} and 'baseLineSources' in ['BaseLineItemVersion']`;
+
+    const versionItemResult: any = await requestCoreApi('POST', '/parse/api/search', {
+      iql,
+      fields: ['id', 'key', 'baseLineItemVersion', 'name', 'itemId'],
+      includeHiddenItem: true,
+      size: 99999,
+    });
+
+    console.info('batchCreateVersions [verifyNameDuplicate] versionItemResult', versionItemResult);
+
+    const updateItemVersionMap = versionItemResult?.payload?.items.reduce((result, item) => {
+      const key = item.key;
+      if (!result[key]) {
+        result[key] = {
+          names: [],
+          items: [],
+        };
+      }
+      result[key].names.push(item.values?.baseLineItemVersion?.name);
+      result[key].items.push(item);
+      return result;
+    }, {});
+
+    const errorMessage: {
+      objectId: string; // 快照ID
+      name: string; // 事项名称
+      key: string; // 事项key
+      itemId: string; // 事项ID
+    }[] = [];
+
+    addKeys.forEach(key => {
+      const item = updateItemVersionMap[key];
+      if (item) {
+        const names = item.names;
+        const items = item.items;
+        if (names.includes(versionName)) {
+          errorMessage.push({
+            objectId: items[0]?.objectId,
+            name: items[0]?.name,
+            key: items[0]?.key,
+            itemId: items[0]?.itemId,
+          });
+        }
+      }
+    });
+
+    console.info('batchCreateVersions [verifyNameDuplicate] errorMessage', errorMessage);
+    if (errorMessage.length) {
+      throw new Error(JSON.stringify(errorMessage));
+    }
+  };
+  try {
+    validateParams();
+    await verifyItemExist();
+    await verifyNameDuplicate();
+    await operateSnapshots(body);
+    return buildResponse('success');
+  } catch (err) {
+    return buildResponse(err);
+  }
 };

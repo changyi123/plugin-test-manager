@@ -3,6 +3,7 @@ import {
   BatchCopyTestCaseV2ProcessParams,
   BatchCopyTestCaseV3ProcessParams,
   BatchCreateTestRunV2ProcessParams,
+  CreateBaselineRequestParam,
   QueryLinkedTestEntityPayload,
   QueryTestEntityPayload,
   RepositoryTreePayload,
@@ -175,14 +176,20 @@ export const getLinkedTestEntityByQuery = async (
   props:
     | QueryLinkedTestEntityPayload
     | {
-        selector?: SearchSelectors;
+        selector?: string | SearchSelectors;
       },
   handleQuery?: (val: any) => any,
 ) => {
   props = handleQuery ? handleQuery(props) : props;
   const _props = Object.assign(
     { descending: [], onlySelectId: false },
-    { ...props, selector: selectorToIql(handleSelector(props.selector)) },
+    {
+      ...props,
+      selector:
+        typeof props.selector === 'string'
+          ? props.selector
+          : selectorToIql(handleSelector(props.selector)),
+    },
   );
 
   const {
@@ -206,6 +213,16 @@ export const getTestStats = async (props: TestCountPayload) => {
   });
 
   return res.data;
+};
+
+// 测试管理通用字段统计查询
+export const batchCreateVersionsFn = async (props: CreateBaselineRequestParam) => {
+  const { data: res } = await fetch.post(`${pluginWebTriggerBaseUrl}/api-batch-create-versions`, {
+    ...props,
+    sessionToken: getSessionToken(),
+  });
+
+  return res;
 };
 
 // 测试计划统计查询
@@ -402,7 +419,7 @@ export const copyTesCase = async (data: CopyTestCasePayload) => {
   }
 };
 
-// 批量创建测试执行
+// 批量创建测试执行 notice  这个没地方有暂时不处理
 export const batchCreateTestRun = async data => {
   const res = await fetch.post(`${pluginWebTriggerBaseUrl}/api-batch-create-test-run`, {
     ...data,
@@ -868,4 +885,24 @@ export const batchUpdateExecutionCases = async (executionIds: string[]) => {
     sessionToken: getSessionToken(),
   });
   return data;
+};
+
+// 更新用例版本
+export const updateCaseVersion = async params => {
+  const {
+    data: { data, status },
+  } = await fetch.post(`${pluginWebTriggerBaseUrl}/api-update-run-version`, {
+    ...params,
+  });
+  return { data, status };
+};
+
+// 批量更新用例
+export const batchUpdateCase = async params => {
+  const {
+    data: { data, status },
+  } = await fetch.post(`${pluginWebTriggerBaseUrl}/api-batch-update-run-version`, {
+    ...params,
+  });
+  return { data, status };
 };

@@ -1,4 +1,5 @@
 import { useSDK } from '@giteeteam/plugin-sdk';
+
 import createProximaSdk from '@projectproxima/proxima-sdk-js';
 import { useDrag, useDrop, useMemoizedFn, useRequest } from 'ahooks';
 import { message, notification, Space, Tooltip } from 'antd';
@@ -37,7 +38,6 @@ import {
 } from '@/lib/api/item';
 import { useCurrentUser } from '@/lib/api/user';
 import { getCurrentUserSetting, saveUserSetting } from '@/lib/api/userSetting';
-import { featureFlags, SupportFeatureFlags } from '@/lib/appEnv';
 import { TestType } from '@/lib/constants';
 import { useTestConfig } from '@/lib/hooks/useContext';
 import useI18n from '@/lib/hooks/useI18n';
@@ -45,11 +45,13 @@ import fetch from '@/lib/utils/fetch';
 import { getProximaBasePath, getTenantKey } from '@/lib/utils/helper';
 import { actionConfirm, getPluginWebTriggerBaseUrl, openItemViewScreen } from '@/lib/utils/helper';
 import { SearchSelectors, selectorToIql } from '@/lib/utils/iql';
-import TableCellTestDetailForm from '@/modules/beforeCreateOrUpdateModal/TableCellTestDetailForm';
 
 import { UNGROUPED_FOLDER_KEY } from '../../constant';
 import CopyButton from '../Copy/Button';
 import cx from './Table.less';
+import TableCellTestDetailForm from '@/modules/beforeCreateOrUpdateModal/TableCellTestDetailForm';
+import { featureFlags, SupportFeatureFlags } from '@/lib/appEnv';
+import TestBatchCreateVersionnModal, { TestBatchCreateVersionModalActionRef } from '@/components/business/TestBatchCreateVersionModal';
 
 const proxima = createProximaSdk();
 
@@ -215,6 +217,7 @@ const TestDetailTable: React.FC<TestDetailTableProps> = props => {
 
   const tableActionRef = React.useRef<BusinessTableActionType>();
   const repositorySelectorRef = React.useRef<RepositorySelectorActionType>();
+  const testBatchCreateVersionModalActionRef = React.useRef<TestBatchCreateVersionModalActionRef>();
   // // 缓存用例库数据，用于监听用例库修改后刷新表格所属模块
   // useGetWorkspaceRepository(workspaceKey);
   const { data: currentUser } = useCurrentUser();
@@ -433,6 +436,14 @@ const TestDetailTable: React.FC<TestDetailTableProps> = props => {
       tableActionRef.current.refresh();
     };
 
+    const batchCreateVersion = async () => {
+      const _testRunIds: string[] = await getSelectTestCaseId(tableActionRef.current);
+      const _allSelectedData = await getSelectTestCaseId(tableActionRef.current, true);
+      await testBatchCreateVersionModalActionRef.current.open({
+        testRunIds: _testRunIds,
+        tableData: _allSelectedData,
+      });
+    };
     return [
       <span
         className={cx('action')}
@@ -482,6 +493,9 @@ const TestDetailTable: React.FC<TestDetailTableProps> = props => {
       >
         <DeleteIcon className={cx('icon')} /> {t('common.delete')}
       </span>,
+      <span className={cx(!hasRowSelected && 'disabled')} key="batchCreateVersion" onClick={() => hasRowSelected && batchCreateVersion()}>
+        {t('components.business.testBatchUpateModel.batchCreateVersion')}
+      </span>
     ];
   }, [
     hasRowSelected,
@@ -632,9 +646,7 @@ const TestDetailTable: React.FC<TestDetailTableProps> = props => {
               >
                 <a>{t('common.copy')}</a>
               </CopyButton>
-              <a onClick={() => deleteTestDetail(rowData)} style={{ color: 'red' }}>
-                {t('common.delete')}
-              </a>
+              <a onClick={() => deleteTestDetail(rowData)} style={{ color: 'red' }}>{t('common.delete')}</a>
             </Space>
           );
         },
@@ -678,25 +690,30 @@ const TestDetailTable: React.FC<TestDetailTableProps> = props => {
         queryDeps={queryDeps}
         virtualSelectAll
         enableCacheEpandedRowKeys={enableCacheEpandedRowKeys}
-        expandable={
-          enableRepositoryTableStep && {
-            expandedRowClassName: () => {
-              return cx('expandedRowClassName');
-            },
-            expandedRowRender: record => {
-              return (
-                <div className={cx('form')}>
-                  <TableCellTestDetailForm
-                    values={record?.detail ?? {}}
-                    objectId={record?.objectId}
-                  />
-                </div>
-              );
-            },
-          }
-        }
+        expandable={enableRepositoryTableStep && {
+          expandedRowClassName: () => {
+            return cx('expandedRowClassName')
+          },
+          expandedRowRender: record => {
+            return (
+              <div className={cx('form')}>
+                <TableCellTestDetailForm values={record?.detail ?? {}} objectId={record?.objectId}/>
+              </div>
+            )
+          },
+        }}
       />
       <RepositorySelector actionRef={repositorySelectorRef} />
+
+      {/* 批量创建版本 */}
+      <TestBatchCreateVersionnModal
+        actionRef={testBatchCreateVersionModalActionRef}
+        refresh = {() => {
+          // 刷新依赖数据
+          tableActionRef.current.resetSelectedRowKeys();
+          tableActionRef.current.refresh();
+        }}
+      />
     </>
   );
 };

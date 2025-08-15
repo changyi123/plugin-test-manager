@@ -14,6 +14,7 @@ import { search } from '@/lib/api/proxima';
 import { getAppEnv, judgeCaseSnapshot, judgeTestReportVersion, TEST_REPORT_VERSION } from '@/lib/appEnv';
 import {
   BuiltinFieldNameMapping,
+  CASESNAPSHOT_TYPE,
   ExtendReportType,
   SystemField,
   TestExecutionModel,
@@ -37,6 +38,7 @@ import fetch from '@/lib/utils/fetch';
 import { getPluginWebTriggerBaseUrl, getSessionToken } from '@/lib/utils/helper';
 
 import { Chart, ChartGroup, Workspace } from '../models';
+import { CaseSnapshot } from '@/lib/types/Test';
 
 // 自定义数据源源码最大并发数量
 const parallelRequestTriggerLimit = 4;
@@ -127,7 +129,7 @@ const buildFirstLevelDsIqlConfig = async (dsConfig: TemplateDataSourceConfig[], 
 const getPlanRefTestEntityIds = async (
   planIds,
   dsConfig: TemplateDataSourceConfig[],
-  enableCaseSnapshot?: boolean,
+  caseSnapshot?: CaseSnapshot,
 ) => {
   const ret = {};
 
@@ -169,7 +171,7 @@ const getPlanRefTestEntityIds = async (
       destinationType: TestType.Run,
       limit: 99999,
       onlySelectId: true,
-      selector: enableCaseSnapshot
+      selector: [CASESNAPSHOT_TYPE.AUTO_BUILDVERSION].includes(caseSnapshot.type)
         ? [{}, {}, `${BuiltinFieldNameMapping.referenceCaseSnapshot} is not null`]
         : [{}, {}, `${BuiltinFieldNameMapping.referenceCase} is not null`],
     });
@@ -234,7 +236,7 @@ const getPlanRefTestEntityIds = async (
 const getExecutionRefTestEntityIds = async (
   executionIds,
   dsConfig: TemplateDataSourceConfig[],
-  enableCaseSnapshot?: boolean,
+  caseSnapshot?: CaseSnapshot,
 ) => {
   const ret = {};
 
@@ -253,15 +255,15 @@ const getExecutionRefTestEntityIds = async (
         TestFiledKeyMapping.referenceCaseSnapshot,
         SystemField.Workspace,
       ],
-      selector: enableCaseSnapshot
+      selector: [CASESNAPSHOT_TYPE.AUTO_BUILDVERSION].includes(caseSnapshot?.type)
         ? [{}, {}, `${BuiltinFieldNameMapping.referenceCaseSnapshot} is not null`]
         : [{}, {}, `${BuiltinFieldNameMapping.referenceCase} is not null`],
     });
 
     return {
       runIds: data.list.map(i => i.id),
-      caseIds: enableCaseSnapshot ? [] : uniq(data.list.map(i => i.referenceCase).filter(Boolean)),
-      snapshotIds: enableCaseSnapshot
+      caseIds: [CASESNAPSHOT_TYPE.AUTO_BUILDVERSION].includes(caseSnapshot?.type) ? [] : uniq(data.list.map(i => i.referenceCase).filter(Boolean)),
+      snapshotIds: [CASESNAPSHOT_TYPE.AUTO_BUILDVERSION].includes(caseSnapshot?.type)
         ? uniq(data.list.map(i => i.referenceCaseSnapshot).filter(Boolean))
         : [],
     };
@@ -421,12 +423,12 @@ const buildSecondLevelDsIqlConfig = async (
   const hasTestExecutionSelector = dsConfigs.some(isTestExecutionSelector);
   const hasParentSelector = dsConfigs.some(isParentSelector);
 
-  let enableCaseSnapshot = false;
+  let caseSnapshot: any = {};
   if (hasTestPlanSelector || hasTestExecutionSelector) {
     const workspaceKey = reportParams?.workspace?.key;
     if (workspaceKey) {
       const { currentTestConfig } = await getTestConfigByWorkspaceKeys([workspaceKey]);
-      enableCaseSnapshot = judgeCaseSnapshot(currentTestConfig);
+      caseSnapshot = currentTestConfig?.caseSnapshot;
     }
   }
 
@@ -437,7 +439,7 @@ const buildSecondLevelDsIqlConfig = async (
       reportParams.dataSourceIql?.[TestPlanModel],
       hasParentSelector,
     );
-    planRefTestEntityIds = await getPlanRefTestEntityIds(planIds, dsConfig, enableCaseSnapshot);
+    planRefTestEntityIds = await getPlanRefTestEntityIds(planIds, dsConfig, caseSnapshot);
     planRefTestEntityIds.ancestorIds = ancestorIds || [];
   }
 
@@ -452,7 +454,7 @@ const buildSecondLevelDsIqlConfig = async (
     executionRefTestEntityIds = await getExecutionRefTestEntityIds(
       executionIds,
       dsConfig,
-      enableCaseSnapshot,
+      caseSnapshot,
     );
     executionRefTestEntityIds.planIds = planIds || [];
     executionRefTestEntityIds.self = executionIds || [];

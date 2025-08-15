@@ -185,7 +185,7 @@ const Test = () => {
    * 添加已有测试用例
    */
   const addExistTestCase = useCallback(async () => {
-    const itemData = await testEntitySelectorRef.current.open();
+    const { selectedData: itemData } = await testEntitySelectorRef.current.open();
 
     if (!itemData.length) {
       return notification.warning({
@@ -256,9 +256,6 @@ const Test = () => {
               ellipsis={true}
               target="_blank"
               onClick={() => {
-                // if (item?.referenceCaseSnapshot && config?.enableCaseSnapshot)
-                //   openBaseLineViewItemModal(item?.key, item?.referenceCaseSnapshot);
-                // else
                 goToItemDetailPage({
                   workspaceKey: item?.workspace?.key,
                   itemKey: item?.key,
