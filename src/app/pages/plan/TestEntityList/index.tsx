@@ -510,7 +510,6 @@ const TestEntityList: React.FC<TestEntityListProps> = ({
           ...runData,
           referenceCase: runData.referenceCase,
           referenceCaseSnapshot: runData.referenceCaseSnapshot,
-          runDetail: runData.referenceCaseSnapshot ? runData.runDetail : c.detail,
           status: c.workflowStatus,
           runStatus: runData.status,
           caseId: c.itemId || c.id,
