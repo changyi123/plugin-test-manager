@@ -549,6 +549,23 @@ export async function queryBasicData() {
       .then(status => status.reduce((prev, cur) => ({ ...prev, [cur.id]: cur.get('name') }), {}));
     currentTestConfig.testRunAction.statusList.forEach(s => (s.name = statusMap[s.statusId]));
   }
+
+  // todo 【申万生产】currentTestConfig.caseSnapshot返回值是字符串，但是应该返回对象。临时解决下
+  if (typeof currentTestConfig.caseSnapshot === 'string' && currentTestConfig.caseSnapshot) {
+    try {
+      currentTestConfig.caseSnapshot = JSON.parse(currentTestConfig.caseSnapshot);
+    } catch (error) {
+      console.error('Failed to parse caseSnapshot:', error);
+    }
+  }
+
+  if (typeof globalTestConfig.caseSnapshot === 'string' && globalTestConfig.caseSnapshot) {
+    try {
+      globalTestConfig.caseSnapshot = JSON.parse(globalTestConfig.caseSnapshot);
+    } catch (error) {
+      console.error('Failed to parse globalTestConfig caseSnapshot:', error);
+    }
+  }
   return {
     workspace,
     currentTestConfig,
