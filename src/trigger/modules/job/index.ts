@@ -229,9 +229,22 @@ export const createTestRuns = async (params: ProcessJobParams<BatchCreateTestRun
       try {
         const result = await getParseQuery(false, 'test_manager_TestConfig')
           .equalTo('workspaceKey', workspace.key)
-          .select(['caseSnapshot'])
-          .first({ useMasterKey: true, json: true });
-        return result.caseSnapshot;
+          // .select(['caseSnapshot'])
+          .first({ useMasterKey: true });
+
+        const tmpResult = result?.toJSON();
+        console.info('getCaseSnapshotType', tmpResult);
+        console.info('getCaseSnapshotType caseSnapshot', result?.get('caseSnapshot'));
+        // todo 【申万生产】tmpResult.caseSnapshot返回值是字符串，但是应该返回对象。临时解决下
+        if (typeof tmpResult.caseSnapshot === 'string' && tmpResult.caseSnapshot) {
+          try {
+            tmpResult.caseSnapshot = JSON.parse(tmpResult.caseSnapshot);
+          } catch (error) {
+            console.error('Failed to parse caseSnapshot:', error);
+          }
+        }
+
+        return tmpResult.caseSnapshot;
       } catch (error) {
         console.error('getCaseSnapshotType error:', error);
         // 返回默认配置而不是抛出错误
