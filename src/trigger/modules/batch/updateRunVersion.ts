@@ -16,7 +16,7 @@ const getCaseSnapshotInfo = async key => {
   try {
     const result = await getParseQuery(false, 'test_manager_TestConfig')
       .equalTo('workspaceKey', key)
-      .select(['caseSnapshot'])
+      // .select(['caseSnapshot'])
       .first({ useMasterKey: true });
     if (!result) {
       return {};
