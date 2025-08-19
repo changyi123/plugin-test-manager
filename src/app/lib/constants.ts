@@ -1,4 +1,6 @@
-import { TestType } from 'common/constant';
+import { TestFiledKeyMapping, TestType } from 'common/constant';
+
+import { featureFlags } from '@/lib/appEnv';
 
 export * from 'common/constant';
 
@@ -48,6 +50,7 @@ export const TestTypeNameMapping = {
   [TestType.Report]: 'testReport',
   [TestType.Run]: 'testRun',
   [TestType.TestDefect]: 'testDefect',
+  [TestType.CaseSet]: 'testCaseSet', // 不能修改，这个地方是为了国际化
 };
 
 // 内置三种类型标识
@@ -56,6 +59,7 @@ export const BuiltinItemTypeMapping = {
   [TestType.Plan]: 'test_manager_plan',
   [TestType.Execution]: 'test_manager_execution',
   [TestType.Report]: 'test_manager_report',
+  [TestType.CaseSet]: 'test_manager_caseset',
 };
 
 /** 本地存储前缀 */
@@ -455,6 +459,9 @@ export const EXINCLUDE_FIELDS = [
   FIELD_TYPE_KEY_MAPPINGS.Tree,
 ];
 
+// 筛选器忽略字段
+export const EXCLUDE_FILTER_KEYS = [TestFiledKeyMapping.testSet];
+
 export const isUseOptionValue = (component: string): boolean => {
   return [FIELD_TYPE_KEY_MAPPINGS.Dropdown].includes(component);
 };
@@ -488,60 +495,74 @@ export const TestRunDesigneeModel = `${appKey}_designee`;
 export const TestRunExecutorModel = `${appKey}_executor`;
 export const TestExecutionModel = `${appKey}_Execution`;
 export const TestPlanModel = `${appKey}_Plan`;
+export const TestSetModel = `${appKey}_referenceSet`;
 
-export const getExtendFields = t => [
-  {
-    key: RepositoryModel,
-    name: t('common.testRepository'),
-    objectId: RepositoryModel,
-    fieldType: {
-      isExtend: true,
-      dataType: 'object',
-      objectId: RepositoryModel,
+export const getExtendFields = t =>
+  [
+    {
       key: RepositoryModel,
       name: t('common.testRepository'),
+      objectId: RepositoryModel,
+      fieldType: {
+        isExtend: true,
+        dataType: 'object',
+        objectId: RepositoryModel,
+        key: RepositoryModel,
+        name: t('common.testRepository'),
+      },
     },
-  },
-  {
-    key: TestRunDesigneeModel,
-    // name: '执行人',
-    name: t('common.designee'),
-    objectId: TestRunDesigneeModel,
-    fieldType: {
-      component: 'createdBy',
-      dataType: 'object',
-      objectId: 'test_designee',
-      key: 'createdBy',
-      name: t('common.user'),
+    featureFlags('ENABLE_TEST_CASE_SET') && {
+      key: '测试用例集',
+      name: '测试用例集',
+      objectId: TestSetModel,
+      fieldType: {
+        isExtend: true,
+        dataType: 'object',
+        objectId: TestSetModel,
+        key: TestSetModel,
+        name: '测试用例集',
+      },
     },
-  },
-  {
-    key: TestRunExecutorModel,
-    // name: '最新操作执行人',
-    name: t('common.testExecutor'),
-    objectId: TestRunExecutorModel,
-    fieldType: {
-      component: 'createdBy',
-      dataType: 'object',
-      objectId: 'test_executor',
-      key: 'createdBy',
-      name: t('common.user'),
+    {
+      key: TestRunDesigneeModel,
+      // name: '执行人',
+      name: t('common.designee'),
+      objectId: TestRunDesigneeModel,
+      fieldType: {
+        component: 'createdBy',
+        dataType: 'object',
+        objectId: 'test_designee',
+        key: 'createdBy',
+        name: t('common.user'),
+      },
     },
-  },
-  {
-    key: TestCaseStatusModel,
-    // name: '测试执行状态',
-    name: t('common.testCaseStatus'),
-    objectId: TestCaseStatusModel,
-    fieldType: {
-      isExtend: true,
-      dataType: 'object',
-      objectId: TestCaseStatusModel,
+    {
+      key: TestRunExecutorModel,
+      // name: '最新操作执行人',
+      name: t('common.testExecutor'),
+      objectId: TestRunExecutorModel,
+      fieldType: {
+        component: 'createdBy',
+        dataType: 'object',
+        objectId: 'test_executor',
+        key: 'createdBy',
+        name: t('common.user'),
+      },
+    },
+    {
       key: TestCaseStatusModel,
+      // name: '测试执行状态',
       name: t('common.testCaseStatus'),
+      objectId: TestCaseStatusModel,
+      fieldType: {
+        isExtend: true,
+        dataType: 'object',
+        objectId: TestCaseStatusModel,
+        key: TestCaseStatusModel,
+        name: t('common.testCaseStatus'),
+      },
     },
-  },
-];
+  ].filter(Boolean);
 
 export const getTestPlanField = t => [
   {
@@ -593,3 +614,29 @@ export const groupPermission = {
   public: 1, // 公共
   private: 2, // 私有
 };
+
+/** 用例快照类型caseSnapshot
+ * 1. 为0 或者空时， 不自动打版本且规划用例不能选择用例版本
+ * 2. 为1时，测试执行任务规划用例时自动打版本
+ * 3. 为2时，测试执行任务规划用例不打版本，可以选择用例版本
+ */
+export enum CASESNAPSHOT_TYPE {
+  NO_AUTOBUILDVERSION_NO_SELVERSION = 0,
+  AUTO_BUILDVERSION = 1,
+  NO_BUILDVERSION_SELVERSION = 2,
+}
+
+export const caseSnapshotOpt = t => [
+  {
+    label: t('page.config.testConfigInitialization.noAutoBuildVersionNoSelVersion'),
+    value: CASESNAPSHOT_TYPE.NO_AUTOBUILDVERSION_NO_SELVERSION,
+  },
+  {
+    label: t('page.config.testConfigInitialization.autoBuildVersion'),
+    value: CASESNAPSHOT_TYPE.AUTO_BUILDVERSION,
+  },
+  {
+    label: t('page.config.testConfigInitialization.noBuildVersionSelVersion'),
+    value: CASESNAPSHOT_TYPE.NO_BUILDVERSION_SELVERSION,
+  },
+];

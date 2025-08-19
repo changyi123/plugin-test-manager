@@ -11,10 +11,10 @@ import { useCurrentTestConfig, useDataContext } from '../hooks';
 
 const { ItemIcon } = components.Components.Common;
 
-import { useSDK } from '@projectproxima/plugin-sdk';
+import { useSDK } from '@giteeteam/plugin-sdk';
 
 import { savePanelDisplayConditions } from '@/lib/api/common';
-import { judgeTestReportVersion, TEST_REPORT_VERSION } from '@/lib/appEnv';
+import { featureFlags, judgeTestReportVersion, TEST_REPORT_VERSION } from '@/lib/appEnv';
 import Parse from '@/lib/parse';
 import { TestConfig } from '@/services/models';
 
@@ -33,7 +33,37 @@ const TestTypes = [
     type: TestType.Execution,
     title: 'testExecution',
   },
-];
+  featureFlags('ENABLE_TEST_CASE_SET') && {
+    type: TestType.CaseSet,
+    title: 'testCaseSet',
+  },
+].filter(Boolean);
+
+async function getAllItemType() {
+  const pageSize = 350;
+  const total = await new Parse.Query(TestConfig)
+    .select('itemTypeMap')
+    .equalTo('global', false)
+    .count();
+  if (total === 0) {
+    return [];
+  }
+  const page = total / pageSize;
+  const requestQueue = [];
+  for (let i = 0; i <= page; i++) {
+    const request = new Parse.Query(TestConfig)
+      .select('itemTypeMap')
+      .equalTo('global', false)
+      .skip(i * pageSize)
+      .limit(pageSize) as Parse.Query<Parse.Object>;
+    requestQueue.push(request);
+  }
+  return Promise.all(requestQueue.map(request => request.find())).then(data =>
+    data.reduce((prev, curr) => {
+      return prev.concat(curr);
+    }, []),
+  );
+}
 
 const ItemTypeMapping = () => {
   const { t } = useI18n();
@@ -47,10 +77,7 @@ const ItemTypeMapping = () => {
   const [itemTypeMapping, setItemTypeMapping] = useSafeState({} as Record<TestType, string>);
 
   const getAllItemTypeValues = async () => {
-    const allTestConfigs = (await new Parse.Query(TestConfig)
-      .select('itemTypeMap')
-      .equalTo('global', false)
-      .findAll()) as Array<Parse.Object>;
+    const allTestConfigs = await getAllItemType();
     const allItemMapValues = allTestConfigs
       .map(config => config.toJSON())
       ?.map(config => config?.itemTypeMap)
@@ -122,6 +149,11 @@ const ItemTypeMapping = () => {
 
   // 保存
   const handleSave = async () => {
+    const validItemTypeMapArr = Object.values(itemTypeMapping).filter(Boolean);
+    if (validItemTypeMapArr?.length < testTypes?.length) {
+      return message.error(t('page.config.itemTypeMapping.pleaseSelectAllTypes'));
+    }
+
     await testConfig?.save({
       itemTypeMap: itemTypeMapping,
     });

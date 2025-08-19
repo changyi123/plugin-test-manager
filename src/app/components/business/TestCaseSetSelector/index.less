@@ -1,0 +1,110 @@
+:root {
+  .test-case-set-selector-container {
+    position: relative;
+    cursor: pointer;
+
+    .title {
+      display: flex;
+      align-items: center;
+      font-size: 18px;
+      font-weight: 500;
+      color: #1e2a3d;
+      line-height: 26px;
+
+      &:hover {
+        color: #0c62ff;
+      }
+
+      .name {
+        display: block;
+        color: #091940;
+        font-weight: 600;
+        max-width: 208px;
+        overflow: hidden;
+        font-size: 18px;
+        font-weight: 500;
+        white-space: nowrap;
+        text-overflow: ellipsis;
+      }
+
+      .icon {
+        margin-left: 8px;
+
+        svg {
+          width: 16px;
+          height: 16px;
+        }
+      }
+    }
+  }
+
+  .selector-box {
+    position: absolute;
+    top: 100%;
+    left: 0;
+    width: 260px;
+    background-color: #fff;
+    box-shadow: 0 0 2px 0px #beb7b7;
+    border-radius: 4px;
+    margin-top: 8px;
+    z-index: 1;
+
+    .search-box {
+      :global {
+        .ant-input-affix-wrapper {
+          line-height: 34px !important;
+          border: none !important;
+
+          &.ant-input-affix-wrapper-focused {
+            border: none !important;
+            box-shadow: none !important;
+          }
+
+          &:focus {
+            border: none !important;
+            box-shadow: none !important;
+          }
+        }
+      }
+    }
+
+    .selector-list {
+      overflow: auto;
+      max-height: 250px;
+      border-top: 1px solid #f1f2f4;
+      border-bottom: 1px solid #f1f2f4;
+
+      .plan-name {
+        padding: 8px;
+        font-size: 14px;
+        line-height: 20px;
+        text-overflow: ellipsis;
+        overflow: hidden;
+        white-space: nowrap;
+
+        &.actived {
+          color: #0c62ff;
+          background-color: #e6f3ff;
+        }
+
+        &:hover {
+          background-color: #f5f6f8;
+          // color: #0c62ff;
+        }
+      }
+    }
+
+    .check-all {
+      padding: 8px;
+      font-size: 14px;
+      line-height: 20px;
+      text-align: center;
+      cursor: pointer;
+      color: #0c62ff;
+
+      &:hover {
+        background-color: #dadde3;
+      }
+    }
+  }
+}

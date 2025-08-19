@@ -14,8 +14,8 @@ import TestEntitySelectorModal, {
 import PageLayout from '@/components/common/PageLayout';
 import BasicPageLayout from '@/components/common/PageLayout/Basic';
 import { updateTestEntity } from '@/lib/api/item';
-import { PROXIMA_EVENT_KEY, TestLinkType, TestType } from '@/lib/constants';
-import { useBaseAction } from '@/lib/hooks/useContext';
+import { CASESNAPSHOT_TYPE, PROXIMA_EVENT_KEY, TestLinkType, TestType } from '@/lib/constants';
+import { useBaseAction, useTestConfig } from '@/lib/hooks/useContext';
 import useI18n from '@/lib/hooks/useI18n';
 import { getExecutionDefaultConfig } from '@/lib/utils/execution';
 import { generateSortIndex } from '@/lib/utils/helper';
@@ -49,10 +49,15 @@ const PlanPageLayout: React.FC<any> = () => {
     setSearchParams,
     // setSelectedTestPlan,
     setPlanLinkCaseIds,
+    setRunVersionMap,
     setExecutionLinkRunIds,
     setRunLinkCaseIds,
+    setRunMap,
+    setRunSnapshotMap,
   } = usePageContext();
   const { t } = useI18n();
+  const { config } = useTestConfig();
+
   const executionListRef = React.useRef<ExecutionListRef>();
   const selectorModalRef = React.useRef<ModelActionType>();
   const detailSearchRef = useRef(null);
@@ -123,6 +128,10 @@ const PlanPageLayout: React.FC<any> = () => {
     });
 
   useUpdateEffect(() => {
+    setRunVersionMap(scopeTestRunIds?.runVersionMap);
+  }, [scopeTestRunIds?.runVersionMap]);
+
+  useUpdateEffect(() => {
     setPlanLinkCaseIds(planLinkCaseIds);
   }, [planLinkCaseIds]);
 
@@ -130,6 +139,8 @@ const PlanPageLayout: React.FC<any> = () => {
     setRunLinkCaseIds(scopeTestRunIds?.runLinkCaseIds);
     setExecutionLinkRunIds(scopeTestRunIds?.executionLinkRunIds);
     setRunLinkSnapshotIds(scopeTestRunIds?.runLinkSnapshotIds);
+    setRunMap(scopeTestRunIds?.runMap || {});
+    setRunSnapshotMap(scopeTestRunIds?.runSnapshotMap || {});
   }, [scopeTestRunIds]);
 
   const treeParams = useTreeParams({
@@ -179,12 +190,13 @@ const PlanPageLayout: React.FC<any> = () => {
   }, [selectValue, treeType, t]);
 
   const createExecution = useCallback(
-    async (caseIds = [], createNext = false) => {
+    async (caseIds = [], createNext = false, caseVersion = {}) => {
       const config = await getExecutionDefaultConfig(selectedTestPlan);
       const res = await createItemUseModal({
         type: TestType.Execution,
         extraData: {
           planId: selectedTestPlan?.objectId,
+          caseVersion: caseVersion,
           isCustomCreateItem: true,
           isCheckCreateNext: createNext,
           isShowPrevButton: true,
@@ -218,10 +230,10 @@ const PlanPageLayout: React.FC<any> = () => {
     async (createNext?: boolean) => {
       const data = await getSelectCaseIds();
       if (!data) return;
-      const { selectedData: caseIds, treeType } = data;
+      const { selectedData: caseIds, treeType, caseVersion } = data;
       setSelectValue(caseIds);
       setTreeType(treeType);
-      const { item, extraData } = await createExecution(caseIds, createNext);
+      const { item, extraData } = await createExecution(caseIds, createNext, caseVersion);
       const isCheckCreateNext: boolean = (extraData as any)?.isCheckCreateNext;
 
       const handleSuccess = () => {
@@ -231,7 +243,7 @@ const PlanPageLayout: React.FC<any> = () => {
           }, 500);
         }
         // executionListRef?.current?.refresh();
-        refreshExecutionList && refreshExecutionList()
+        refreshExecutionList && refreshExecutionList();
         notification.success({
           message: `${t('page.plan.planPageLayout.right.createTestExecutionSuccessMessage.0')}【${
             item.name
@@ -269,6 +281,7 @@ const PlanPageLayout: React.FC<any> = () => {
           await createTestRunWithProcess({
             execution: item,
             caseIds: caseIds,
+            caseVersion: caseVersion,
             workspace: item?.workspace as any,
             planId: extraData?.planId,
             handleSuccess,
@@ -304,7 +317,7 @@ const PlanPageLayout: React.FC<any> = () => {
 
   // 关联测试执行任务
   const addExistedTestExecution = React.useCallback(async () => {
-    const ids = await selectorModalRef.current.open({
+    const { selectedData: ids } = await selectorModalRef.current.open({
       testType: TestType.Execution,
     });
 
@@ -315,7 +328,7 @@ const PlanPageLayout: React.FC<any> = () => {
     }
     await addTestExecutionToPlan(ids);
     // executionListRef?.current.refresh();
-    refreshExecutionList && refreshExecutionList()
+    refreshExecutionList && refreshExecutionList();
   }, [addTestExecutionToPlan, executionListRef, t]);
 
   const cancelCallback = useCallback(
@@ -333,7 +346,7 @@ const PlanPageLayout: React.FC<any> = () => {
       setTreeType('repository');
       if (!props?.itemIdList?.length) {
         // executionListRef?.current?.refresh();
-        refreshExecutionList && refreshExecutionList()
+        refreshExecutionList && refreshExecutionList();
       }
     },
     [executionListRef],
@@ -380,32 +393,30 @@ const PlanPageLayout: React.FC<any> = () => {
                 </Spin>
               </PageLayout.NoData>
             )}
-            {selectedExecution?.objectId && (
+            {['TestPlan'].includes(activeType) && (
               <PageLayout.Left>
-                <>
-                  {['TestPlan'].includes(activeType) && (
-                    <Left
-                      actionRef={pageLeftRef}
-                      treeParams={treeParams}
-                      activeType={activeType}
-                      onFolderSelect={node => setSelectNode(node)}
-                    />
-                  )}
-                  {['TestExecution'].includes(activeType) && (
-                    <ExecutionList
-                      actionRef={executionListRef}
-                      activeType={activeType}
-                      setSelectedExecution={setSelectedExecution}
-                      setLoading={setLoading}
-                      refresh={refreshExecutionList}
-                      loading={loadingExecutionList}
-                      executionList={executionList}
-                      activeId={activeId}
-                      setActiveId={setActiveId}
-                      setSelectors={setSelectors}
-                    />
-                  )}
-                </>
+                <Left
+                  actionRef={pageLeftRef}
+                  treeParams={treeParams}
+                  activeType={activeType}
+                  onFolderSelect={node => setSelectNode(node)}
+                />
+              </PageLayout.Left>
+            )}
+            {selectedExecution?.objectId && ['TestExecution'].includes(activeType) && (
+              <PageLayout.Left>
+                <ExecutionList
+                  actionRef={executionListRef}
+                  activeType={activeType}
+                  setSelectedExecution={setSelectedExecution}
+                  setLoading={setLoading}
+                  refresh={refreshExecutionList}
+                  loading={loadingExecutionList}
+                  executionList={executionList}
+                  activeId={activeId}
+                  setActiveId={setActiveId}
+                  setSelectors={setSelectors}
+                />
               </PageLayout.Left>
             )}
             {(activeType === 'TestPlan' || selectedExecution?.objectId) && (
@@ -437,6 +448,11 @@ const PlanPageLayout: React.FC<any> = () => {
               refresh();
             }}
             planId={selectedTestPlan?.objectId}
+            enableCaseVersion={
+              [CASESNAPSHOT_TYPE.NO_BUILDVERSION_SELVERSION].includes(config?.caseSnapshot?.type) &&
+              activeType === 'TestExecution'
+            }
+            type="add"
           />
         </>
       )}

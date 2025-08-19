@@ -190,6 +190,11 @@ const Test = () => {
 
   const existStartNode = useMemo(() => statusList?.find(s => s.isStartStatus), [statusList]);
   const enableCreateCase = useMemo(() => {
+    // 没有配置用例规划限制时能创建
+    if (!listType) {
+      return true;
+    }
+
     return listType === 'black' ? !existStartNode : statusList?.length && existStartNode;
   }, [listType, existStartNode, statusList?.length]);
 
@@ -199,7 +204,7 @@ const Test = () => {
       {
         title: t('modules.panel.testExecution.testDetailPanel.existingTestCase'),
         async onClick() {
-          const testDetailIds = await selectorModalRef.current.open();
+          const { selectedData: testDetailIds } = await selectorModalRef.current.open();
           if (getCreatePermission(TestType.Case)) {
             message.error(t('page.plan.testEntityList.addItemTips'));
             return;
@@ -215,6 +220,7 @@ const Test = () => {
             },
             update: {
               [TestFiledKeyMapping.linkItems]: { concat: [testEntity.objectId] },
+              [TestFiledKeyMapping.testPlans]: { concat: [testEntity.objectId] },
             },
             handleSuccess: () => {
               refreshDepData();

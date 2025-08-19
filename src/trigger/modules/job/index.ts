@@ -1,4 +1,9 @@
-import { getParseModel, getParseQuery, saveAllObject } from '@giteeteam/apps-team-api';
+import {
+  getParseModel,
+  getParseQuery,
+  requestCoreApi,
+  saveAllObject,
+} from '@giteeteam/apps-team-api';
 import { groupBy } from 'lodash';
 
 import {
@@ -23,6 +28,7 @@ import { TestEntity } from '../../../common/types/test';
 import { buildResponse } from '../../lib/apiUtil';
 import { getReqInfoFromVMRuntime } from '../../lib/apiUtil';
 import { batchUpdateItemsValues } from '../../lib/batchRequest';
+import { CASESNAPSHOT_TYPE } from '../../lib/constants';
 import {
   batchCreateItemsV2,
   batchUpdateItemsV2 as originBatchUpdateItemsV2,
@@ -38,6 +44,11 @@ import {
   updateProcessBar,
 } from '../../lib/helper';
 import { iqlRequest } from '../../lib/iqlRequest';
+import {
+  updateCaseDefects,
+  updateExecutionCases,
+  updateExecutionCasesAndDefects,
+} from '../../lib/update';
 
 type TestRunType = TestEntity<TestType.Run>;
 type ProcessJobParams<T> = T & {
@@ -188,7 +199,7 @@ const execWithProcess = async ({
 };
 
 export const createTestRuns = async (params: ProcessJobParams<BatchCreateTestRunV2Payload>) => {
-  const { execution, caseIds, workspace, processId, planId, retry } = params;
+  const { execution, caseIds, workspace, processId, planId, retry, caseVersion = {} } = params;
   const result = getResult(processId);
   result.total = caseIds.length;
   const withProcess = !!processId;
@@ -210,19 +221,35 @@ export const createTestRuns = async (params: ProcessJobParams<BatchCreateTestRun
     }
 
     // 获取快照配置
-    const getCaseSnapshotEnabled = async () => {
-      let caseSnapshotEnabled = undefined;
-      // 如果 ENABLED_CASE_SNAPSHOT 为 true 开启快照空间配置，需要查询空间的快照配置
-      if (global.env?.ENABLED_CASE_SNAPSHOT) {
-        caseSnapshotEnabled = await getParseQuery(false, 'test_manager_TestConfig')
-          .equalTo('workspaceKey', workspace.key)
-          .select(['enableCaseSnapshot'])
-          .first({ useMasterKey: true })
-          .then(data => data?.get('enableCaseSnapshot'));
+    const getCaseSnapshotType = async () => {
+      if (!global.env?.ENABLED_CASE_SNAPSHOT) {
+        return { type: CASESNAPSHOT_TYPE.NO_AUTOBUILDVERSION_NO_SELVERSION };
       }
 
-      // 没有快照配置 则以默认值 DEFAULT_ENABLED_CASE_SNAPSHOT 为准
-      return caseSnapshotEnabled ?? global.env?.DEFAULT_ENABLED_CASE_SNAPSHOT;
+      try {
+        const result = await getParseQuery(false, 'test_manager_TestConfig')
+          .equalTo('workspaceKey', workspace.key)
+          // .select(['caseSnapshot'])
+          .first({ useMasterKey: true });
+
+        const tmpResult = result?.toJSON();
+        console.info('getCaseSnapshotType', tmpResult);
+        console.info('getCaseSnapshotType caseSnapshot', result?.get('caseSnapshot'));
+        // todo 【申万生产】tmpResult.caseSnapshot返回值是字符串，但是应该返回对象。临时解决下
+        if (typeof tmpResult.caseSnapshot === 'string' && tmpResult.caseSnapshot) {
+          try {
+            tmpResult.caseSnapshot = JSON.parse(tmpResult.caseSnapshot);
+          } catch (error) {
+            console.error('Failed to parse caseSnapshot:', error);
+          }
+        }
+
+        return tmpResult.caseSnapshot;
+      } catch (error) {
+        console.error('getCaseSnapshotType error:', error);
+        // 返回默认配置而不是抛出错误
+        return { type: CASESNAPSHOT_TYPE.NO_AUTOBUILDVERSION_NO_SELVERSION };
+      }
     };
 
     // 获取测试管理已关联的测试执行
@@ -240,7 +267,7 @@ export const createTestRuns = async (params: ProcessJobParams<BatchCreateTestRun
           destinationType: TestType.Run,
           linkType: TestLinkType.RunLinkExecution,
         },
-        fields: [TestFiledKeyMapping.referenceCase, ...fields],
+        fields: [TestFiledKeyMapping.referenceCase, ...fields, SystemField.Id],
       });
       console.info('batchCreateTestRunV2 getExistedTestRuns end');
 
@@ -266,6 +293,7 @@ export const createTestRuns = async (params: ProcessJobParams<BatchCreateTestRun
         from: cases,
         fields: {
           [TestFiledKeyMapping.linkItems]: [execution.objectId],
+          [TestFiledKeyMapping.testExecutions]: [execution.objectId],
           [TestFiledKeyMapping.linkType]: TestLinkType.RunLinkExecution,
           [TestFiledKeyMapping.type]: TestType.Run,
           [TestFiledKeyMapping.status]: StartStatusKey,
@@ -278,6 +306,11 @@ export const createTestRuns = async (params: ProcessJobParams<BatchCreateTestRun
           [TestFiledKeyMapping.referenceCase]: {
             copy: 'objectId',
             valueType: 'item',
+          },
+          [TestFiledKeyMapping.testCases]: {
+            copy: 'objectId',
+            valueType: 'item',
+            fieldType: 'DataQuote',
           },
           [TestFiledKeyMapping.runDetail]: {
             copy: TestFiledKeyMapping.detail,
@@ -302,7 +335,6 @@ export const createTestRuns = async (params: ProcessJobParams<BatchCreateTestRun
         getHeaders(),
       );
     };
-
     // 对用例打快照
     const snapshotCases = async cases => {
       console.info(`batchCreateTestRunV2 snapshotCases cases: ${cases.length}`);
@@ -342,17 +374,96 @@ export const createTestRuns = async (params: ProcessJobParams<BatchCreateTestRun
     };
 
     // 把快照更新到用例的字段上
-    const updateRunsReference = async (runCaseMap, caseSnapshotMap) => {
+    const updateRunsReference = async (
+      runCaseMap,
+      caseSnapshotMap,
+      snapshotCaseToBaseLineVersion = {},
+    ) => {
       const updatedRuns = [];
       for (const runId in runCaseMap) {
-        updatedRuns.push({
+        const snapshotId = caseSnapshotMap[runCaseMap[runId]];
+        const snapshotInfo = snapshotCaseToBaseLineVersion[snapshotId];
+        const runDetail = snapshotInfo.runDetail; // 快照执行
+        delete snapshotInfo.runDetail;
+        const updateInfo = {
           objectId: runId,
-          referenceCaseSnapshot: caseSnapshotMap[runCaseMap[runId]],
-        });
+          referenceCaseSnapshot: snapshotId,
+          baseLineItemVersion: snapshotInfo,
+        } as any;
+        if (runDetail) {
+          updateInfo.runDetail = runDetail;
+        }
+        updatedRuns.push(updateInfo);
       }
 
+      console.info('batchCreateTestRunV2 updateRunsReference', updatedRuns);
       if (!updatedRuns.length) return;
       return await batchUpdateItemsValues(updatedRuns, true);
+    };
+
+    const getSnapshotIdToBaseLineVersion = async (baseLineIds: string[]) => {
+      const result = {};
+      if (!baseLineIds.length) {
+        return result;
+      }
+
+      const iql = `id in [${baseLineIds
+        .map(id => `'${id}'`)
+        .join(',')}] and 'baseLineSources' in ['BaseLineItemVersion']`;
+      const cases = await requestCoreApi('POST', '/parse/api/search', {
+        iql,
+        fields: [
+          SystemField.Id,
+          TestFiledKeyMapping.baseLineItemVersion,
+          TestFiledKeyMapping.detail,
+        ],
+        size: 9999,
+        displayContext: 'test_manager',
+      }).then((data: any) => data?.payload.items ?? []);
+
+      cases.forEach(item => {
+        result[item.id] = {
+          ...item?.values?.baseLineItemVersion,
+          baseLineItemId: item.id,
+          runDetail: JSON.parse(item?.values?.[TestFiledKeyMapping.detail] || '{}'),
+        };
+      });
+
+      return result;
+    };
+
+    // 给执行添加快照
+    const attachSnapshotToRun = async cases => {
+      console.info('batchCreateTestRunV2 attachSnapshotToRun start');
+      const versionCases = Object.keys(caseVersion);
+      if (versionCases.length === 0) {
+        return;
+      }
+      const existVersionCases = cases.filter(caseId => versionCases.includes(caseId));
+
+      const existedRuns = await getExistedTestRuns(existVersionCases, [
+        SystemField.Id,
+        TestFiledKeyMapping.referenceCase,
+      ]);
+      const existedRunsMap = existedRuns.reduce(
+        (prev, cur) => ({ ...prev, [cur[SystemField.Id]]: cur.referenceCase }),
+        {},
+      );
+
+      let snapToBaseLineVersionInfo = {};
+
+      if (Object.keys(caseVersion)?.length) {
+        snapToBaseLineVersionInfo = await getSnapshotIdToBaseLineVersion(
+          Object.values(caseVersion),
+        );
+      }
+
+      console.info(
+        'batchCreateTestRunV2 attachSnapshotToRun snapToBaseLineVersion',
+        snapToBaseLineVersionInfo,
+      );
+      await updateRunsReference(existedRunsMap, caseVersion, snapToBaseLineVersionInfo);
+      console.info('batchCreateTestRunV2 attachSnapshotToRun end');
     };
 
     // 创建测试用例快照
@@ -360,9 +471,6 @@ export const createTestRuns = async (params: ProcessJobParams<BatchCreateTestRun
     // 2. 创建测试用例快照
     const createCaseSnapshot = async cases => {
       console.info('batchCreateTestRunV2 createCaseSnapshot start');
-      const caseSnapshotEnabled = await getCaseSnapshotEnabled();
-      console.info(`batchCreateTestRunV2 createCaseSnapshot: ${caseSnapshotEnabled}`);
-      if (!caseSnapshotEnabled) return;
       const existedRuns = await getExistedTestRuns(cases, [
         SystemField.Id,
         TestFiledKeyMapping.referenceCase,
@@ -374,9 +482,22 @@ export const createTestRuns = async (params: ProcessJobParams<BatchCreateTestRun
       const existedReferenceCaseIdSet = new Set(existedRuns.map(item => item.referenceCase));
 
       const caseSnapshotMap = await snapshotCases([...existedReferenceCaseIdSet]);
+      const snapshotCaseToBaseLineVersion = Object.values(caseSnapshotMap).reduce((prev, cur) => {
+        return {
+          ...(prev as object),
+          [cur as string]: {
+            name: execution.name,
+            baseLineItemId: cur,
+          },
+        };
+      }, {});
 
-      await updateRunsReference(existedRunsMap, caseSnapshotMap);
-      console.info('batchCreateTestRunV2 createCaseSnapshot end');
+      console.info(
+        'batchCreateTestRunV2 snapshotCaseToBaseLineVersion',
+        snapshotCaseToBaseLineVersion,
+      );
+      await updateRunsReference(existedRunsMap, caseSnapshotMap, snapshotCaseToBaseLineVersion);
+      console.info('batchCreateTestRunV2 autoCreateSnapshotToRun end');
     };
 
     // 把所属计划更新到用例的引用字段上
@@ -393,6 +514,9 @@ export const createTestRuns = async (params: ProcessJobParams<BatchCreateTestRun
           [TestFiledKeyMapping.linkItems]: {
             concat: [planId],
           },
+          [TestFiledKeyMapping.testPlans]: {
+            concat: [planId],
+          },
         },
       };
       return await batchUpdateItemsV2(updateParams);
@@ -401,18 +525,32 @@ export const createTestRuns = async (params: ProcessJobParams<BatchCreateTestRun
     // 对用例打快照
     const planCases = async cases => {
       try {
-        // 校验测试用例是否已经被规划进测试执行任务
+        // 校验测试用例是否已经被规划进测试执行任务.  需要确认，如果之前在，但是现在是否需要更新版本什么的？
         const needPlanCases = await validateCases(cases);
         if (!needPlanCases.length) return;
 
         // 创建测试执行
         await createRuns(needPlanCases);
 
-        // 根据配置，对测试用例打快照
-        await createCaseSnapshot(needPlanCases);
+        const caseSnapshot = await getCaseSnapshotType();
+        console.info(`batchCreateTestRunV2 caseSnapshotType: ${caseSnapshot?.type}`);
+
+        if (
+          !caseSnapshot ||
+          caseSnapshot?.type === CASESNAPSHOT_TYPE.NO_AUTOBUILDVERSION_NO_SELVERSION
+        ) {
+          return;
+        } else if (caseSnapshot?.type === CASESNAPSHOT_TYPE.AUTO_BUILDVERSION) {
+          await createCaseSnapshot(needPlanCases);
+        } else {
+          await attachSnapshotToRun(needPlanCases);
+        }
 
         // 更新测试用例上的
         await updateCaseLinkPlan(needPlanCases);
+
+        // 更新测试执行任务规划的用例数量
+        await updateExecutionCases([execution.objectId]);
         result.success += needPlanCases.length;
       } catch (e) {
         result.message.push(getErrorMessage(e));
@@ -560,6 +698,8 @@ export const copyTesCases = async (params: ProcessJobParams<BatchCopyTestCaseV3P
         from: cases,
         fields: {
           [TestFiledKeyMapping.linkItems]: [],
+          [TestFiledKeyMapping.testPlans]: [],
+          [TestFiledKeyMapping.testDefects]: [],
           [TestFiledKeyMapping.linkType]: '',
         },
         update: {
@@ -708,6 +848,117 @@ export const batchDeleteItemsJob = async () => {
   return await batchDeleteItems(body);
 };
 
+export const batchDeleteRuns = async ({
+  ids: itemIds,
+  retry,
+  processId,
+}: ProcessJobParams<BatchDeletePayload>) => {
+  const result = getResult(processId);
+  result.total = itemIds.length;
+  const withProcess = !!processId;
+  try {
+    const getExecutionAndCaseId = async items => {
+      const runIds = items.map(i => i.objectId);
+
+      const runs = await getAllEntity(
+        {
+          query: { id: runIds, type: TestType.Run },
+        },
+        ['id', TestFiledKeyMapping.linkItems, TestFiledKeyMapping.referenceCase],
+      );
+
+      const executionIdSet = new Set();
+      const caseSet = new Set();
+      runs.forEach(runData => {
+        const executionId = runData?.linkItems?.[0];
+        const caseId = runData?.referenceCase;
+        if (executionId) {
+          executionIdSet.add(executionId);
+        }
+        if (caseId) {
+          caseSet.add(caseId);
+        }
+      });
+
+      const result = {
+        executionIds: [...executionIdSet],
+        caseIds: [...caseSet],
+      };
+
+      console.info('getExecutionAndCaseId', JSON.stringify(result));
+      return result;
+    };
+
+    const deleteChunkRuns = async items => {
+      try {
+        // 获取执行关联的测试执行任务、测试用例
+        const { executionIds, caseIds } = await getExecutionAndCaseId(items);
+
+        console.info(
+          'deleteChunkRuns  executionIds-caseIds',
+          JSON.stringify({ executionIds, caseIds }),
+        );
+        const res = await deleteItems(items, getHeaders());
+        // 删除测试执行后，更新测试执行任务、测试用例
+
+        await Promise.all([
+          updateExecutionCasesAndDefects(executionIds),
+          updateCaseDefects(caseIds),
+        ]);
+        const errors = res?.filter(i => i.status !== 'success');
+        result.success += items.length - errors.length;
+        result.fail += errors.length;
+        result.items = result.items.concat(errors.map(i => i.objectId));
+        if (errors.length) {
+          result.message.push(errors[0]?.message);
+        }
+      } catch (e) {
+        result.message.push(getErrorMessage(e));
+        result.fail += items.length;
+        result.items = result.items.concat(items);
+        throw e;
+      } finally {
+        console.info('deleteChunkRuns end');
+      }
+    };
+    const items = itemIds.map(objectId => ({ objectId }));
+
+    if (withProcess)
+      await execWithProcess({
+        processId,
+        execFunc: deleteChunkRuns,
+        list: items,
+        getDesc: () => JSON.stringify(result),
+        batchSize: deleteBatchSize,
+        getBatchRecord: (items, error) => ({
+          retryId: processId,
+          type: 'batchDeleteItems',
+          params: {
+            ids: items,
+          },
+          error,
+        }),
+      });
+    else if (retry) await deleteChunkRuns(items);
+    else
+      await batchExecFunction({
+        list: items,
+        fun: deleteChunkRuns,
+        batchSize: itemsV2BatchSize,
+      });
+
+    return buildResponse(result);
+  } catch (err) {
+    return handleError(err, retry, result, processId);
+  }
+};
+
+export const batchDeleteRunsJob = async () => {
+  const { body } = getReqInfoFromVMRuntime<ProcessJobParams<BatchDeletePayload>>();
+
+  return await batchDeleteRuns(body);
+};
+
 export const removeCaseFromPlanWorker = async (
   props: ProcessJobParams<RemoveCaseFromPlanPayload>,
 ) => {
@@ -722,6 +973,9 @@ export const removeCaseFromPlanWorker = async (
           [TestFiledKeyMapping.linkItems]: {
             remove: planId,
           },
+          [TestFiledKeyMapping.testPlans]: {
+            remove: planId,
+          },
         },
         fields: {},
         items: cases,
@@ -730,11 +984,40 @@ export const removeCaseFromPlanWorker = async (
 
       try {
         await batchUpdateItemsV2(updateParams);
-        const runIds = await getAllEntity({
-          query: { referenceCase: cases, plan: planId, type: TestType.Run },
+        const runs = await getAllEntity(
+          {
+            query: { referenceCase: cases, plan: planId, type: TestType.Run },
+          },
+          ['id', TestFiledKeyMapping.linkItems],
+        );
+
+        console.info('removeCaseFromPlanWorker runs', JSON.stringify(runs));
+
+        const runIds = [];
+        const executionIdSet = new Set();
+        runs.forEach(runData => {
+          runIds.push(runData.objectId);
+
+          const executionId = runData?.linkItems?.[0];
+          if (executionId) {
+            executionIdSet.add(executionId);
+          }
         });
-        console.info('removeCaseFromPlanWorker', runIds.length, cases.length);
+
+        console.info(
+          'removeCaseFromPlanWorker',
+          runIds.length,
+          cases.length,
+          JSON.stringify([...executionIdSet]),
+        );
         if (runIds.length) await batchDeleteItems({ ids: runIds });
+
+        // 删除测试执行后，需要更新用例的缺陷、测试执行任务的缺陷、用例数
+        await Promise.all([
+          updateExecutionCasesAndDefects([...executionIdSet]),
+          updateCaseDefects(cases),
+        ]);
+
         result.success += cases.length;
       } catch (e) {
         result.message.push(getErrorMessage(e));
@@ -791,6 +1074,7 @@ export const removeExecutionFromPlanWorker = async (
       fields: {
         values: {
           [TestFiledKeyMapping.linkItems]: [],
+          [TestFiledKeyMapping.testPlans]: [],
         },
       },
       items: executionIds,
@@ -801,7 +1085,7 @@ export const removeExecutionFromPlanWorker = async (
       query: {
         type: TestType.Run,
         linkType: TestLinkType.RunLinkExecution,
-        linkItems: [executionIds],
+        linkItems: executionIds,
       },
     });
     result.total = runIds.length;
@@ -828,22 +1112,25 @@ export const removeExecutionFromPlanWorker = async (
       }
     };
 
-    if (withProcess)
-      await execWithProcess({
-        processId,
-        execFunc: removeRunFromPlan,
-        list: runIds,
-        getDesc: () => JSON.stringify(result),
-        batchSize: itemsV2BatchSize,
-        getBatchRecord: () => false,
-      });
-    else
-      await batchExecFunction({
-        list: runIds,
-        fun: removeRunFromPlan,
-        batchSize: itemsV2BatchSize,
-      });
-
+    if (runIds?.length) {
+      if (withProcess)
+        await execWithProcess({
+          processId,
+          execFunc: removeRunFromPlan,
+          list: runIds,
+          getDesc: () => JSON.stringify(result),
+          batchSize: itemsV2BatchSize,
+          getBatchRecord: () => false,
+        });
+      else
+        await batchExecFunction({
+          list: runIds,
+          fun: removeRunFromPlan,
+          batchSize: itemsV2BatchSize,
+        });
+    } else {
+      withProcess && (await updateProcessBar(processId, 100, JSON.stringify(result)));
+    }
     return buildResponse(result);
   } catch (err) {
     return handleError(err, retry, result, processId);
@@ -867,6 +1154,7 @@ export const addExecutionToPlanWorker = async (
         values: {
           [TestFiledKeyMapping.linkType]: TestLinkType.ExecutionLinkPlan,
           [TestFiledKeyMapping.linkItems]: [planId],
+          [TestFiledKeyMapping.testPlans]: [planId],
         },
       },
       items: executionIds,
@@ -878,7 +1166,7 @@ export const addExecutionToPlanWorker = async (
         query: {
           type: TestType.Run,
           linkType: TestLinkType.RunLinkExecution,
-          linkItems: [executionIds],
+          linkItems: executionIds,
         },
       },
       ['id', TestFiledKeyMapping.referenceCase],
@@ -906,9 +1194,14 @@ export const addExecutionToPlanWorker = async (
           [TestFiledKeyMapping.linkItems]: {
             concat: [planId],
           },
+          [TestFiledKeyMapping.testPlans]: {
+            concat: [planId],
+          },
         },
         fields: {
-          [TestFiledKeyMapping.linkType]: TestLinkType.CaseLinkPlan,
+          values: {
+            [TestFiledKeyMapping.linkType]: TestLinkType.CaseLinkPlan,
+          },
         },
         items: caseIds,
         asynchronous: false,
@@ -928,21 +1221,25 @@ export const addExecutionToPlanWorker = async (
       }
     };
 
-    if (withProcess)
-      await execWithProcess({
-        processId,
-        execFunc: addRunToPlan,
-        list: runs,
-        getDesc: () => JSON.stringify(result),
-        batchSize: itemsV2BatchSize,
-        getBatchRecord: () => false,
-      });
-    else
-      await batchExecFunction({
-        list: runs,
-        fun: addRunToPlan,
-        batchSize: itemsV2BatchSize,
-      });
+    if (runs?.length) {
+      if (withProcess)
+        await execWithProcess({
+          processId,
+          execFunc: addRunToPlan,
+          list: runs,
+          getDesc: () => JSON.stringify(result),
+          batchSize: itemsV2BatchSize,
+          getBatchRecord: () => false,
+        });
+      else
+        await batchExecFunction({
+          list: runs,
+          fun: addRunToPlan,
+          batchSize: itemsV2BatchSize,
+        });
+    } else {
+      withProcess && (await updateProcessBar(processId, 100, JSON.stringify(result)));
+    }
 
     return buildResponse(result);
   } catch (err) {

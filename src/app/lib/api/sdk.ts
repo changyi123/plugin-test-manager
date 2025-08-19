@@ -2,7 +2,7 @@ import createProximaSdk from '@projectproxima/proxima-sdk-js';
 import { lib } from 'proxima-sdk';
 import { useCallback, useEffect, useRef, useState } from 'react';
 
-import { EXINCLUDE_FIELDS, TEST_MANAGER_PLUGIN_KEY } from '@/lib/constants';
+import { EXCLUDE_FILTER_KEYS, EXINCLUDE_FIELDS, TEST_MANAGER_PLUGIN_KEY } from '@/lib/constants';
 import Parse from '@/lib/parse';
 import { CustomField } from '@/services/models';
 
@@ -13,7 +13,13 @@ const proximaSDK = createProximaSdk();
 /**
  * 打开事项创建弹窗
  */
-export const openCreateItemModal = ({ itemTypeId, workspaceId, name, extraData }) => {
+export const openCreateItemModal = ({
+  itemTypeId,
+  workspaceId,
+  name,
+  extraData,
+  defaultValues = {},
+}) => {
   proximaSDK.execute('openItemCreateScreen', {
     extraData: {
       hideMessage: true,
@@ -22,8 +28,10 @@ export const openCreateItemModal = ({ itemTypeId, workspaceId, name, extraData }
       // 通过此参数可修改事项创建弹窗 displayModule，控制测试管理内置类型是否出现在类型选择器
       displayModule: 'plugin.testManager',
       planId: extraData?.planId,
+      caseVersion: extraData?.caseVersion,
       filterItemTypeList: true,
     },
+    defaultValues,
     initItemData: {
       defaultName: name,
       workspace: {
@@ -75,20 +83,20 @@ export const useOpenFilterPopover = fields => {
    * 打开筛选器popver
    */
   const openFilterPopover = useCallback(
-    async ({ selectors, onChange, extendFields, dom }) => {
+    async ({ selectors, onChange, extendFields, iqlFunctionFilters, dom }) => {
       const includeFileds = INCLUDE_FILTER_FIELD_TYPES?.filter(
         field => !EXINCLUDE_FIELDS?.includes(field),
       );
-
       const _customFields = customFields
         .map(item => item.toJSON())
-        .filter(d => includeFileds?.includes(d.fieldType.key));
+        .filter(d => includeFileds?.includes(d.fieldType.key))
+        ?.filter(item => !EXCLUDE_FILTER_KEYS.includes(item.key));
 
       // proximaSDK.execute不能传递函数，限制太多
       window.QiankunProps.openFilterPopover({
         showChoosedInSearch: false,
         selectors,
-        list: [..._customFields, ...extendFields],
+        list: [..._customFields, ...extendFields, ...iqlFunctionFilters],
         onChange,
         dom,
       });

@@ -1,7 +1,7 @@
 import parallelLimit from 'async/parallelLimit';
 import dayjs from 'dayjs';
 import { t } from 'i18next';
-import { cloneDeep, last, omit, uniq, uniqBy } from 'lodash';
+import _, { cloneDeep, last, omit, uniq, uniqBy, forEach, round, toString } from 'lodash';
 
 import { getTestConfigByWorkspaceKeys } from '@/lib/api/common';
 import {
@@ -11,9 +11,15 @@ import {
   getTestEntityByQuery,
 } from '@/lib/api/item';
 import { search } from '@/lib/api/proxima';
-import { getAppEnv, judgeCaseSnapshot, judgeTestReportVersion, TEST_REPORT_VERSION } from '@/lib/appEnv';
+import {
+  getAppEnv,
+  judgeCaseSnapshot,
+  judgeTestReportVersion,
+  TEST_REPORT_VERSION,
+} from '@/lib/appEnv';
 import {
   BuiltinFieldNameMapping,
+  CASESNAPSHOT_TYPE,
   ExtendReportType,
   SystemField,
   TestExecutionModel,
@@ -37,6 +43,7 @@ import fetch from '@/lib/utils/fetch';
 import { getPluginWebTriggerBaseUrl, getSessionToken } from '@/lib/utils/helper';
 
 import { Chart, ChartGroup, Workspace } from '../models';
+import { CaseSnapshot } from '@/lib/types/Test';
 
 // 自定义数据源源码最大并发数量
 const parallelRequestTriggerLimit = 4;
@@ -127,7 +134,7 @@ const buildFirstLevelDsIqlConfig = async (dsConfig: TemplateDataSourceConfig[], 
 const getPlanRefTestEntityIds = async (
   planIds,
   dsConfig: TemplateDataSourceConfig[],
-  enableCaseSnapshot?: boolean,
+  caseSnapshot?: CaseSnapshot,
 ) => {
   const ret = {};
 
@@ -169,7 +176,7 @@ const getPlanRefTestEntityIds = async (
       destinationType: TestType.Run,
       limit: 99999,
       onlySelectId: true,
-      selector: enableCaseSnapshot
+      selector: [CASESNAPSHOT_TYPE.AUTO_BUILDVERSION].includes(caseSnapshot?.type)
         ? [{}, {}, `${BuiltinFieldNameMapping.referenceCaseSnapshot} is not null`]
         : [{}, {}, `${BuiltinFieldNameMapping.referenceCase} is not null`],
     });
@@ -234,7 +241,7 @@ const getPlanRefTestEntityIds = async (
 const getExecutionRefTestEntityIds = async (
   executionIds,
   dsConfig: TemplateDataSourceConfig[],
-  enableCaseSnapshot?: boolean,
+  caseSnapshot?: CaseSnapshot,
 ) => {
   const ret = {};
 
@@ -253,15 +260,17 @@ const getExecutionRefTestEntityIds = async (
         TestFiledKeyMapping.referenceCaseSnapshot,
         SystemField.Workspace,
       ],
-      selector: enableCaseSnapshot
+      selector: [CASESNAPSHOT_TYPE.AUTO_BUILDVERSION].includes(caseSnapshot?.type)
         ? [{}, {}, `${BuiltinFieldNameMapping.referenceCaseSnapshot} is not null`]
         : [{}, {}, `${BuiltinFieldNameMapping.referenceCase} is not null`],
     });
 
     return {
       runIds: data.list.map(i => i.id),
-      caseIds: enableCaseSnapshot ? [] : uniq(data.list.map(i => i.referenceCase).filter(Boolean)),
-      snapshotIds: enableCaseSnapshot
+      caseIds: [CASESNAPSHOT_TYPE.AUTO_BUILDVERSION].includes(caseSnapshot?.type)
+        ? []
+        : uniq(data.list.map(i => i.referenceCase).filter(Boolean)),
+      snapshotIds: [CASESNAPSHOT_TYPE.AUTO_BUILDVERSION].includes(caseSnapshot?.type)
         ? uniq(data.list.map(i => i.referenceCaseSnapshot).filter(Boolean))
         : [],
     };
@@ -327,7 +336,6 @@ const getCustomDataSourceResults = async (dsConfigs, reportParams, dsIqlConfig) 
 
   // 是否有自定义数据源
   const hasCustomDataSourceSelector = dsConfigs.some(isCustomDataSourceSelector);
-
   if (hasCustomDataSourceSelector) {
     const parallelRequestWebTrigger = () => {
       return new Promise((resolve, reject) => {
@@ -389,7 +397,7 @@ const getCustomDataSourceResults = async (dsConfigs, reportParams, dsIqlConfig) 
     if (!customDataSourceConfigResult.report)
       customDataSourceConfigResult.report = reportParams.report;
   }
-
+  console.log('customDataSourceConfigResult--->1', customDataSourceConfigResult);
   return customDataSourceConfigResult;
 };
 
@@ -422,12 +430,12 @@ const buildSecondLevelDsIqlConfig = async (
   const hasTestExecutionSelector = dsConfigs.some(isTestExecutionSelector);
   const hasParentSelector = dsConfigs.some(isParentSelector);
 
-  let enableCaseSnapshot = false;
+  let caseSnapshot: any = {};
   if (hasTestPlanSelector || hasTestExecutionSelector) {
     const workspaceKey = reportParams?.workspace?.key;
     if (workspaceKey) {
       const { currentTestConfig } = await getTestConfigByWorkspaceKeys([workspaceKey]);
-      enableCaseSnapshot = judgeCaseSnapshot(currentTestConfig);
+      caseSnapshot = currentTestConfig?.caseSnapshot;
     }
   }
 
@@ -438,7 +446,7 @@ const buildSecondLevelDsIqlConfig = async (
       reportParams.dataSourceIql?.[TestPlanModel],
       hasParentSelector,
     );
-    planRefTestEntityIds = await getPlanRefTestEntityIds(planIds, dsConfig, enableCaseSnapshot);
+    planRefTestEntityIds = await getPlanRefTestEntityIds(planIds, dsConfig, caseSnapshot);
     planRefTestEntityIds.ancestorIds = ancestorIds || [];
   }
 
@@ -453,7 +461,7 @@ const buildSecondLevelDsIqlConfig = async (
     executionRefTestEntityIds = await getExecutionRefTestEntityIds(
       executionIds,
       dsConfig,
-      enableCaseSnapshot,
+      caseSnapshot,
     );
     executionRefTestEntityIds.planIds = planIds || [];
     executionRefTestEntityIds.self = executionIds || [];
@@ -672,6 +680,41 @@ const chainChartDataAdaptor = (chartData, dataSource) => {
     },
     /** 自定义数据源 */
     customDataSource(customDataSourceResults) {
+      const formatValue = v => {
+        return _.isNull(v) || _.isUndefined(v) || _.isNaN(v)
+          ? '-'
+          : toString(round(v, 2).toFixed(2)) + '%';
+      };
+      function handleEmptyData(_reportDetail) {
+        const _noData = [
+          {
+            type: 'p',
+            children: [
+              {
+                type: 'p',
+                children: [
+                  {
+                    text: t('report.coverRate.noData'),
+                  },
+                ],
+                align: 'center',
+                id: Date.now(),
+              },
+            ],
+          },
+        ];
+        if (_.isEmpty(_reportDetail)) return _noData;
+        return [];
+      }
+
+      function handleReportType(_reportType) {
+        if ([1].includes(_reportType)) {
+          return t('report.coverRate.typeIncrement');
+        } else if ([2].includes(_reportType)) {
+          return t('report.coverRate.typeAll');
+        }
+        return t('report.coverRate.typeEmpty');
+      }
       const adaptors = {
         richText(chartOption, chartOptionAdaptor, result) {
           let richTextValue = chartOption.richTextValue ?? [];
@@ -680,7 +723,7 @@ const chainChartDataAdaptor = (chartData, dataSource) => {
           const replace = data => {
             replaceValue = data;
           };
-          const { text, useTemplate } = chartOptionAdaptor;
+          const { text, useTemplate, type } = chartOptionAdaptor;
           if (useTemplate) {
             let richTextValueString = JSON.stringify(richTextValue);
             richTextValueString = richTextValueString.replace(/#{{(.*?)}}#/g, (_, s) => {
@@ -697,6 +740,216 @@ const chainChartDataAdaptor = (chartData, dataSource) => {
               return result;
             });
             richTextValue = replaceValue ?? JSON.parse(richTextValueString);
+          } else if (['table_coverRate'].includes(type)) {
+            const { reportType, reportUrl, reportDetail } = result?.data || {};
+            const _dataJson = [];
+            forEach(reportDetail, item => {
+              const { baseVersionNumber, branchCov, functionCov, rowCov, servicesName, remarks } =
+                item || {};
+              _dataJson.push({
+                type: 'tr',
+                id: Math.random(),
+                children: [
+                  {
+                    type: 'td',
+                    id: Math.random(),
+                    children: [
+                      {
+                        children: [{ text: servicesName || '-' }],
+                        id: Math.random(),
+                        type: 'p',
+                        align: 'center',
+                      },
+                    ],
+                  },
+                  {
+                    type: 'td',
+                    id: Math.random(),
+                    children: [
+                      {
+                        children: [{ text: formatValue(branchCov) }],
+                        id: Math.random(),
+                        type: 'p',
+                        align: 'right',
+                      },
+                    ],
+                  },
+                  {
+                    type: 'td',
+                    id: Math.random(),
+                    children: [
+                      {
+                        children: [{ text: formatValue(functionCov) }],
+                        id: Math.random(),
+                        type: 'p',
+                        align: 'right',
+                      },
+                    ],
+                  },
+                  {
+                    type: 'td',
+                    id: Math.random(),
+                    children: [
+                      {
+                        children: [{ text: formatValue(rowCov) }],
+                        id: Math.random(),
+                        type: 'p',
+                        align: 'right',
+                      },
+                    ],
+                  },
+                  {
+                    type: 'td',
+                    id: Math.random(),
+                    children: [
+                      {
+                        children: [{ text: baseVersionNumber || '-' }],
+                        id: Math.random(),
+                        type: 'p',
+                        align: 'center',
+                      },
+                    ],
+                  },
+                  {
+                    type: 'td',
+                    id: Math.random(),
+                    children: [
+                      {
+                        children: [{ text: remarks || '-' }],
+                        id: Math.random(),
+                        type: 'p',
+                        align: 'center',
+                      },
+                    ],
+                  },
+                ],
+              });
+            });
+            richTextValue = [
+              {
+                type: 'p',
+                children: [
+                  {
+                    type: 'a',
+                    url: reportUrl,
+                    children: [
+                      {
+                        text: t('report.coverRate.linkA'),
+                      },
+                    ],
+                    id: Date.now(),
+                  },
+                ],
+              },
+              {
+                type: 'p',
+                children: [
+                  {
+                    type: 'p',
+                    children: [
+                      {
+                        text: handleReportType(reportType),
+                      },
+                    ],
+                    id: Date.now(),
+                  },
+                ],
+              },
+              {
+                type: 'table',
+                id: Math.random(),
+                class: 'curtable',
+                // colSizes: [200, 120, 120, 120, 120, 120],
+                children: [
+                  {
+                    type: 'tr',
+                    id: Math.random(),
+                    children: [
+                      {
+                        type: 'td',
+                        id: Math.random(),
+                        children: [
+                          {
+                            children: [{ text: t('report.coverRate.servicesName'), bold: true }],
+                            id: Math.random(),
+                            type: 'p',
+                            align: 'center',
+                          },
+                        ],
+                      },
+                      {
+                        type: 'td',
+                        id: Math.random(),
+                        children: [
+                          {
+                            children: [{ text: t('report.coverRate.branchCov'), bold: true }],
+                            id: Math.random(),
+                            type: 'p',
+                            align: 'right',
+                          },
+                        ],
+                      },
+                      {
+                        type: 'td',
+                        id: Math.random(),
+                        children: [
+                          {
+                            children: [{ text: t('report.coverRate.functionCov'), bold: true }],
+                            id: Math.random(),
+                            type: 'p',
+                            align: 'right',
+                          },
+                        ],
+                      },
+                      {
+                        type: 'td',
+                        id: Math.random(),
+                        children: [
+                          {
+                            children: [{ text: t('report.coverRate.rowCov'), bold: true }],
+                            id: Math.random(),
+                            type: 'p',
+                            align: 'right',
+                          },
+                        ],
+                      },
+                      {
+                        type: 'td',
+                        id: Math.random(),
+                        children: [
+                          {
+                            children: [
+                              { text: t('report.coverRate.baseVersionNumber'), bold: true },
+                            ],
+                            id: Math.random(),
+                            type: 'p',
+                            align: 'center',
+                          },
+                        ],
+                      },
+                      {
+                        type: 'td',
+                        id: Math.random(),
+                        children: [
+                          {
+                            children: [{ text: t('report.coverRate.remarks'), bold: true }],
+                            id: Math.random(),
+                            type: 'p',
+                            align: 'center',
+                          },
+                        ],
+                      },
+                    ],
+                  },
+                  ..._dataJson,
+                ],
+              },
+              ...handleEmptyData(reportDetail),
+            ];
+            return {
+              ...chartOption,
+              richTextValue,
+            };
           } else {
             richTextValue = [
               {
@@ -923,7 +1176,7 @@ const TestReport = Parse.Object.extend('test_manager_TestReport', {
     const reportTemplateConfig = templateReportData.templateConfig;
 
     // 获取模板关联的 chart 数据
-    const chartGroupId = reportTemplateChartGroup.objectId;
+    const chartGroupId = reportTemplateChartGroup?.objectId;
     const chartDataList = await new Parse.Query(Chart)
       .equalTo('chartGroup', chartGroupId)
       .findAll({ json: true });

@@ -1,4 +1,4 @@
-import { useSDK } from '@projectproxima/plugin-sdk';
+import { useSDK } from '@giteeteam/plugin-sdk';
 import { useListener } from '@projectproxima/proxima-sdk-js';
 import { useUpdateEffect } from 'ahooks';
 import { Button, notification, Select } from 'antd';
@@ -7,6 +7,7 @@ import React, { useCallback, useMemo, useRef } from 'react';
 import CreatePermission from '@/components/business/Contianer/CreatePermission';
 import TestCaseFilterGroup from '@/components/business/TestCaseFilterGroup';
 import { SystemFieldKeys } from '@/components/common/BusinessTable/hook';
+import { useStepAfterUpdateItemList } from '@/components/common/BusinessTable/hook';
 import FilterSearch from '@/components/common/FilterSearch';
 import { getFilterFields } from '@/components/common/FilterSearch/utils';
 import OverflowTooltip from '@/components/common/OverflowTooltip';
@@ -73,6 +74,17 @@ const ListView: React.FC<ViewComponentProps> = ({
     }, 400);
   });
 
+  // 修改弹窗的步骤后，更新table的数据
+  const { enableCacheEpandedRowKeys } = useStepAfterUpdateItemList({
+    selectNodeKey,
+    refresh: () => {
+      refreshAll();
+      setTimeout(() => {
+        tableActionRef.current.refresh();
+      }, 400);
+    },
+  });
+
   const repository = useMemo(
     () => getRepositoryQuery(selectedNode, groupedMode),
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -133,7 +145,7 @@ const ListView: React.FC<ViewComponentProps> = ({
       };
     },
     // eslint-disable-next-line react-hooks/exhaustive-deps
-    [repository, selector, testCaseFieldKeys, workspaceKey, config?.enableCaseSnapshot],
+    [repository, selector, testCaseFieldKeys, workspaceKey, config?.caseSnapshot?.type],
   );
 
   const queryDeps = useMemo(
@@ -263,7 +275,9 @@ const ListView: React.FC<ViewComponentProps> = ({
           className={cx('filter-search-box')}
           onSearch={handleSelectorSearch}
           fields={getFilterFields([].concat(SystemFieldKeys, testCaseFieldKeys))}
-          extendFields={getExtendFields(t)?.filter(field => field.key === RepositoryModel)}
+          extendFields={getExtendFields(t)?.filter(
+            field => field.key === RepositoryModel || field.key === '测试用例集',
+          )}
           testType={TestType.Case}
           ref={filterSearchRef}
         />
@@ -280,6 +294,7 @@ const ListView: React.FC<ViewComponentProps> = ({
           workspaceKey={workspaceKey}
           repository={repository}
           selector={selector}
+          enableCacheEpandedRowKeys={enableCacheEpandedRowKeys}
         />
       </div>
     </div>

@@ -7,7 +7,7 @@ import {
   requestCoreApi,
   saveAllObject,
 } from '@giteeteam/apps-team-api';
-import { omit } from 'lodash';
+import { difference, omit } from 'lodash';
 import isObject from 'lodash/isObject';
 
 import {
@@ -35,6 +35,7 @@ import {
   BatchUpdateProcessParams,
   BatchUpdateValuePayload,
   CopyFolderPayloadProcessParams,
+  CreateBaselineRequestParam,
   RemoveCaseFromPlanProcessParams,
   RemoveExecuteFromPlanProcessParams,
   RetryPayloadProcessParams,
@@ -63,10 +64,17 @@ import {
 } from '../../lib/helper';
 import { iqlRequest } from '../../lib/iqlRequest';
 import { getItemCreateRequiredAttrs, getItemTypeFromKey } from '../../lib/item';
+import {
+  updateCaseDefects,
+  updateExecutionCases,
+  updateExecutionCasesAndDefects,
+  updateExecutionDefects,
+} from '../../lib/update';
 import { testEntityFieldTypeValidator, throwArgumentError } from '../../lib/validator';
 import {
   addExecutionToPlanWorker,
   batchDeleteItems,
+  batchDeleteRuns,
   copyFolder,
   copyTesCases,
   createTestRuns,
@@ -174,6 +182,32 @@ export const batchDeleteV2 = async () => {
   }
 };
 
+/** 批量删除 */
+export const batchDeleteRun = async () => {
+  try {
+    const { body } = getReqInfoFromVMRuntime<BatchDeleteProcessParams>();
+    const { ids, key } = body;
+    if (!Array.isArray(ids)) throwArgumentError('ids', 'objectId[]');
+
+    return await batchRequestDecorator({
+      key,
+      asyncFunc: processId =>
+        requestCoreApi(
+          'POST',
+          `/api/app/${global.env.TENANT_KEY}/${global.appKey}/webhooks/job-batch-delete-runs`,
+          {
+            ...body,
+            processId,
+          },
+          headers,
+        ),
+      syncFunc: async () => await batchDeleteRuns(body),
+    });
+  } catch (err) {
+    return buildResponse(err);
+  }
+};
+
 /** 批量更新事项V2接口 */
 export const batchUpdateItemsV2 = async () => {
   try {
@@ -251,7 +285,12 @@ const getRunDataByLinkItemDelete = async data => {
     pagination: { limit: InfinityLimit, offset: 0 },
   });
 
-  return runData?.map(d => d.objectId);
+  const runIds = runData?.map(d => d.objectId);
+  return {
+    runIds,
+    executionIds,
+    caseIds: runDataInfo.caseIds ?? [],
+  };
 };
 
 /** 批量更新 */
@@ -264,6 +303,8 @@ export const batchUpdate = async () => {
 
   // 需要更新的事项
   const needUpdateItemData = await buildTestEntityLinkData(data as TestEntityLinkActionData[]);
+
+  console.info('---needUpdateItemData', JSON.stringify(needUpdateItemData));
   // 校验需要保存的参数
   needUpdateItemData.forEach(testEntityFieldTypeValidator);
   const tasks = [
@@ -273,11 +314,21 @@ export const batchUpdate = async () => {
   ];
 
   // 移除测试计划下的测试用例关联的测试执行
-  const needDeleteTestRunIds = await getRunDataByLinkItemDelete(data);
+  const {
+    runIds: needDeleteTestRunIds,
+    executionIds,
+    caseIds,
+  } = await getRunDataByLinkItemDelete(data);
   if (needDeleteTestRunIds?.length) {
     tasks.push(batchDeleteItems({ ids: needDeleteTestRunIds }));
   }
+
   const [res] = await Promise.all(tasks);
+  // 删除测试执行后，更新测试执行任务的用例数、缺陷，测试用例的缺陷
+  if (executionIds?.length) {
+    await Promise.all([updateExecutionCasesAndDefects(executionIds), updateCaseDefects(caseIds)]);
+  }
+
   return buildResponse(res.filter(Boolean).map(data => itemToTestEntity(data.item)));
 };
 
@@ -547,7 +598,7 @@ export const batchCreateTestRunJob = async () => {
 
     // 创建测试用例快照
     // 1. 获取用例所属空间是否支持规划时批量快照
-    // 2. 创建测试用例快照
+    // 2. 创建测试用例快照   这个代码废弃，用的V2创建执行接口
     const batchCreateCaseSnapshot = async needCaseList => {
       let caseSnapshotMap = {};
       if (!global.env?.ENABLED_CASE_SNAPSHOT && !global.env?.DEFAULT_ENABLED_CASE_SNAPSHOT)
@@ -561,19 +612,20 @@ export const batchCreateTestRunJob = async () => {
       }, []);
       const workspaceConfigs = await getParseQuery(false, 'test_manager_TestConfig')
         .containedIn('workspaceKey', workspaceKeys)
-        .select(['workspaceKey', 'enableCaseSnapshot'])
+        .select(['workspaceKey', 'caseSnapshot'])
         .findAll({ useMasterKey: true })
         .then(data =>
           data?.reduce((m, i) => {
             return {
               ...m,
               [i.get('workspaceKey')]: global.env?.ENABLED_CASE_SNAPSHOT
-                ? i.get('enableCaseSnapshot')
+                ? i.get('caseSnapshot')
                 : global.env?.DEFAULT_ENABLED_CASE_SNAPSHOT,
             };
           }, {}),
         );
 
+      //  Notice: 这个代码废弃，用的V2创建执行接口
       const caseSnapshots = needCaseList.filter(i => workspaceConfigs[i.workspace?.key]);
       if (caseSnapshots.length) {
         const snapshots = await operateSnapshots({
@@ -879,12 +931,12 @@ export const batchCopyTestCase = async () => {
       values: dataValuesExceptionHandler(data.values),
       detail: data.detail
         ? {
-          ...data.detail,
-          steps: data.detail?.steps?.map(s => ({
-            ...s,
-            id: uuidv4(),
-          })),
-        }
+            ...data.detail,
+            steps: data.detail?.steps?.map(s => ({
+              ...s,
+              id: uuidv4(),
+            })),
+          }
         : {},
       repository: repository === undefined ? data.repository : repository,
     }));
@@ -1275,6 +1327,8 @@ export const batchLinkBugsToRun = async () => {
       ],
     });
 
+    await Promise.all([updateExecutionDefects([executionId]), updateCaseDefects([caseId])]);
+
     return buildResponse(defectItemIds);
   } catch (error) {
     return buildResponse(error);
@@ -1383,6 +1437,8 @@ export const batchRemoveBugsWithRun = async () => {
       ],
     });
 
+    await Promise.all([updateExecutionDefects([executionId]), updateCaseDefects([caseId])]);
+
     return buildResponse(defectItemIds);
   } catch (error) {
     return buildResponse(error);
@@ -1433,6 +1489,153 @@ export const batchCopyFolder = async () => {
         ),
       syncFunc: async () => await copyFolder(body),
     });
+  } catch (err) {
+    return buildResponse(err);
+  }
+};
+
+// 批量更新测试执行任务规划的用例数
+export const batchUpdateExecutionCases = async () => {
+  const {
+    body: { executionIds },
+  } = getReqInfoFromVMRuntime<{
+    executionIds: string[];
+  }>();
+
+  return updateExecutionCases(executionIds);
+};
+
+// 全量更新测试执行任务规划的用例数
+export const updateAllExecutionCases = async () => {
+  const executionIds = await getAllEntity({
+    query: {
+      type: TestType.Execution,
+    },
+  });
+
+  console.info('updateAllExecutionCases executionIds length', executionIds.length);
+
+  const queue = [];
+  const size = 500;
+  let index = 0;
+
+  for (let i = 0; i < executionIds.length; i += size) {
+    index++;
+    queue.push({
+      index,
+      executionIds: executionIds.slice(i, i + size),
+    });
+  }
+
+  console.info(`updateAllExecutionCases 合计 ${index} 批次`);
+
+  for (const item of queue) {
+    console.info(`updateAllExecutionCases ${item.index} 批次`, JSON.stringify(item.executionIds));
+
+    await updateExecutionCases(item.executionIds);
+
+    console.info(`updateAllExecutionCases ${item.index} 批次更新完成`);
+  }
+
+  console.info('updateAllExecutionCases-- complete');
+};
+
+/**
+ * @description 批量创建版本. 在原有的接口中添加了校验版本名称是否重复的逻辑
+ * */
+export const batchCreateVersions = async () => {
+  const { body } = getReqInfoFromVMRuntime<CreateBaselineRequestParam>();
+  const { add } = body;
+  const validateParams = () => {
+    if (!add || !add?.keys?.length) {
+      throw new Error('add and add keys must not be empty');
+    }
+  };
+
+  const verifyItemExist = async () => {
+    const { keys: addKeys } = add;
+    console.info('batchCreateVersions [verifyItemExist] body', body);
+    const iql = `key in [${addKeys.map(key => `'${key}'`).join(',')}]`;
+    const itemResult: any = await requestCoreApi('POST', '/parse/api/search', {
+      iql,
+      fields: ['id', 'key', 'name'],
+      includeHiddenItem: true,
+      size: 99999,
+      // displayContext: 'test_manager',
+    }).then((res: any) => res?.payload?.items ?? []);
+    const existKeys = itemResult.map(item => item.key);
+    console.info('batchCreateVersions [verifyItemExist] itemResult', itemResult);
+    const notExistKeys = difference(addKeys, existKeys);
+    console.info('batchCreateVersions [verifyItemExist] notExistKeys', notExistKeys);
+    if (notExistKeys.length) {
+      throw new Error(`${notExistKeys.join(',')} not exists`);
+    }
+  };
+  const verifyNameDuplicate = async () => {
+    const { keys: addKeys } = add;
+    const { name: versionName } = body.baseLineItemVersion;
+    console.info('batchCreateVersions [verifyNameDuplicate] body', body);
+    // 修改的事项需要确定是否存在当前版本名称的历史版本事项
+    const iql = `key in ${JSON.stringify(
+      addKeys,
+    )} and 'baseLineSources' in ['BaseLineItemVersion']`;
+
+    const versionItemResult: any = await requestCoreApi('POST', '/parse/api/search', {
+      iql,
+      fields: ['id', 'key', 'baseLineItemVersion', 'name', 'itemId'],
+      includeHiddenItem: true,
+      size: 99999,
+    });
+
+    console.info('batchCreateVersions [verifyNameDuplicate] versionItemResult', versionItemResult);
+
+    const updateItemVersionMap = versionItemResult?.payload?.items.reduce((result, item) => {
+      const key = item.key;
+      if (!result[key]) {
+        result[key] = {
+          names: [],
+          items: [],
+        };
+      }
+      result[key].names.push(item.values?.baseLineItemVersion?.name);
+      result[key].items.push(item);
+      return result;
+    }, {});
+
+    const errorMessage: {
+      objectId: string; // 快照ID
+      name: string; // 事项名称
+      key: string; // 事项key
+      itemId: string; // 事项ID
+    }[] = [];
+
+    addKeys.forEach(key => {
+      const item = updateItemVersionMap[key];
+      if (item) {
+        const names = item.names;
+        const items = item.items;
+        if (names.includes(versionName)) {
+          errorMessage.push({
+            objectId: items[0]?.objectId,
+            name: items[0]?.name,
+            key: items[0]?.key,
+            itemId: items[0]?.itemId,
+          });
+        }
+      }
+    });
+
+    console.info('batchCreateVersions [verifyNameDuplicate] errorMessage', errorMessage);
+    if (errorMessage.length) {
+      throw new Error(JSON.stringify(errorMessage));
+    }
+  };
+  try {
+    validateParams();
+    await verifyItemExist();
+    await verifyNameDuplicate();
+    await operateSnapshots(body);
+    return buildResponse('success');
   } catch (err) {
     return buildResponse(err);
   }

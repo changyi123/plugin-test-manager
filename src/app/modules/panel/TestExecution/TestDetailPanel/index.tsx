@@ -16,7 +16,7 @@ import React, { useCallback, useEffect, useMemo, useState } from 'react';
 
 import {
   createTestRunWithProcess,
-  deleteV1WithProcess,
+  deleteRunWithProcess,
   updateItemsWithProcess,
 } from '@/components/business/BatchResult/hooks';
 import DropDownButton from '@/components/business/DropDownButton';
@@ -30,10 +30,15 @@ import TestRunModal, {
   ActionType as TestRunModalActionType,
 } from '@/components/business/TestRunModal';
 import { useTestTypeScreenFieldKeys } from '@/components/common/BusinessTable/hook';
-import { getLinkedTestEntityByQuery, getTestEntityByQuery, getUpdateParams, updateTestStatus } from '@/lib/api/item';
+import {
+  getLinkedTestEntityByQuery,
+  getTestEntityByQuery,
+  getUpdateParams,
+  updateTestStatus,
+} from '@/lib/api/item';
 import { openBaseLineViewItemModal } from '@/lib/api/sdk';
 import { getAppEnv } from '@/lib/appEnv';
-import { TestLinkType, TestType } from '@/lib/constants';
+import { CASESNAPSHOT_TYPE, TestLinkType, TestType } from '@/lib/constants';
 import { useBaseAction, useTestConfig } from '@/lib/hooks/useContext';
 import useI18n from '@/lib/hooks/useI18n';
 import { useCanExecuteTestRunIdSequence, useTestRunActionAuth } from '@/lib/hooks/useTest';
@@ -103,27 +108,56 @@ const Test = () => {
         ...page,
       });
 
+      // 分离 caseIds 和 snapshotIds
+      const caseIds = [];
+      const snapshotIds = [];
+      runs?.forEach(run => {
+        if (run.referenceCaseSnapshot) {
+          snapshotIds.push(run.referenceCaseSnapshot);
+        } else {
+          caseIds.push(run.referenceCase);
+        }
+      });
+      // 构建 selector 查询条件
+      let selector = '';
+      if (caseIds.length > 0 && snapshotIds.length > 0) {
+        selector = `id in [${caseIds.map(id => `'${id}'`).join(',')}] or (id in [${snapshotIds
+          .map(id => `'${id}'`)
+          .join(',')}] and 'baseLineSources' in ['BaseLineItemVersion'])`;
+      } else if (caseIds.length > 0) {
+        selector = `id in [${caseIds.map(id => `'${id}'`).join(',')}]`;
+      } else if (snapshotIds.length > 0) {
+        selector = `id in [${snapshotIds
+          .map(id => `'${id}'`)
+          .join(',')}] and 'baseLineSources' in ['BaseLineItemVersion']`;
+      }
+
       const { list: cases } = await getTestEntityByQuery({
         query: {
           workspaceKey: workspace?.key,
           type: TestType.Case,
-          id: runs?.map(d => d.referenceCase),
+          // id: runs?.map(d => d.referenceCase),
         },
+        selector: selector,
         limit: runs?.length ?? 10,
       });
 
       const caseMap = new Map();
 
       cases?.forEach(d => {
-        caseMap.set(d.id, d.key);
+        caseMap.set(d.id, d);
       });
 
       return {
         total,
-        list: runs.map(r => ({
-          ...r,
-          key: caseMap.get(r.referenceCase),
-        })),
+        list: runs.map(r => {
+          const caseData = caseMap.get(r.referenceCase) || caseMap.get(r.referenceCaseSnapshot);
+          return {
+            ...r,
+            key: caseData?.key,
+            name: caseData?.name,
+          };
+        }),
       };
     },
     [testEntity?.objectId, workspace?.key],
@@ -134,7 +168,7 @@ const Test = () => {
     const { list, total } = await getReTestEntities({
       offset: 0,
       limit: 99999,
-      select: ['referenceCase', 'status', 'id'],
+      select: ['referenceCase', 'referenceCaseSnapshot', 'status', 'id'],
     });
 
     setAllTestEntities(list);
@@ -222,7 +256,7 @@ const Test = () => {
         return;
       }
       // 删除测试和测试执行的关联
-      await deleteV1WithProcess({
+      await deleteRunWithProcess({
         ids: testRunIds,
         handleSuccess: () => {
           refreshDepData();
@@ -249,7 +283,13 @@ const Test = () => {
               ellipsis={true}
               target="_blank"
               onClick={() => {
-                if (item?.referenceCaseSnapshot && config?.enableCaseSnapshot)
+                if (
+                  item?.referenceCaseSnapshot &&
+                  [
+                    CASESNAPSHOT_TYPE.AUTO_BUILDVERSION,
+                    CASESNAPSHOT_TYPE.NO_BUILDVERSION_SELVERSION,
+                  ].includes(config?.caseSnapshot?.type)
+                )
                   openBaseLineViewItemModal(item?.key, item?.referenceCaseSnapshot);
                 else
                   goToItemDetailPage({
@@ -366,13 +406,11 @@ const Test = () => {
       {
         title: t('modules.panel.testExecution.testDetailPanel.existingTestCase'),
         async onClick() {
-          const selectedTestDetailIds = await selectorModalRef.current.open({
+          const { selectedData: caseIds, caseVersion } = await selectorModalRef.current.open({
             testType: TestType.Case,
           });
 
-          const _selectedTestDetailIds = selectedTestDetailIds.filter(
-            d => !(relCase ?? []).includes(d),
-          );
+          const _selectedTestDetailIds = caseIds?.filter(d => !(relCase ?? []).includes(d));
           if (getCreatePermission(TestType.Case)) {
             message.error(t('page.plan.testEntityList.addItemTips'));
             return;
@@ -383,6 +421,7 @@ const Test = () => {
             await createTestRunWithProcess({
               execution: testEntity,
               caseIds: _selectedTestDetailIds,
+              caseVersion,
               workspace: testEntity?.workspace,
               planId: testEntity?.linkItems?.[0],
               handleSuccess: () => refreshDepData('updateTestRunStatus'),
@@ -444,6 +483,9 @@ const Test = () => {
         ignoreTestEntityIds={relCase}
         tableFieldsKeys={testExecutionFieldKeys}
         getContainer={getTestManagerContainer}
+        enableCaseVersion={[CASESNAPSHOT_TYPE.NO_BUILDVERSION_SELVERSION].includes(
+          config?.caseSnapshot?.type,
+        )}
         showDefaultRange
       />
 

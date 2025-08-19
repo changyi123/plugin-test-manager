@@ -21,7 +21,8 @@ const SearchParamsTransformStrategies = {
   },
 };
 
-export const batchQueryToIql = query => {
+export const batchQueryToIql = batchParams => {
+  const { query = {}, selector = '' } = batchParams || {};
   const payload = Object.keys(query)
     .filter(key => IQLSearchFieldKeys.includes(key as any))
     .reduce(
@@ -37,6 +38,7 @@ export const batchQueryToIql = query => {
     payload,
     limit: 0,
     order: [],
+    andCompositionIqlStr: selector,
   });
   return iql;
 };

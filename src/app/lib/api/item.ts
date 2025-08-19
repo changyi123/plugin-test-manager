@@ -3,6 +3,7 @@ import {
   BatchCopyTestCaseV2ProcessParams,
   BatchCopyTestCaseV3ProcessParams,
   BatchCreateTestRunV2ProcessParams,
+  CreateBaselineRequestParam,
   QueryLinkedTestEntityPayload,
   QueryTestEntityPayload,
   RepositoryTreePayload,
@@ -10,6 +11,7 @@ import {
   TestCountPayload,
   TestExecutionStatsPayload,
   TestPlanStatsPayload,
+  TestSetStatsPayload,
 } from 'common/types/api';
 import { has, omit, pick, uniq } from 'lodash';
 import { merge } from 'lodash';
@@ -24,6 +26,7 @@ import {
   TestFiledKeyMapping,
   TestRunDesigneeModel,
   TestRunExecutorModel,
+  TestSetModel,
   TestType,
 } from '../constants';
 import { BaseTestEntity, CopyTestCasePayload, Status, TestEntity } from '../types/Test';
@@ -52,9 +55,9 @@ export const handleSelector = selector => {
     const data = pick(systemSelector, SYSTEM_FIELD.Status)?.[SYSTEM_FIELD.Status];
     selectors[SYSTEM_FIELD.Status] = data
       ? {
-        ...data,
-        value: data?.value?.map(d => d.value),
-      }
+          ...data,
+          value: data?.value?.map(d => d.value),
+        }
       : {};
   }
 
@@ -63,10 +66,22 @@ export const handleSelector = selector => {
     const data = pick(customSelector, RepositoryModel)?.[RepositoryModel];
     selectors[RepositoryModel] = data
       ? {
-        ...data,
-        component: 'Dropdown',
-        fieldName: 'test_manager_repository',
-      }
+          ...data,
+          component: 'Dropdown',
+          fieldName: 'test_manager_repository',
+        }
+      : {};
+  }
+
+  if (has(customSelector, TestSetModel)) {
+    // 处理测试用例库筛选字段
+    const data = pick(customSelector, TestSetModel)?.[TestSetModel];
+    selectors[TestSetModel] = data
+      ? {
+          ...data,
+          component: 'Dropdown',
+          fieldName: TestSetModel,
+        }
       : {};
   }
 
@@ -75,9 +90,9 @@ export const handleSelector = selector => {
     const data = pick(customSelector, TestRunDesigneeModel)?.[TestRunDesigneeModel];
     selectors[TestRunDesigneeModel] = data
       ? {
-        ...data,
-        fieldName: TestRunDesigneeModel,
-      }
+          ...data,
+          fieldName: TestRunDesigneeModel,
+        }
       : {};
   }
 
@@ -86,9 +101,9 @@ export const handleSelector = selector => {
     const data = pick(customSelector, TestRunExecutorModel)?.[TestRunExecutorModel];
     selectors[TestRunExecutorModel] = data
       ? {
-        ...data,
-        fieldName: TestRunExecutorModel,
-      }
+          ...data,
+          fieldName: TestRunExecutorModel,
+        }
       : {};
   }
 
@@ -97,9 +112,9 @@ export const handleSelector = selector => {
     const data = pick(customSelector, TestCaseStatusModel)?.[TestCaseStatusModel];
     selectors[TestCaseStatusModel] = data
       ? {
-        ...data,
-        fieldName: TestCaseStatusModel,
-      }
+          ...data,
+          fieldName: TestCaseStatusModel,
+        }
       : {};
   }
 
@@ -116,8 +131,8 @@ export const getTestEntityByQuery = async (
   props:
     | QueryTestEntityPayload
     | {
-      selector?: SearchSelectors | string;
-    },
+        selector?: SearchSelectors | string;
+      },
   handleQuery?: (val: any) => any,
 ) => {
   props = handleQuery ? handleQuery(props) : props;
@@ -161,14 +176,20 @@ export const getLinkedTestEntityByQuery = async (
   props:
     | QueryLinkedTestEntityPayload
     | {
-      selector?: SearchSelectors;
-    },
+        selector?: string | SearchSelectors;
+      },
   handleQuery?: (val: any) => any,
 ) => {
   props = handleQuery ? handleQuery(props) : props;
   const _props = Object.assign(
     { descending: [], onlySelectId: false },
-    { ...props, selector: selectorToIql(handleSelector(props.selector)) },
+    {
+      ...props,
+      selector:
+        typeof props.selector === 'string'
+          ? props.selector
+          : selectorToIql(handleSelector(props.selector)),
+    },
   );
 
   const {
@@ -194,9 +215,29 @@ export const getTestStats = async (props: TestCountPayload) => {
   return res.data;
 };
 
+// 测试管理通用字段统计查询
+export const batchCreateVersionsFn = async (props: CreateBaselineRequestParam) => {
+  const { data: res } = await fetch.post(`${pluginWebTriggerBaseUrl}/api-batch-create-versions`, {
+    ...props,
+    sessionToken: getSessionToken(),
+  });
+
+  return res;
+};
+
 // 测试计划统计查询
 export const getStatsTestPlan = async (props: TestPlanStatsPayload) => {
   const { data: res } = await fetch.post(`${pluginWebTriggerBaseUrl}/api-stats-test-plan`, {
+    ...props,
+    sessionToken: getSessionToken(),
+  });
+
+  return res.data;
+};
+
+// 测试计划统计查询
+export const getStatsTestSet = async (props: TestSetStatsPayload) => {
+  const { data: res } = await fetch.post(`${pluginWebTriggerBaseUrl}/api-stats-test-set`, {
     ...props,
     sessionToken: getSessionToken(),
   });
@@ -250,6 +291,19 @@ export const deleteTestEntity = async props => {
 // 批量删除测试实体事项 v2
 export const deleteTestEntityV2 = async params => {
   const { data: res } = await fetch.post(`${pluginWebTriggerBaseUrl}/api-batch-delete-v2`, {
+    ...params,
+    sessionToken: getSessionToken(),
+  });
+
+  if (res.status === 'error') {
+    return res;
+  }
+  return res;
+};
+
+// 批量删除测试执行
+export const deleteTestRun = async params => {
+  const { data: res } = await fetch.post(`${pluginWebTriggerBaseUrl}/api-batch-delete-run`, {
     ...params,
     sessionToken: getSessionToken(),
   });
@@ -365,7 +419,7 @@ export const copyTesCase = async (data: CopyTestCasePayload) => {
   }
 };
 
-// 批量创建测试执行
+// 批量创建测试执行 notice  这个没地方有暂时不处理
 export const batchCreateTestRun = async data => {
   const res = await fetch.post(`${pluginWebTriggerBaseUrl}/api-batch-create-test-run`, {
     ...data,
@@ -821,3 +875,34 @@ export async function fetchBatchProgress(batchId: string): Promise<{
 }> {
   return fetch.get('/parse/api/items/batch/progress/' + batchId);
 }
+
+// 批量更新测试执行任务的用例数量
+export const batchUpdateExecutionCases = async (executionIds: string[]) => {
+  const {
+    data: { data },
+  } = await fetch.post(`${pluginWebTriggerBaseUrl}/api-batch-update-execution-cases`, {
+    executionIds,
+    sessionToken: getSessionToken(),
+  });
+  return data;
+};
+
+// 更新用例版本
+export const updateCaseVersion = async params => {
+  const {
+    data: { data, status },
+  } = await fetch.post(`${pluginWebTriggerBaseUrl}/api-update-run-version`, {
+    ...params,
+  });
+  return { data, status };
+};
+
+// 批量更新用例
+export const batchUpdateCase = async params => {
+  const {
+    data: { data, status },
+  } = await fetch.post(`${pluginWebTriggerBaseUrl}/api-batch-update-run-version`, {
+    ...params,
+  });
+  return { data, status };
+};

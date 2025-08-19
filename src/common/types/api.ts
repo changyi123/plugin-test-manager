@@ -258,6 +258,8 @@ export type BatchCreateTestRunV2Payload = {
   caseIds: string[];
   /** 空间 id key */
   workspace: { objectId: string; key: string };
+  /** 测试用例版本   */
+  caseVersion?: Record<string, string>; // 用例id: 版本id。
 };
 export type BatchCreateTestRunV2ProcessParams = ProcessApiParams<BatchCreateTestRunV2Payload>;
 
@@ -280,6 +282,13 @@ export type TestPlanStatsResponse = ResponseType<{
   executionCount: number;
   caseStatus: StatusStatsType;
 }>;
+
+export type TestSetStatsPayload = {
+  /** 测试用例集 id */
+  testSetIds: string[];
+  /** 数据数据字段 */
+  select?: ('caseCount' | 'caseStatus')[];
+};
 
 /**
  * 测试计划数据统计接口
@@ -377,6 +386,7 @@ export interface IBatchUpdateParams {
   notificationUrl?: string;
   timeout?: number;
   asynchronous?: boolean;
+  hideNotification?: boolean;
 }
 export type BatchUpdateProcessParams = ProcessApiParams<IBatchUpdateParams>;
 
@@ -420,6 +430,22 @@ export type AddExecuteToPlanPayload = {
   /** 测试执行任务 Id */
   executionIds: string[];
 };
+
+export interface BatchUpdateRunItem {
+  runId: string; // 执行id
+  baseLineItemId?: string; // 关联的快照id
+  caseId?: string; // 关联的用例id
+}
+
+export interface UpdateRunItem extends BatchUpdateRunItem {
+  workspaceKey?: string; // 工作空间key
+}
+/** 批量更新测试执行版本 */
+export type BatchUpdateTestRunVersionPayload = {
+  runVersions: BatchUpdateRunItem[];
+  workspaceKey?: string; // 工作空间key
+};
+
 export type AddExecuteToPlanProcessParams = ProcessApiParams<AddExecuteToPlanPayload>;
 
 /** 批量从测试计划移除测试执行任务 */
@@ -462,6 +488,20 @@ export type CopyFolderPayload = {
 export interface CommonResultType {
   result: boolean;
   message?: string;
+}
+
+export interface AddObject {
+  keys: string[];
+}
+
+export interface BaseLineItemVersion {
+  name: string;
+}
+
+export interface CreateBaselineRequestParam {
+  add: AddObject;
+  sourceType: string;
+  baseLineItemVersion: BaseLineItemVersion;
 }
 
 export type CopyFolderPayloadProcessParams = ProcessApiParams<CopyFolderPayload>;

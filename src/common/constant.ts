@@ -60,6 +60,8 @@ export enum TestType {
   Run = 'TestRun',
   /** 测试用例 */
   Case = 'TestCase',
+  /** 测试用例集 */
+  CaseSet = 'TestCaseSet',
   /** 测试计划 */
   Plan = 'TestPlan',
   /** 测试缺陷 */
@@ -105,6 +107,7 @@ export const TestFieldTypeKeyMapping = {
   status: 'r_test_manager_es_text_keyword',
   linkItems: 'r_test_manager_es_array_keyword',
   plan: 'Text.keyword',
+  testSet: 'DataQuote',
 };
 
 /** 测试管理自定义字段 key 映射 */
@@ -128,17 +131,30 @@ export const TestFiledKeyMapping = {
   reportChartGroup: 'r_test_manager_reportChartGroup',
   reportTemplate: 'r_test_manager_reportTemplate',
   plan: 'r_test_manager_plan',
+  executionCases: 'r_test_manager_executionCases',
+  testCases: 'r_test_manager_testCases',
+  testPlans: 'r_test_manager_testPlans',
+  testExecutions: 'r_test_manager_testExecutions',
+  testDefects: 'r_test_manager_testDefects',
 
   // 以下字段以字符串形式存入，存入前需要 stringify，返回需要 parse
   detail: 'r_test_manager_detail',
   runDetail: 'r_test_manager_runDetail',
   comment: 'r_test_manager_comment',
+  testSet: 'r_test_manager_referenceSet',
+  isCaseUpdate: 'r_test_manager_isCaseUpdate',
+  baseLineItemVersion: 'baseLineItemVersion', // 快照key
 } as const;
 
 export const NotValidatorFiledKeyMapping = {
   linkType: 'r_test_manager_linkType',
   linkItems: 'r_test_manager_linkItems',
 } as const;
+
+export const enum CASE_IS_UPDATE {
+  NO = '0',
+  YES = '1',
+}
 
 export const TestFiledKeyKeys = Object.keys(
   TestFiledKeyMapping,
@@ -161,10 +177,12 @@ export const BuiltinFieldNameMapping = {
   executeCount: 'test_manager_executeCount',
   executeTime: 'r_test_manager_executeTime',
   caseRun: 'test_manager_caseRun',
+  testSet: '测试用例集',
   plan: 'test_manager_plan',
 
   // 不需要拼接
   runDetail: 'test_manager_runDetail',
+  baseLineItemVersion: 'baseLineItemVersion',
 } as const;
 
 export const SystemFieldNameMapping = {

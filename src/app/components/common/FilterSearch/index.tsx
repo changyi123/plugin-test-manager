@@ -1,4 +1,4 @@
-import { useSDK } from '@projectproxima/plugin-sdk';
+import { useSDK } from '@giteeteam/plugin-sdk';
 import { useListener } from '@projectproxima/proxima-sdk-js';
 import { useDebounceFn, useMemoizedFn, useRequest } from 'ahooks';
 import { Button, Checkbox, Tooltip } from 'antd';
@@ -17,24 +17,28 @@ import { useLocation } from 'react-router-dom';
 
 import AddFilterIcon from '@/icons/svg/add-filter.svg';
 import { getTestConfig } from '@/lib/api/common';
+import { getTestEntityByQuery } from '@/lib/api/item';
 import { openFieldValuePopover, useOpenFilterPopover } from '@/lib/api/sdk';
 import { getCurrentUserSetting } from '@/lib/api/userSetting';
-import { CurrentWorkspaceConfigStorageKey } from '@/lib/constants';
 import {
+  CurrentWorkspaceConfigStorageKey,
   FILTER_EXPRESSIONS,
   getExtendFields,
   ItemUserTypeComponentKey,
   RepositoryModel,
   SelectorCurrentUserValue,
   TestCaseStatusModel,
+  TestSetModel,
   TestType,
   UserTypeSelectorFieldKeys,
 } from '@/lib/constants';
 import { useBaseAction, useTestConfig } from '@/lib/hooks/useContext';
 import useI18n from '@/lib/hooks/useI18n';
+import { useIqlFunctionFilter } from '@/lib/hooks/useIqlFunction';
 import { useNoExpiredRequest } from '@/lib/hooks/useRequest';
 import { generateStorageKey, getRootContainer } from '@/lib/utils/helper';
 import { isDate, SearchSelectors, Selectors } from '@/lib/utils/iql';
+import { getTargetIqlFunctionFilter, IQL_FUNCTION_ENUM } from '@/lib/utils/iqlFunction';
 import { Repository } from '@/services/models';
 
 import { useGetCustomFields } from '../BusinessTable/hook';
@@ -62,6 +66,7 @@ interface FilterSearchProps {
   // 默认筛选iql
   defaultIql?: string;
   hiddenSearchInput?: boolean; // 是否隐藏搜索框
+  disableComponent?: boolean; // 是否禁用组件
   initSelector?: Selectors; // 初始selector
   selectTagId?: string; // 筛选id
 }
@@ -132,6 +137,7 @@ const FilterSearch: React.ForwardRefRenderFunction<FilterRefMethod, FilterSearch
     hiddenSearchInput,
     initSelector,
     selectTagId = 'filter-search-selector',
+    disableComponent = false,
   },
   ref,
 ) => {
@@ -156,6 +162,33 @@ const FilterSearch: React.ForwardRefRenderFunction<FilterRefMethod, FilterSearch
   const [fieldsNameRequestTag, setFieldsNameRequestTag] = React.useState(1);
   const { fieldsDataMap, openFilterPopover } = useOpenFilterPopover(fields);
   const needSearch = useRef(false);
+
+  const iqlFunctionFilters = useIqlFunctionFilter({ workspaceKey });
+
+  const iqlFunctionFilterMap = useMemo(() => {
+    return iqlFunctionFilters.reduce((result, iqlFunctionFilter) => {
+      result[iqlFunctionFilter.key] = iqlFunctionFilter;
+      return result;
+    }, {});
+  }, [iqlFunctionFilters]);
+
+  const executionIqlFunctionFilters = useMemo(() => {
+    return getTargetIqlFunctionFilter(iqlFunctionFilters, IQL_FUNCTION_ENUM.testCaseExecutions);
+  }, [iqlFunctionFilters]);
+
+  const caseIqlFunctionFilters = useMemo(() => {
+    return getTargetIqlFunctionFilter(iqlFunctionFilters, IQL_FUNCTION_ENUM.testExecutionCases);
+  }, [iqlFunctionFilters]);
+
+  const targetIqlFunctionFilters = useMemo(() => {
+    if (testType === TestType.Case) {
+      return caseIqlFunctionFilters;
+    } else if (testType === TestType.Execution) {
+      return executionIqlFunctionFilters;
+    } else {
+      return [];
+    }
+  }, [executionIqlFunctionFilters, caseIqlFunctionFilters, testType]);
 
   const setSelectors = useMemoizedFn(selectors => {
     setSelectorsState(selectors);
@@ -386,10 +419,13 @@ const FilterSearch: React.ForwardRefRenderFunction<FilterRefMethod, FilterSearch
         }
         target.value = selector.value;
         target.expression = selector.expression;
+        if (iqlFunctionFilterMap[selector.objectId]) {
+          target.plugin = iqlFunctionFilterMap[selector.objectId].plugin;
+        }
         setSelectors(handleDataSelector(data));
       }
     },
-    [setSelectors],
+    [setSelectors, iqlFunctionFilterMap],
   );
 
   // 获取各个层级
@@ -410,6 +446,23 @@ const FilterSearch: React.ForwardRefRenderFunction<FilterRefMethod, FilterSearch
       };
     });
   }, []);
+
+  const extendFetchTestSet = useCallback(async () => {
+    return (
+      await getTestEntityByQuery({
+        query: {
+          workspaceKey: workspace?.key,
+          type: TestType.CaseSet,
+        },
+        fields: ['id', 'name'],
+        notConcatField: true,
+        limit: 9999,
+      })
+    )?.list?.map(item => ({
+      value: item.objectId,
+      label: item.name,
+    }));
+  }, [globalTestConfig, t, workspace?.key]);
 
   const extendFetch = useCallback(async () => {
     const query = new Parse.Query(Repository);
@@ -464,11 +517,29 @@ const FilterSearch: React.ForwardRefRenderFunction<FilterRefMethod, FilterSearch
         dom,
         useChange: false,
       };
+
+      if (iqlFunctionFilterMap?.[data.key]) {
+        (props as any).plugin = iqlFunctionFilterMap[data.key].plugin;
+        (props as any).optionExpression = undefined;
+        (props as any).checkType = undefined;
+        (props as any).allowNull = false;
+        props.field = {
+          objectId: data.key,
+          name: data.fieldName,
+          key: data.key,
+          fieldType: { key: data.key, label: data.fieldName, component: data.key },
+        };
+      }
       if (fieldId === RepositoryModel) {
         (props as any).fetchMethod = () => extendFetch();
       }
       if (fieldId === TestCaseStatusModel) {
         (props as any).fetchMethod = () => getStatusOptions();
+      }
+
+      // todo 查询空间下所有的用例集
+      if (fieldId === TestSetModel) {
+        (props as any).fetchMethod = () => extendFetchTestSet();
       }
 
       if (isDate(data.key)) {
@@ -486,6 +557,7 @@ const FilterSearch: React.ForwardRefRenderFunction<FilterRefMethod, FilterSearch
       handleSearch,
       extendFetch,
       getStatusOptions,
+      iqlFunctionFilterMap,
     ],
   );
 
@@ -550,12 +622,14 @@ const FilterSearch: React.ForwardRefRenderFunction<FilterRefMethod, FilterSearch
           onChange={onChangeInput}
           placeholder={t('components.common.filterSearch.screenPlaceholder')}
           value={search}
+          disabled={disableComponent}
         />
       )}
       {showDefaultRange && defaultIqlProp && (
         <Checkbox
           style={{ lineHeight: '28px' }}
           checked={useDefaultRange}
+          disabled={disableComponent}
           onChange={e => {
             setUseDefaultRange(e.target.checked);
             handleSearch();
@@ -574,6 +648,7 @@ const FilterSearch: React.ForwardRefRenderFunction<FilterRefMethod, FilterSearch
             active={item?.active}
             data={item}
             selectTagId={selectTagId}
+            disabled={disableComponent}
             onClick={data => {
               const backup = cloneDeep(data);
               backup.value = generateFieldValue(backup);
@@ -581,6 +656,7 @@ const FilterSearch: React.ForwardRefRenderFunction<FilterRefMethod, FilterSearch
                 backup,
                 document.querySelector(`#${selectTagId}-${item?.fieldId}`),
               );
+              console.info('props', backup, props);
               openFieldValuePopover(props as any);
             }}
             onDelete={onDeleteSelector}
@@ -591,11 +667,13 @@ const FilterSearch: React.ForwardRefRenderFunction<FilterRefMethod, FilterSearch
           id={filterId || storageKey || 'filter-btn'}
           icon={<AddFilterIcon className={cx('filter-tag-icon')} />}
           className={cx('filter-tag-btn')}
+          disabled={disableComponent}
           onClick={() => {
             openFilterPopover({
               selectors,
               onChange: onFilterChange,
               extendFields,
+              iqlFunctionFilters: targetIqlFunctionFilters,
               dom: document.querySelector(`#${filterId || storageKey || 'filter-btn'}`),
             });
           }}

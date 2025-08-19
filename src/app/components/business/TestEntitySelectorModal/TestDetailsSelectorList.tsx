@@ -28,8 +28,13 @@ interface TestDetailsSelectorListProps {
   setSelectedTestDetailIds?: (val: any) => void;
   treeType?: string;
   planId?: string;
+  caseSetId?: string;
+  isPlanForTestSet?: boolean; // 当为true时候，查询用例的时候会把用例关联的用例集给查出来，然后用来判断该用例是否可以选中
   treeProps?: Record<string, any>;
   validateCaseStatus?: boolean;
+  enableCaseVersion?: boolean;
+  versionMapKeySelected?: Record<string, string>;
+  setVersionMapKeySelected?: any
 }
 
 const TestDetailsSelectorList: React.FC<TestDetailsSelectorListProps> = ({
@@ -40,8 +45,13 @@ const TestDetailsSelectorList: React.FC<TestDetailsSelectorListProps> = ({
   setSelectedTestDetailIds,
   treeType,
   planId,
+  caseSetId,
+  isPlanForTestSet = false,
   selectors: selector,
   validateCaseStatus = false,
+  enableCaseVersion=false,
+  versionMapKeySelected,
+  setVersionMapKeySelected
 }) => {
   const { t } = useI18n();
   const [showType, setShowType] = useState('all');
@@ -108,7 +118,7 @@ const TestDetailsSelectorList: React.FC<TestDetailsSelectorListProps> = ({
         ascending: ['sortIndex', 'createdAt'],
         limit: 99999,
         sortByRepositoryIds: allNodeKeys,
-        select: ['id', 'status'],
+        select: ['id', 'status', isPlanForTestSet ? 'testSet' : ''].filter(Boolean) as FieldKey[],
       });
 
       return data as Array<{ id: string; workflowStatus: { objectId: string } }>;
@@ -121,7 +131,7 @@ const TestDetailsSelectorList: React.FC<TestDetailsSelectorListProps> = ({
         typeof selector === 'object' ? JSON.stringify(selector) : selector
       }`,
       staleTime: 999999999,
-      cacheTime: 999999999,
+      cacheTime: isPlanForTestSet ? 0 : 999999999,
     },
   );
 
@@ -150,7 +160,8 @@ const TestDetailsSelectorList: React.FC<TestDetailsSelectorListProps> = ({
         ...baseQueryOptions,
         offset: (current - 1) * 100,
         limit: 100,
-        select: ['id', 'name', 'status'],
+        select: ['id', 'name', 'status', 'key',isPlanForTestSet ? 'testSet' : ''].filter(Boolean),
+        // field: ['version'],
         sortByRepositoryIds: allNodeKeys,
       });
 
@@ -181,7 +192,7 @@ const TestDetailsSelectorList: React.FC<TestDetailsSelectorListProps> = ({
         destinationType: TestType.Case,
         offset: (current - 1) * 100,
         limit: 100,
-        select: ['id', 'name', 'status'],
+        select: ['id', 'name', 'status', 'key'],
         sortByRepositoryIds: allNodeKeys,
       });
 
@@ -245,11 +256,11 @@ const TestDetailsSelectorList: React.FC<TestDetailsSelectorListProps> = ({
         (typeof selector === 'object' ? JSON.stringify(selector) : selector) ?? ''
       }_${showType}_${current}_${treeType}_${orderByCratedAt}${workspaceKey}`,
       staleTime: 999999999,
-      cacheTime: 999999999,
+      cacheTime: isPlanForTestSet ? 0 : 999999999,
     },
   );
 
-  const { list: testCaseList, total = 0 } = testCaseData ?? {};
+  const { list: testCaseList, total = 0 } = testCaseData ?? {}; 
   const { getEnableToPlan } = useCasePlanRule(validateCaseStatus);
   const disabledIdsSet = useMemo(() => {
     return new Set<string>(
@@ -435,8 +446,13 @@ const TestDetailsSelectorList: React.FC<TestDetailsSelectorListProps> = ({
               disabledIdsSet={disabledIdsSet}
               setCurrent={setCurrent}
               current={current}
+              isPlanForTestSet={isPlanForTestSet}
+              testSetId={caseSetId}
               groupCounts={groupCounts}
               validateCaseStatus={validateCaseStatus}
+              enableCaseVersion={enableCaseVersion}
+              versionMapKeySelected={versionMapKeySelected}
+              setVersionMapKeySelected={setVersionMapKeySelected}
             />
           ) : (
             <Empty
@@ -450,5 +466,5 @@ const TestDetailsSelectorList: React.FC<TestDetailsSelectorListProps> = ({
     </div>
   );
 };
-
+TestDetailsSelectorList.displayName = 'TestDetailsSelectorList';
 export default React.memo(TestDetailsSelectorList);

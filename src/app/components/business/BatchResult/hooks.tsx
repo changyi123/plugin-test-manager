@@ -22,6 +22,7 @@ import {
   copyTestCaseV3,
   deleteTestEntity,
   deleteTestEntityV2,
+  deleteTestRun,
   updateItemsV2,
 } from '@/lib/api/item';
 import { getRootContainer } from '@/lib/utils/helper';
@@ -47,6 +48,7 @@ export enum ACTION_TYPE_ENUM {
   ADD_EXECUTION_TO_PLAN,
   RETRY,
   COPY_FOLDER,
+  DELETE_RUN,
 }
 
 type ProcessSwap<T> = T & {
@@ -55,6 +57,8 @@ type ProcessSwap<T> = T & {
   actionType?: ACTION_TYPE_ENUM;
   title?: string;
   key?: string;
+  hideNotification?: boolean;
+  zIndex?: number;
 };
 
 export async function createTestRunWithProcess(props: ProcessSwap<BatchCreateTestRunV2Payload>) {
@@ -106,6 +110,10 @@ export async function copyFolderWithProcess(props: ProcessSwap<CopyFolderPayload
   return await execWithProcess({ ...props, actionType: ACTION_TYPE_ENUM.COPY_FOLDER });
 }
 
+export async function deleteRunWithProcess(props: ProcessSwap<BatchDeletePayload>) {
+  return await execWithProcess({ ...props, actionType: ACTION_TYPE_ENUM.DELETE_RUN });
+}
+
 let timer = null;
 
 export async function execWithProcess(
@@ -128,6 +136,8 @@ export async function execWithProcess(
     actionType,
     handleSuccess: originHandleSuccess,
     handleFail,
+    hideNotification = false,
+    zIndex,
     ...params
   } = props;
 
@@ -166,6 +176,13 @@ export async function execWithProcess(
         break;
       case ACTION_TYPE_ENUM.DELETE_V2:
         data = await deleteTestEntityV2({
+          ...params,
+          key: processBarKey,
+        });
+        title = '移除中';
+        break;
+      case ACTION_TYPE_ENUM.DELETE_RUN:
+        data = await deleteTestRun({
           ...params,
           key: processBarKey,
         });
@@ -248,15 +265,23 @@ export async function execWithProcess(
       processBarKey,
       handleSuccess,
       handleFail,
+      hideNotification,
     };
 
-    info({
+    const infoConfig = {
       title: propsTitle || title,
       content: <BatchResult {...batchResultParams} />,
       getContainer: getRootContainer,
       footer: null,
       closable: true,
-    });
+      zIndex,
+    };
+    //  todo 批量当单个处理时候，隐藏通知，在外面处理成功或者失败的逻辑
+    if (zIndex === undefined) {
+      delete infoConfig.zIndex;
+    }
+
+    info(infoConfig);
   } catch (e) {
     handleFail?.(e);
   }

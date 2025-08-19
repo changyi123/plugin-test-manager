@@ -1,4 +1,4 @@
-import { useSDK } from '@projectproxima/plugin-sdk';
+import { useSDK } from '@giteeteam/plugin-sdk';
 import { useEventEmitter } from 'ahooks';
 import { EventEmitter } from 'ahooks/lib/useEventEmitter';
 import { noop } from 'lodash';
@@ -11,6 +11,7 @@ import { getDevConfig } from '@/devEnv';
 import { TestType } from '@/lib/constants';
 import { TestEntity } from '@/lib/types/Test';
 import { SearchSelectors } from '@/lib/utils/iql';
+import { TestExecutionEntity } from '@/pages/plan/type';
 
 export type TableActionEventType = {
   tableSelectionVisible?: boolean;
@@ -30,12 +31,14 @@ type PageContextType = {
   runLinkCaseIds?: string[];
   refresh: (key?: string) => void;
   selectedTestPlan: TestPlanEntity | null;
+  selectedTestExecution: TestExecutionEntity | null;
   setSearchValue: (searchValue: string) => void;
   tableSelectionToggleEvent: EventEmitter<boolean>;
   mutateTestPlanEvent: EventEmitter<string | undefined>;
   mutateTestTableList: EventEmitter<string | undefined>;
   mutateStatusEvent: EventEmitter<string | undefined>;
   setSelectedTestPlan: (testPlan: TestPlanEntity | null) => void;
+  setSelectedTestExecution: (testPlan: TestExecutionEntity | null) => void;
   registerRefreshMethod: (method: Record<string, () => void>) => void;
   setPlanLinkCaseIds: (val?: string[]) => void;
   setExecutionLinkRunIds: (val?: string[]) => void;
@@ -45,6 +48,12 @@ type PageContextType = {
   setActiveExecutionPlan: (val: TestPlanEntity | null) => void;
   runLinkSnapshotIds?: string[];
   setRunLinkSnapshotIds?: (val?: string[]) => void;
+  runMap?: Record<string, string>;
+  runVersionMap?: Record<string, any>;
+  setRunMap?: (val?: Record<string, string>) => void;
+  runSnapshotMap?: Record<string, string>;
+  setRunSnapshotMap?: (val?: Record<string, string>) => void;
+  setRunVersionMap?: (val?: Record<string, any>) => void;
 };
 
 export const PageContext = React.createContext<PageContextType>({
@@ -61,6 +70,7 @@ export const PageContext = React.createContext<PageContextType>({
   registerRefreshMethod: noop,
   tableSelectionToggleEvent: null,
   selectedTestPlan: {} as TestPlanEntity,
+  selectedTestExecution: {} as TestExecutionEntity,
   planLinkCaseIds: null,
   executionLinkRunIds: null,
   runLinkCaseIds: null,
@@ -72,6 +82,9 @@ export const PageContext = React.createContext<PageContextType>({
   setActiveExecutionPlan: noop,
   runLinkSnapshotIds: null,
   setRunLinkSnapshotIds: noop,
+  setSelectedTestExecution: noop,
+  runVersionMap: null,
+  setRunVersionMap: noop,
 });
 
 const PageProvider: React.FC<any> = ({ children }) => {
@@ -79,16 +92,20 @@ const PageProvider: React.FC<any> = ({ children }) => {
   const refreshCacheRef = useRef<Record<string, () => void>>();
   const [searchValue, setSearchValue] = useState('');
   const [selectors, setSelectors] = useState();
+  const [runVersionMap, setRunVersionMap] = useState<Record<string, string>>({});
   const tableSelectionToggleEvent = useEventEmitter<boolean>();
   const mutateTestPlanEvent = useEventEmitter<string | undefined>();
   const mutateStatusEvent = useEventEmitter<string | undefined>();
   const mutateTestTableList = useEventEmitter<string | undefined>();
   const workspaceKey = context?.env?.WORKSPACE_KEY ?? getDevConfig().workspaceKey;
   const [selectedTestPlan, setSelectedTestPlan] = useState(null);
+  const [selectedTestExecution, setSelectedTestExecution] = useState(null);
   const [planLinkCaseIds, setPlanLinkCaseIds] = useState<string[]>(null);
   const [executionLinkRunIds, setExecutionLinkRunIds] = useState<string[]>(null);
   const [runLinkCaseIds, setRunLinkCaseIds] = useState<string[]>(null);
   const [runLinkSnapshotIds, setRunLinkSnapshotIds] = useState<string[]>(null);
+  const [runMap, setRunMap] = useState<Record<string, string>>({});
+  const [runSnapshotMap, setRunSnapshotMap] = useState<Record<string, string>>({});
   const [activeExecutionPlan, setActiveExecutionPlan] = useState(null);
 
   const refresh = useCallback(key => {
@@ -149,6 +166,14 @@ const PageProvider: React.FC<any> = ({ children }) => {
             setActiveExecutionPlan,
             runLinkSnapshotIds,
             setRunLinkSnapshotIds,
+            runMap,
+            setRunMap,
+            runSnapshotMap,
+            setRunSnapshotMap,
+            selectedTestExecution,
+            setSelectedTestExecution,
+            runVersionMap,
+            setRunVersionMap,
           }}
         >
           {children}

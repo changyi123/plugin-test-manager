@@ -42,7 +42,10 @@ const TaskPageLayout: React.FC<any> = () => {
     setSearchParams,
     setExecutionLinkRunIds,
     setRunLinkCaseIds,
+    setRunMap,
+    setRunSnapshotMap,
     setPlanId,
+    setSelectedTestExecution,
   } = usePageContext();
   const { t } = useI18n();
   const executionListRef = React.useRef<ExecutionListRef>();
@@ -61,6 +64,13 @@ const TaskPageLayout: React.FC<any> = () => {
   const [showType, setShowType] = useState('all');
 
   const { query } = useLocation();
+  const setSelectedExecutionWrapper = useCallback(
+    execution => {
+      setSelectedExecution(execution);
+      setSelectedTestExecution(execution);
+    },
+    [setSelectedExecution, setSelectedTestExecution],
+  );
 
   useUpdateEffect(() => {
     if (query?.actionType && !activeType) {
@@ -81,6 +91,8 @@ const TaskPageLayout: React.FC<any> = () => {
     setRunLinkCaseIds(scopeTestRunIds?.runLinkCaseIds);
     setExecutionLinkRunIds(scopeTestRunIds?.executionLinkRunIds);
     setRunLinkSnapshotIds(scopeTestRunIds?.runLinkSnapshotIds);
+    setRunMap(scopeTestRunIds?.runMap || {});
+    setRunSnapshotMap(scopeTestRunIds?.runSnapshotMap || {});
   }, [scopeTestRunIds]);
 
   const treeParams = useTreeParams({
@@ -244,7 +256,7 @@ const TaskPageLayout: React.FC<any> = () => {
 
   // 关联测试执行任务
   const addExistedTestExecution = React.useCallback(async () => {
-    const ids = await selectorModalRef.current.open({
+    const { selectedData: ids } = await selectorModalRef.current.open({
       testType: TestType.Execution,
     });
 
@@ -288,7 +300,7 @@ const TaskPageLayout: React.FC<any> = () => {
         <BasicPageLayout>
           <TestTaskList
             listRef={executionListRef}
-            setSelectedExecution={setSelectedExecution}
+            setSelectedExecution={setSelectedExecutionWrapper}
             createTestExecution={createTestExecution}
             addExistedTestExecution={addExistedTestExecution}
             selectorModalRef={selectorModalRef}
@@ -303,7 +315,7 @@ const TaskPageLayout: React.FC<any> = () => {
                   <ArrowLeftOutlined
                     className={cx('icon')}
                     onClick={() => {
-                      setSelectedExecution(undefined);
+                      setSelectedExecutionWrapper(undefined);
                       setPlanId(undefined);
                     }}
                   />

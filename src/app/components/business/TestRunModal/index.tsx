@@ -107,6 +107,7 @@ const TestRunModal: React.FC<ITestRunModalProps> = ({
     </>
   );
 };
+TestRunModal.displayName = 'TestRunModal';
 
 const TestRunModalContainer = props => {
   return (
@@ -115,5 +116,5 @@ const TestRunModalContainer = props => {
     </SaveTriggerProvider>
   );
 };
-
+TestRunModalContainer.displayName = 'TestRunModalContainer';
 export default TestRunModalContainer;

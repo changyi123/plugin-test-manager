@@ -1,9 +1,9 @@
 import createProximaSdk from '@projectproxima/proxima-sdk-js';
-import { QueryLinkedTestEntityPayload } from 'common/types/api';
 import { useUpdateEffect } from 'ahooks';
-import { Button, message, notification, Select, Tooltip, Dropdown, Space } from 'antd';
+import { Button, Dropdown, message, notification, Select, Space, Tooltip } from 'antd';
+import { QueryLinkedTestEntityPayload } from 'common/types/api';
 import React, { useCallback, useMemo, useRef, useState } from 'react';
-import { DownOutlined } from '@/icons';
+import { useLocation } from 'react-router-dom';
 
 import {
   createTestRunWithProcess,
@@ -18,7 +18,9 @@ import TestEntitySelectorModal, {
 import { SystemFieldKeys } from '@/components/common/BusinessTable/hook';
 import FilterSearch from '@/components/common/FilterSearch';
 import { getFilterFields } from '@/components/common/FilterSearch/utils';
+import { DownOutlined } from '@/icons';
 import {
+  CASESNAPSHOT_TYPE,
   getExtendFields,
   RepositoryModel,
   TestFiledKeyMapping,
@@ -33,7 +35,7 @@ import { usePageContext } from '../../hook';
 import TestEntityList from '../../TestEntityList';
 import ExecutionStatus from '../ExecutionStatus';
 import { useSetTableHeight } from './hooks';
-import { useLocation } from 'react-router-dom';
+import { useTestConfig } from '@/lib/hooks/useContext';
 import cx from './index.less';
 
 interface RightProps {
@@ -72,6 +74,7 @@ const Right: React.FC<RightProps> = props => {
     tableSelectionToggleEvent,
     workspaceKey,
   } = usePageContext();
+  const { config } = useTestConfig();
   const proxima = createProximaSdk();
   const { getCreatePermission, testCaseFieldKeys } = useBaseAction();
   const { t } = useI18n();
@@ -109,7 +112,7 @@ const Right: React.FC<RightProps> = props => {
   }, [selectedTestPlan?.objectId]);
 
   const addTestExecutionDetail = useCallback(async () => {
-    const { selectedData: caseIds } = await testEntitySelectorRef.current.open();
+    const { selectedData: caseIds, caseVersion } = await testEntitySelectorRef.current.open();
     if (caseIds?.length === 0) {
       return notification.warning({
         message: t('page.plan.planPageLayout.right.notSelectMessage'),
@@ -127,6 +130,7 @@ const Right: React.FC<RightProps> = props => {
       await createTestRunWithProcess({
         execution: selectedExecution as any,
         caseIds,
+        caseVersion,
         workspace: selectedExecution?.workspace as any,
         planId: selectedExecution?.linkItems?.[0],
         handleSuccess: async () => {
@@ -151,7 +155,9 @@ const Right: React.FC<RightProps> = props => {
   const filterSearchExtendFieldsProps = useMemo(() => {
     const fieldsMapping = {
       // 测试用例类型筛选，只有测试用例库模块
-      TestPlan: getExtendFields(t).filter(field => [RepositoryModel].includes(field.key)),
+      TestPlan: getExtendFields(t).filter(field =>
+        [RepositoryModel, '测试用例集'].includes(field.key),
+      ),
       // 测试执行搜索
       TestExecution: getExtendFields(t),
     };
@@ -160,7 +166,7 @@ const Right: React.FC<RightProps> = props => {
   }, [activeType, t]);
 
   const addTestDetail = async () => {
-    const itemData = await testEntitySelectorRef.current.open();
+    const { selectedData: itemData } = await testEntitySelectorRef.current.open();
 
     if (!itemData.length) {
       return notification.warning({
@@ -177,6 +183,9 @@ const Right: React.FC<RightProps> = props => {
       },
       update: {
         [TestFiledKeyMapping.linkItems]: {
+          concat: [selectedTestPlan.objectId],
+        },
+        [TestFiledKeyMapping.testPlans]: {
           concat: [selectedTestPlan.objectId],
         },
       },
@@ -285,7 +294,7 @@ const Right: React.FC<RightProps> = props => {
           onSearch={setSearchParams}
           className={cx('plan-page-layout-search')}
           extendFields={filterSearchExtendFieldsProps}
-          fields={getFilterFields([].concat(SystemFieldKeys, testCaseFieldKeys))}
+          fields={getFilterFields([].concat(SystemFieldKeys, testCaseFieldKeys, 'r_test_manager_isCaseUpdate'))}
           testType={TestType.Case}
           storageKey={activeType === 'TestPlan' ? 'testPlan' : 'testExecution'}
         />
@@ -304,6 +313,7 @@ const Right: React.FC<RightProps> = props => {
           title={t('page.plan.planPageLayout.right.caseSelectModelTitle')}
           showDefaultRange
           testType={TestType.Case}
+          enableCaseVersion={[CASESNAPSHOT_TYPE.NO_BUILDVERSION_SELVERSION].includes(config?.caseSnapshot?.type) && activeType === 'TestExecution'}
           actionRef={testEntitySelectorRef}
           afterClose={() => refreshTreeAndScopeTestCase?.()}
           ignoreTestEntityIds={activeType === 'TestPlan' ? planLinkCaseIds : runLinkCaseIds}

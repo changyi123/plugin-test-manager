@@ -6,6 +6,7 @@ const en: {
   expected: 'Ожидал',
   data: 'Данные',
   precondition: 'Предварительное условие',
+  dataHasRemove: 'Связанные данные были удалены',
 };
 
 export default en;

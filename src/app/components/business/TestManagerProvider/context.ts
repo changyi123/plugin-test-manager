@@ -3,7 +3,7 @@ import React from 'react';
 
 import { TestType } from '@/lib/constants';
 import { Item, Workspace } from '@/lib/types/App';
-import { GeneralSetting } from '@/lib/types/Test';
+import { CaseSnapshot, GeneralSetting } from '@/lib/types/Test';
 
 export interface StatusType {
   key: string;
@@ -31,8 +31,8 @@ export type TestConfigContextType = {
     statusList?: { statusId: string; name: string; isStartStatus?: boolean }[];
     // 默认测试用例规划范围
     iql?: string;
-    // 是否支持规划时自动打快照
-    enableCaseSnapshot?: boolean;
+    //用例快照类型
+    caseSnapshot?: CaseSnapshot;
   };
   workspace?: Workspace;
   testEntity?: BaseTestEntity;
@@ -52,6 +52,7 @@ export type BaseActionContextType = {
     hideMessage?: boolean;
     type: TestType;
     extraData?: Extra;
+    defaultValues?: Record<string, any>;
   }) => Promise<{
     extraData: Extra;
     useItemBatchCreate: boolean;
@@ -68,6 +69,7 @@ export type BaseActionContextType = {
   getCreatePermission?: (val: string) => boolean;
   testPlanFieldKeys?: string[];
   testCaseFieldKeys?: string[];
+  testCaseSetFieldKeys?: string[];
   testExecutionFieldKeys?: string[];
   testReportFieldKeys?: string[];
   globalTestConfig: any;

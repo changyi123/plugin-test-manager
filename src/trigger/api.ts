@@ -8,6 +8,7 @@ export {
 export {
   batchDelete,
   batchDeleteV2,
+  batchDeleteRun,
   batchUpdate,
   batchUpdateValue,
   batchCopyTestCase,
@@ -25,6 +26,9 @@ export {
   removeExecutionFromPlan,
   batchLinkBugsToRun,
   batchRemoveBugsWithRun,
+  batchUpdateExecutionCases,
+  updateAllExecutionCases,
+  batchCreateVersions,
   retry,
 } from './modules/api/batch';
 
@@ -49,5 +53,7 @@ export { dssTestReportInfo } from './modules/extension/dashangsuo';
 export { initTestConfig } from './modules/api/config';
 
 export { linkTestExecuteToTestPlan } from './modules/batch/execution';
+
+export { batchUpdateRunVersion, updateRunVersion } from './modules/batch/updateRunVersion';
 
 export { checkFilterGroupName } from './modules/filterGroup';

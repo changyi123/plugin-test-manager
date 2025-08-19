@@ -1,0 +1,81 @@
+.dropdown {
+  width: 100%;
+
+  &:not(:global(.hidden-hover)) &:not(:global(.display-wrap)) :hover {
+    box-sizing: border-box;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    height: 32px;
+    padding: 0 8px !important;
+    color: rgb(226 236 255 50%);
+    border: 1px solid #f1f2f4;
+    border-radius: 4px;
+
+    .hover-icon {
+      display: inline-block;
+    }
+  }
+
+  .hover-icon {
+    display: none;
+    font-size: 12px;
+    color: #eee;
+  }
+
+  :global {
+    .test-manager-select {
+      width: 100%;
+    }
+  }
+
+  .value-option-content {
+    width: 100%;
+
+    .value-option {
+      display: flex;
+    }
+
+    .value-option-icon {
+      position: absolute;
+      margin-top: 3px;
+    }
+
+    .value-option-label {
+      display: inline-block;
+      width: ~'calc(100% - 22px)';
+      margin-left: 22px;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    }
+  }
+
+  .optionDisplayWrap {
+    :global {
+      .test-manager-select-selection-overflow {
+        display: block;
+
+        .test-manager-select-selection-overflow-item {
+          width: fit-content;
+        }
+      }
+    }
+  }
+}
+
+.dropdown-select {
+  .dropdown-select-option.disabled {
+    text-decoration: line-through;
+  }
+
+  :global {
+    .test-manager-select-selection-item-content {
+      text-decoration: line-through;
+    }
+  }
+}
+
+.dropdown-select-option.disabled {
+  text-decoration: line-through;
+}

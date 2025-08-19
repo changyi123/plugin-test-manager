@@ -1,9 +1,11 @@
 import React, { useMemo } from 'react';
 
 import PanelLayout from '@/components/business/PanelLayout';
+import { featureFlags } from '@/lib/appEnv';
 import { TestType } from '@/lib/constants';
 import { useTestConfig } from '@/lib/hooks/useContext';
 import useI18n from '@/lib/hooks/useI18n';
+import TestCaseSetPanel from '@/modules/panel/TestDetail/TestCaseSetPanel';
 
 import HistoryRUnPanel from './HistoryRunPanel';
 import TestDefect from './TestDefect';
@@ -38,6 +40,11 @@ const TestDetail: React.FC = () => {
               tab: t('modules.panel.testDetail.historyRunPanel.runRecord'),
               key: TestType.Run,
               Component: HistoryRUnPanel,
+            },
+            featureFlags('ENABLE_TEST_CASE_SET') && {
+              tab: t('modules.panel.testDetail.historyRunPanel.testCaseSet'),
+              key: TestType.CaseSet,
+              Component: TestCaseSetPanel,
             },
             {
               tab: t('common.testDefect'),

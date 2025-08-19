@@ -34,6 +34,7 @@ import { downloadExampleFile, TreeNode } from './export';
 
 const { ExportModal } = components.Components;
 const { FilterProvider, RecoilRoot } = hooks;
+import cx from './index.less';
 
 const RepoDropDown = ({
   type,
@@ -45,6 +46,7 @@ const RepoDropDown = ({
   selectedTestPlanId,
   repository,
   selector,
+  selectedTestCaseSetId,
 }: {
   type: string;
   className?: string;
@@ -52,13 +54,15 @@ const RepoDropDown = ({
   treeNodeData?: TreeNode[];
   selectedTestPlanId?: string;
   filteredCaseIds?: string[];
-  extraMenuOptions?: MenuItemProps[];
+  extraMenuOptions?: any[];
   setPageLoading?: (val: boolean) => void;
   repository?: Record<string, any>;
   selector?: SearchSelectors | string;
+  selectedTestCaseSetId?: string;
 }) => {
   const [visible, setVisible] = useState(false);
   const [iql, setIql] = useState('');
+  const [exportType, setExportType] = useState('excel');
   const { t, locale } = useI18n();
   const {
     workspace,
@@ -77,7 +81,7 @@ const RepoDropDown = ({
       }).then(data => {
         setTestCaseFields(data.filter(f => !EXPORT_EXCLUDED_TYPES.includes(f.fieldType?.key)));
       });
-  }, [testCaseFieldKeys]);
+  }, [testCaseFieldKeys, exportType]);
 
   const testEntitySelectorRef = useRef<ModelActionType>();
 
@@ -134,11 +138,13 @@ const RepoDropDown = ({
 
   const paramsToIql = useCallback(
     params => {
-      const { checkedId, type, workspace, treeData, repository, selector } = params;
+      const { checkedId, type, workspace, treeData, repository, selector, selectedTestCaseSetId } =
+        params;
       const selectTreeNode = getTreeNodeByKey(treeData, checkedId);
       const iqlList = [
         `'${IQLFieldNameMapping.type}' = '${TestType.Case}'`,
         `'${IQLFieldNameMapping.workspaceKey}' = '${workspace.key}'`,
+        selectedTestCaseSetId && `'测试用例集' in ['${selectedTestCaseSetId}']`,
       ];
 
       switch (type) {
@@ -151,7 +157,7 @@ const RepoDropDown = ({
           );
           break;
         case 'exportFilter':
-          iqlList.push(repositoryQuery2Iql(repository.repository));
+          repository?.repository && iqlList.push(repositoryQuery2Iql(repository.repository));
           iqlList.push(selectorToIql(handleSelector(selector)));
           break;
         case 'exportPlan':
@@ -168,14 +174,31 @@ const RepoDropDown = ({
     async e => {
       const key = e.key;
       // iframe 中跳转链接增加隐藏 header 和 sider 属性
-      const appendedQueryString = inIframe() ? '&hiddenSider=true&hiddenHeader=true' : '';
-
+      let appendedQueryString = inIframe() ? '&hiddenSider=true&hiddenHeader=true' : '';
+      if (selectedTestCaseSetId) {
+        appendedQueryString += `&selectedTestCaseSetId=${selectedTestCaseSetId}`;
+      }
       if (key === 'import') {
         const baseUrl = getProximaBasePath() ? `${getProximaBasePath()}` : '/';
+        const isEnableImportSnapShotConfig = getAppEnv('ENABLE_IMPORT_SNAP_SHOT_CONFIG');
+
+        const showSnapShotConfigString = isEnableImportSnapShotConfig
+          ? '&showSnapShotConfig=true'
+          : '';
+
         // 跳转到导入页面
         const href = `${baseUrl}/${getTenantKey()}/workspaces/${workspace.key}/import/${
           workspace.objectId
         }?app=test_manager&disableToggleWorkspace=true&hiddenItemType=true&validateRequired=${getAppEnv(
+          'GROUP_REQUIRED_WHEN_VALIDATE',
+        )}${appendedQueryString}${showSnapShotConfigString}`;
+        window.open(href);
+      } else if (key === 'importJson') {
+        const baseUrl = getProximaBasePath() ? `${getProximaBasePath()}` : '/';
+        // 跳转到导入页面，并增加 importType=json 参数
+        const href = `${baseUrl}/${getTenantKey()}/workspaces/${workspace.key}/import/${
+          workspace.objectId
+        }?app=test_manager&disableToggleWorkspace=true&hiddenItemType=true&importType=json&validateRequired=${getAppEnv(
           'GROUP_REQUIRED_WHEN_VALIDATE',
         )}${appendedQueryString}`;
         window.open(href);
@@ -185,7 +208,14 @@ const RepoDropDown = ({
         // 从别的空间导入
         startImportByWorkspace();
       } else if (
-        ['exportAll', 'exportChildGroup', 'exportGroup', 'exportFilter', 'exportPlan'].includes(key)
+        [
+          'exportAll',
+          'exportChildGroup',
+          'exportGroup',
+          'exportFilter',
+          'exportPlan',
+          'exportJsonFiltered',
+        ].includes(key)
       ) {
         if (
           !folderKey &&
@@ -195,7 +225,12 @@ const RepoDropDown = ({
           message.warning(t('page.repository.repoDropDown.importCaseWarning'));
         }
 
-        const params = 'exportFilter' === key ? { repository, selector } : {};
+        const params =
+          'exportFilter' === key || 'exportJsonFiltered' === key
+            ? selectedTestCaseSetId
+              ? { selector, selectedTestCaseSetId }
+              : { repository, selector }
+            : {};
         setIql(
           paramsToIql(
             Object.assign(
@@ -207,7 +242,7 @@ const RepoDropDown = ({
                     workspace,
                   }
                 : {
-                    type: key,
+                    type: 'exportJsonFiltered' === key ? 'exportFilter' : key, // Reuse 'exportFilter' logic for IQL generation
                     checkedId: folderKey,
                     treeData: treeNodeData,
                     workspace,
@@ -216,6 +251,11 @@ const RepoDropDown = ({
             ),
           ),
         );
+        if (key === 'exportJsonFiltered') {
+          setExportType('json');
+        } else {
+          setExportType('excel');
+        }
         setVisible(true);
       }
     },
@@ -267,10 +307,10 @@ const RepoDropDown = ({
           }`,
         ),
         checked: true,
-        readonly: true,
+        readonly: exportType === 'json' ? false : true,
       };
     });
-  }, [t, type]);
+  }, [t, type, exportType]);
 
   const appFields = useMemo(() => {
     const moreFields = testCaseFields
@@ -279,10 +319,17 @@ const RepoDropDown = ({
     return [...basicFields, ...moreFields];
   }, [testCaseFields, basicFields]);
 
+  const isEnableJsonImport = getAppEnv('ENABLE_JSON_IMPORT');
+
   const menu = (
     <Menu onClick={e => menuClick(e)}>
       {type === 'repository' && (
         <>
+          {isEnableJsonImport && (
+            <Menu.Item key="importJson">
+              {t('page.repository.repoDropDown.MenuItem.importJson')}
+            </Menu.Item>
+          )}
           <Menu.Item key="import">{t('page.repository.repoDropDown.MenuItem.0')}</Menu.Item>
           <Menu.Item key="example">{t('page.repository.repoDropDown.MenuItem.1')}</Menu.Item>
           <Menu.Item key="importFromWorkspace">
@@ -294,6 +341,11 @@ const RepoDropDown = ({
             {t('page.repository.repoDropDown.MenuItem.5')}
           </Menu.Item>
           <Menu.Item key="exportFilter">{t('page.repository.repoDropDown.MenuItem.7')}</Menu.Item>
+          {isEnableJsonImport && (
+            <Menu.Item key="exportJsonFiltered">
+              {t('page.repository.repoDropDown.MenuItem.exportJsonFiltered')}
+            </Menu.Item>
+          )}
         </>
       )}
       {type === 'plan' && (
@@ -301,6 +353,22 @@ const RepoDropDown = ({
           <Menu.Item key="exportPlan" disabled={!selectedTestPlanId}>
             {t('page.repository.repoDropDown.MenuItem.6')}
           </Menu.Item>
+        </>
+      )}
+      {type === 'caseset' && (
+        <>
+          {isEnableJsonImport && (
+            <Menu.Item key="importJson">
+              {t('page.repository.repoDropDown.MenuItem.importJson')}
+            </Menu.Item>
+          )}
+          <Menu.Item key="import">{t('page.repository.repoDropDown.MenuItem.0')}</Menu.Item>
+          <Menu.Item key="exportFilter">{t('page.repository.repoDropDown.MenuItem.7')}</Menu.Item>
+          {isEnableJsonImport && (
+            <Menu.Item key="exportJsonFiltered">
+              {t('page.repository.repoDropDown.MenuItem.exportJsonFiltered')}
+            </Menu.Item>
+          )}
         </>
       )}
       {Array.isArray(extraMenuOptions)
@@ -318,16 +386,19 @@ const RepoDropDown = ({
       <Suspense fallback={null}>
         <RecoilRoot>
           <FilterProvider>
-            <ExportModal
-              iql={iql}
-              exportModalVisible={visible}
-              setExportModalVisible={setVisible}
-              workspace={workspace}
-              appKey={AppKey}
-              appFields={appFields}
-              extraParams={extraParams}
-              exportType="excel"
-            />
+            {visible && (
+              <ExportModal
+                iql={iql}
+                exportModalVisible={visible}
+                setExportModalVisible={setVisible}
+                workspace={workspace}
+                appKey={AppKey}
+                appFields={appFields}
+                extraParams={extraParams}
+                exportType={exportType}
+                className={cx('export-modal')}
+              />
+            )}
           </FilterProvider>
         </RecoilRoot>
       </Suspense>

@@ -19,22 +19,25 @@ import {
   TestCountPayload,
   TestExecutionStatsPayload,
   TestPlanStatsPayload,
+  TestSetStatsPayload,
 } from '../../../common/types/api';
 import { TestEntity } from '../../../common/types/test';
 import iqlSearchParamsBuilder from '../../../common/utils/iqlSearchParamsBuilder';
 import { buildResponse, getReqInfoFromVMRuntime } from '../../lib/apiUtil';
+import { CASESNAPSHOT_TYPE } from '../../lib/constants';
 import { aggsSearch } from '../../lib/coreApi';
 import { getPayload, iqlRequest } from '../../lib/iqlRequest';
 import {
   computeCaseStatus,
   computeStatusCount,
   statisticsCaseFromPlan,
+  statisticsCaseFromTestSet,
   statisticsRunFromCase,
   statisticsRunFromPlan,
 } from '../../lib/statistics';
 
 type TestRunEntityType = TestEntity<TestType.Run>;
-type TestCaseEntityType = TestEntity<TestType.Case>;
+// type TestCaseEntityType = TestEntity<TestType.Case>;
 type TestExecutionEntityType = TestEntity<TestType.Execution>;
 
 /**
@@ -169,14 +172,14 @@ export const testExecutionStats = async () => {
 
   // 测试执行用例统计数据
   taskPool.register(['runStatus', 'runCount'], async function (result) {
-    let enableCaseSnapshot = false;
+    let caseSnapshot: any = {};
     if (workspaceKey) {
-      enableCaseSnapshot = await getParseQuery(false, TestConfigClassName)
+      caseSnapshot = await getParseQuery(false, TestConfigClassName)
         .equalTo('workspaceKey', workspaceKey)
         .first({ useMasterKey: true })
         .then(item =>
           global.env?.ENABLED_CASE_SNAPSHOT
-            ? item.get('enableCaseSnapshot')
+            ? item.get('caseSnapshot')
             : global.env?.DEFAULT_ENABLED_CASE_SNAPSHOT,
         );
     }
@@ -190,7 +193,7 @@ export const testExecutionStats = async () => {
       },
       fields: [TestFiledKeyMapping.status, TestFiledKeyMapping.linkItems],
       pagination: { limit: InfinityLimit, offset: 0 },
-      selector: enableCaseSnapshot
+      selector: [CASESNAPSHOT_TYPE.AUTO_BUILDVERSION].includes(caseSnapshot?.type)
         ? `${BuiltinFieldNameMapping.referenceCaseSnapshot} is not null`
         : `${BuiltinFieldNameMapping.referenceCase} is not null`,
     });
@@ -302,7 +305,7 @@ export const testCount = async () => {
     body: { groups, params, linkParams, sessionToken },
   } = getReqInfoFromVMRuntime<TestCountPayload>();
   const query = {} as any;
-
+  //  todo 参考这个做用例集梳理统计
   if (groups) {
     // 处理 groups
     const handleGroups = groupInfo => {
@@ -435,5 +438,37 @@ export const testCount = async () => {
       code: '202',
       message: error?.message ?? error,
     };
+  }
+};
+
+/**
+ * 测试用例集统计数据
+ * （规划用例数）
+ */
+export const testSetStats = async () => {
+  const {
+    body: { select, testSetIds },
+  } = getReqInfoFromVMRuntime<TestSetStatsPayload>();
+  const result = buildStatsResult(testSetIds, select, {
+    caseCount: 0,
+  });
+
+  console.info('testSetStats result init', JSON.stringify(result));
+  try {
+    // 获取用例数量与各用例最新的测试执行
+
+    const { value: caseCounts } = await statisticsCaseFromTestSet(testSetIds);
+    console.info('testSetStats statisticsCaseFromTestSet', JSON.stringify(caseCounts));
+
+    // 记录数量
+    caseCounts.forEach(i => {
+      const testSetId = i[TestFiledKeyMapping.testSet];
+      if (!Object.hasOwnProperty.call(result, testSetId)) return;
+      result[testSetId].caseCount = i.count;
+    });
+    console.info('testSetStats results -> ', JSON.stringify(result));
+    return buildResponse(result);
+  } catch (err) {
+    return buildResponse(err);
   }
 };

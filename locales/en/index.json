@@ -12,9 +12,11 @@
     "cannotExecuteTestCase": "The current test case is not assigned to an executor and cannot be executed"
   },
   "common": {
+    "snapshot": "Snapshot",
     "createPermissionTip": "Please contact the administrator to check the type mapping of the workspace, or enable",
     "haveDelete": "deleted",
     "forbiddenActive": "disabled",
+    "newest": "Newest",
     "pageTitle": {
       "repository": "Test Repository",
       "task": "Test Task",
@@ -65,6 +67,7 @@
 
     "overview": "Test Overview",
     "testCase": "Test case",
+    "testCaseSet": "Test Suite",
     "testPlan": "Test plan",
     "testExecution": "Test execution task",
     "testRun": "Test run",
@@ -141,6 +144,19 @@
         "version": "Selected version",
         "sprint": "Selected sprint"
       }
+    },
+    "coverRate": {
+      "servicesName": "Service name",
+      "branchCov": "Branch coverage rate",
+      "functionCov": "Function coverage",
+      "rowCov": "Line coverage rate",
+      "baseVersionNumber": "Baseline version",
+      "remarks": "Remarks",
+      "linkA": "Link",
+      "typeIncrement": "Type: Increment",
+      "typeAll": "Type: Full",
+      "typeEmpty": "Type: -",
+      "noData": "No data available for the time being."
     },
     "workspaceReportTemplate": {
       "modalTitle": "Report template manager in the workspace",
@@ -300,14 +316,15 @@
       "itemTypeMapping": {
         "title": "Type association configuration",
         "description": "Configure the type associated with the current workspace test management type",
-        "typeAssociationConfigurationSavedSuccessfully": "Type association configuration save successfully"
+        "typeAssociationConfigurationSavedSuccessfully": "Type association configuration save successfully",
+        "pleaseSelectAllTypes": "Please configure all type associations"
       },
       "moreConfig": {
         "descriptions": [
-          "The test management plugin has three types of test cases, test plans and test execution tasks built into the initialization phase, so please do not remove them. If the three built-in types are deleted, the Test Management System isolation configuration will not be enabled",
-          "When the test management system isolation configuration is turned on, the type association configuration will not be able to be modified. The test management matter association configuration will be associated with the three types built into the test management plugin by default and the full test workspace type association configuration will be updated to the three built-in types",
+          "The test management plugin will have four types of built-in test cases, test case sets, test plans, and test execution tasks during the initialization phase. Please do not delete them. If the four built-in types are removed, the isolation configuration of the test management system will not be enabled",
+          "After the isolation configuration of the test management system is enabled, the type association configuration cannot be modified. The configuration of test management items will default to the four types built-in in the test management plugin, and the configuration of all test space types will be updated to the four built-in types",
           "When the test management system isolation configuration is turned on, the matters created by the test management association types will be hidden and the matters will not appear in the workspace view and cannot be searched for in IQL",
-          "The three types built into the Test Management plugin cannot be selected in the dropdown selection box for all types in the view panel of the matter management"
+          "The dropdown selection boxes for all types in the view panel of event management cannot select the four types built into the test management plugin"
         ],
         "messageError": "The type built into Test Management does not exist and cannot be enabled for this configuration",
         "warningTips": "The current action will cause all test workspace type associated configuration types to be overwritten",
@@ -396,7 +413,13 @@
         "builtInItemTypeHasBeenModified": "Built-in matter types have been modified.",
         "messageSuccess": "Test management configuration initialization successful.",
         "initialItemTypeMappingLabel": "Configuring Initialization Type Mapping",
-        "resetButtonText": "Reset"
+        "resetButtonText": "Reset",
+        "noAutoBuildVersionNoSelVersion": "It does not automatically generate versions and cannot select use case versions when planning use cases",
+        "autoBuildVersion": "When testing and executing task planning use cases, the version is automatically typed",
+        "noBuildVersionSelVersion": "When planning test cases for the execution of test tasks, you can choose the version of the test case instead of typing a version",
+        "enableCaseExeUpdate": "Can the use cases for task execution be updated",
+        "restrictiveConditions": "Restrictive conditions",
+        "restrictiveConditionsPlaceholder": "Please enter restrictive conditions"
       },
       "testCaseRemoveDuplicates": {
         "title": "Test case deduplication",
@@ -635,6 +658,7 @@
         "detailName": "Test case Title",
         "runStatus": "Test execution status",
         "executor": "Last action executor",
+        "caseVersion": "Case Version",
         "designee": "Executor",
         "assigneeSetting": "Set assignee",
         "editorItemTips": "No item editing permission at the moment, please check the item operation permission configuration or contact the administrator",
@@ -646,12 +670,18 @@
         "notUpdateDesignee": "Cannot change executor of test case",
         "updateDesignee": "Change executor",
         "updateRunStatus": "Change execution status",
-        "batchEdit": "Batch edit"
+        "batchEdit": "Batch edit",
+        "updateCaseVersion": "Update test case",
+        "updateCaseVersionTips": "Restrictive conditions not met, cannot update test case",
+        "someItemsCannotUpdate": "Some selected items cannot be updated, there are test executions without associated test cases",
+        "noReferenceCase": "The test cases associated with this test execution have been deleted and cannot be updated"
       }
     },
     "repository": {
       "list": "List",
       "minder": "Minder",
+      "expandAllCases": "Expand all the details of the use cases",
+      "collapseAllCases": "Collapse all the details of the use cases",
       "folderTree": {
         "repositoryName": "Name",
         "placeholder": "Please enter a module name",
@@ -705,17 +735,19 @@
         ]
       },
       "repoDropDown": {
-        "MenuItem": [
-          "Test case import",
-          "Test case import template download",
-          "Test case import from workspace",
-          "Test case export (all groups)",
-          "Test case export (current group)",
-          "Test case export (current groups)",
-          "Test case export (current plan)",
-          "Test case export (filter result)",
-          "Test execution export"
-        ],
+        "MenuItem": {
+          "0": "Test case import",
+          "1": "Test case import template download",
+          "2": "Test case import from workspace",
+          "3": "Test case export (all groups)",
+          "4": "Test case export (current group)",
+          "5": "Test case export (current groups)",
+          "6": "Test case export (current plan)",
+          "7": "Test case export (filter result)",
+          "8": "Test execution export",
+          "importJson": "用例导入（json）",
+          "exportJsonFiltered": "导出用例json文件（筛选结果）"
+        },
         "importCaseSuccess": "Test management test case export complete",
         "importCaseWarning": "No test case repository is selected, please select the test case repository to be exported first",
         "importCaseLoading": "Exporting test management test cases",
@@ -1168,6 +1200,19 @@
           "stepName": "Step name"
         }
       },
+      "testBatchUpateModel": {
+        "chooseUpateVersion": "Select the updated version",
+        "batchUpateExeCase": "Update execution test cases",
+        "msgUpateVersion": "Please select the updated version",
+        "batchCreateVersion": "Batch create versions",
+        "versionName": "Version name",
+        "placeholderVersionName": "Please enter the version name",
+        "versionExistsError": "【{{displayText}}{{suffix}}】These test cases already have this version, cannot create duplicate versions!",
+        "copyAllKeysSuccess": "All keys have been copied to clipboard",
+        "copyAllKeysTitle": "Copy all keys",
+        "requestException": "Request exception",
+        "moreItemsSuffix": " and {{count}} more"
+      },
       "testStep": {
         "stepField": ["Step", "Expected", "Data", "Data"],
         "hasCircularInheritance": "The test case: [{{testCaseName}}] has a circular inheritance",
@@ -1198,7 +1243,8 @@
         "removeSearch": "Remove search item",
         "addSearch": " Add search item",
         "checkAllPages": "Select all",
-        "checkCurrentPage": "Select all on this page"
+        "checkCurrentPage": "Select all on this page",
+        "caseVersion": "Use case version"
       },
       "filterSearch": {
         "screenPlaceholder": "Please enter the search term keyword",
@@ -1236,6 +1282,10 @@
       "executionTime": "execution time",
       "executor": "executor"
     }
+  },
+  "iqlFunction": {
+    "executionCases": "Test cases referenced by test executions",
+    "caseExecutions": "The test executions that the test case references"
   },
   "minderExport": {
     "root": "import case",

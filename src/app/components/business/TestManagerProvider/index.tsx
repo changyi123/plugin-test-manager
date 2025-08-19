@@ -3,7 +3,7 @@ import createProximaSdk from '@projectproxima/proxima-sdk-js';
 import { useRequest } from 'ahooks';
 import { message, notification, Spin } from 'antd';
 import { isEmpty, union } from 'lodash';
-import React, { useMemo } from 'react';
+import React, { useEffect, useMemo, useRef } from 'react';
 import { useLocation } from 'react-router-dom';
 import { v4 as uuid } from 'uuid';
 
@@ -353,6 +353,9 @@ const TestManagerProvider: React.FC<RepositoryDataProviderProps> = ({
 }) => {
   const proxima = createProximaSdk();
   const { t } = useI18n();
+  const workspaceRef = useRef();
+  const testConfigRef = useRef();
+
   const [testEntity, setTestEntity] = React.useState<TestEntity>();
   const [generalSetting, setGeneralSetting] = React.useState<GeneralSetting>();
   const workspaceKey = itemId ? testEntity?.workspace?.key : workspaceKeyFromProp;
@@ -372,6 +375,11 @@ const TestManagerProvider: React.FC<RepositoryDataProviderProps> = ({
     () => queryRes?.currentTestConfig || DefaultTestConfig,
     [queryRes?.currentTestConfig],
   );
+
+  useEffect(() => {
+    workspaceRef.current = workspace;
+    testConfigRef.current = testConfig;
+  }, [workspace, testConfig]);
 
   const { getCreatePermission } = useGetPermissions(workspace, testConfig);
 
@@ -450,6 +458,12 @@ const TestManagerProvider: React.FC<RepositoryDataProviderProps> = ({
   const testPlanFieldKeys = useScreenFieldKeysFromTestConfig({
     testConfig,
     testType: TestType.Plan,
+    workspaceKey,
+  });
+
+  const testCaseSetFieldKeys = useScreenFieldKeysFromTestConfig({
+    testConfig,
+    testType: TestType.CaseSet,
     workspaceKey,
   });
 
@@ -597,12 +611,6 @@ const TestManagerProvider: React.FC<RepositoryDataProviderProps> = ({
   useOnItemCreateSuccess(messageKey, itemCreateSuccessCb, itemBatchCreateSuccessCb);
 
   const testConfigContextValues = React.useMemo(() => {
-    console.info(
-      judgeCaseSnapshot({
-        enableCaseSnapshot: testConfig?.enableCaseSnapshot,
-      }),
-      'judgeCaseSnapshot',
-    );
     return {
       // TODO: fetch config
       config: {
@@ -613,9 +621,7 @@ const TestManagerProvider: React.FC<RepositoryDataProviderProps> = ({
         listType: testConfig?.testRunAction?.listType,
         statusList: testConfig?.testRunAction?.statusList,
         iql: testConfig?.testRunAction?.iql,
-        enableCaseSnapshot: judgeCaseSnapshot({
-          enableCaseSnapshot: testConfig?.enableCaseSnapshot,
-        }),
+        caseSnapshot: testConfig?.caseSnapshot,
       },
       // item,
       workspace,
@@ -632,7 +638,7 @@ const TestManagerProvider: React.FC<RepositoryDataProviderProps> = ({
     testConfig?.testRunAction?.listType,
     testConfig?.testRunAction?.statusList,
     testConfig?.testRunAction?.iql,
-    testConfig?.enableCaseSnapshot,
+    testConfig?.caseSnapshot,
     workspace,
     testEntity,
     baseLineItemId,
@@ -642,22 +648,25 @@ const TestManagerProvider: React.FC<RepositoryDataProviderProps> = ({
   const baseActionContextValues = React.useMemo(() => {
     const actions: BaseActionContextType = {
       async createItemUseModal(params) {
-        const { extraData, type, name, hideMessage } = params;
-        let itemTypeKey = testConfig?.itemTypeMap?.[type] as string;
+        const { extraData, type, name, hideMessage, defaultValues = {} } = params;
+        const currentTestConfig =
+          Object.keys(testConfig).length > 0 ? testConfig : testConfigRef.current;
+        const currentWorkspace = workspace || workspaceRef.current;
+
+        let itemTypeKey = currentTestConfig?.itemTypeMap?.[type] as string;
         let itemType;
         let itemTypeList;
         const isTestDefect = type === TestType.TestDefect;
         // 获取缺陷类型 key
         if (isTestDefect) {
           // 可以配置多个类型，这里需要拿到全部可以配置的类型
-          itemTypeList = await getItemTypeByKeys(testConfig.defectsMapping);
+          itemTypeList = await getItemTypeByKeys(currentTestConfig.defectsMapping);
           itemType = itemTypeList?.[0];
-          itemTypeKey = testConfig.defectsMapping?.[0];
+          itemTypeKey = currentTestConfig.defectsMapping?.[0];
         } else {
           itemType = await getItemTypeByKey(itemTypeKey ?? '');
         }
 
-        // TODO: 通知统一处理！
         if (!itemType?.objectId) {
           message.warning(t('components.business.testManagerProvider.notCreateCase'));
         }
@@ -666,13 +675,15 @@ const TestManagerProvider: React.FC<RepositoryDataProviderProps> = ({
         openCreateItemModal({
           name: name ?? '',
           itemTypeId: itemType?.objectId,
-          workspaceId: workspace?.objectId,
+          workspaceId: currentWorkspace?.objectId,
+          defaultValues,
           extraData: Object.assign(
             {
               hideMessage: hideMessage ?? true,
               type,
-              workspaceId: workspace?.objectId,
+              workspaceId: currentWorkspace?.objectId,
               messageKey: messageKey,
+              skipTestCaseCreate: true,
             },
             isTestDefect
               ? {
@@ -700,7 +711,7 @@ const TestManagerProvider: React.FC<RepositoryDataProviderProps> = ({
 
             // 判断类型 key 是否在 defectsMapping 中
             if (type === TestType.TestDefect) {
-              expectedTestType = (testConfig?.defectsMapping ?? []).includes(
+              expectedTestType = (currentTestConfig?.defectsMapping ?? []).includes(
                 willValidateItem?.itemType?.key,
               );
             }
@@ -720,6 +731,7 @@ const TestManagerProvider: React.FC<RepositoryDataProviderProps> = ({
       getCreatePermission,
       getTestCaseRepositoryPath,
       testPlanFieldKeys,
+      testCaseSetFieldKeys,
       testCaseFieldKeys,
       testReportFieldKeys,
       testExecutionFieldKeys,

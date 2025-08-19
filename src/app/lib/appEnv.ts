@@ -1,5 +1,7 @@
 import { get } from 'lodash';
 
+import { CASESNAPSHOT_TYPE } from './constants';
+
 export enum TEST_REPORT_VERSION {
   V0,
   V1,
@@ -16,10 +18,14 @@ export const SupportFeatureFlags = {
   ENABLE_MINDER: 'ENABLE_MINDER',
   /** 开启测试报告 */
   ENABLE_TEST_REPORT: 'ENABLE_TEST_REPORT',
+  /** 开启测试用例集 */
+  ENABLE_TEST_CASE_SET: 'ENABLE_TEST_CASE_SET',
   /** 开启更多配置 */
   ENABLE_MORE_CONFIG: 'ENABLE_MORE_CONFIG',
   /** 开启离线测试报告 */
   ENABLE_OFFLINE_TEST_REPORT: 'ENABLE_OFFLINE_TEST_REPORT',
+  /**用例展示模式开关 - 用例的展示效果可以通过开关控制是否在列中展示用例的步骤信息*/
+  ENABLE_REPOSITORY_TABLE_STEP: 'ENABLE_REPOSITORY_TABLE_STEP',
 } as const;
 
 type SupportFeatureFlagKey = keyof typeof SupportFeatureFlags;
@@ -167,6 +173,14 @@ const SupportAppEnv = {
     defaultValue: {},
     transformer: value => value,
   },
+  ENABLE_JSON_IMPORT: {
+    defaultValue: false,
+    transformer: value => value,
+  },
+  ENABLE_IMPORT_SNAP_SHOT_CONFIG: {
+    defaultValue: false,
+    transformer: value => value,
+  },
 } as const;
 
 /**
@@ -194,7 +208,7 @@ export function judgeTestReportVersion(version: TEST_REPORT_VERSION | TEST_REPOR
  */
 export function judgeCaseSnapshot(testConfig) {
   return getAppEnv('ENABLED_CASE_SNAPSHOT')
-    ? testConfig?.enableCaseSnapshot
+    ? [CASESNAPSHOT_TYPE.AUTO_BUILDVERSION].includes(testConfig?.caseSnapshot?.type)
     : getAppEnv('DEFAULT_ENABLED_CASE_SNAPSHOT');
 }
 

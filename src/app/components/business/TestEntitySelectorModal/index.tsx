@@ -7,8 +7,7 @@ import React, { useMemo } from 'react';
 import DebounceSelect from '@/components/common/DebounceSelect';
 import { getAllTestConfigs } from '@/lib/api/common';
 import { getItemByIQL } from '@/lib/api/proxima';
-import { TestType } from '@/lib/constants';
-import { TestTypeNameMapping } from '@/lib/constants';
+import { TestType, TestTypeNameMapping } from '@/lib/constants';
 import { useTestConfig } from '@/lib/hooks/useContext';
 import useI18n from '@/lib/hooks/useI18n';
 import EventBus from '@/lib/utils/eventBus';
@@ -18,6 +17,7 @@ import cx from './index.less';
 import InheritTestDetail from './InheritTestDetail';
 import SelectorTable from './SelectorTable';
 import TestDetailSelector from './TestDetailSelector';
+import { TestEntitySelectorProvider } from './TestEntitySelectorContext';
 
 const AddExistedTestEventType = 'ADD_EXISTED_TEST';
 
@@ -52,6 +52,8 @@ type ModelBtn = {
 export type TestEntitySelectorProps = {
   title?: string;
   planId?: string;
+  caseSetId?: string;
+  isPlanForTestSet?: boolean; // 当为true时候，查询用例的时候会把用例关联的用例集给查出来，然后用来判断该用例是否可以选中
   width?: number;
   testType?: TestType;
   placeholder?: string;
@@ -66,6 +68,9 @@ export type TestEntitySelectorProps = {
   afterClose?: () => void;
   onCancel?: () => void;
   getContainer?: () => HTMLElement;
+  includesIds?: string[] | undefined;
+  enableCaseVersion?: boolean; // 是否展示用例版本
+  type?: string; // 操作类型，如 'add' 表示新建执行任务
 };
 
 const TestEntitySelector: React.FC<TestEntitySelectorProps> = props => {
@@ -82,6 +87,11 @@ const TestEntitySelector: React.FC<TestEntitySelectorProps> = props => {
     afterClose,
     onCancel,
     getContainer,
+    caseSetId,
+    isPlanForTestSet = false,
+    enableCaseVersion = false,
+    includesIds,
+    type,
   } = props;
   const [visible, setVisible] = useSafeState(false);
   const debounceSelectContainerRef = React.useRef();
@@ -93,6 +103,8 @@ const TestEntitySelector: React.FC<TestEntitySelectorProps> = props => {
   const isTestDefectType = testType === TestType.TestDefect;
   // 测试类型名
   const testTypeName = t(`common.${TestTypeNameMapping[testType]}`);
+
+  const [versionMapKeySelected, setVersionMapKeySelected] = React.useState({})
 
   const [modelProps, setModelProps] = useSafeState<ModelProps | undefined>(undefined);
 
@@ -227,6 +239,7 @@ const TestEntitySelector: React.FC<TestEntitySelectorProps> = props => {
         orderBy: ['修改时间', 'desc'],
         workspace: workspaceKeyCondition,
         ...params,
+        itemId: includesIds,
       });
 
       const itemDict = keyBy(items, 'objectId');
@@ -296,7 +309,7 @@ const TestEntitySelector: React.FC<TestEntitySelectorProps> = props => {
         eventBusRef.current.disposer = eventBusRef.current.register(
           AddExistedTestEventType,
           data => {
-            const { selectedData, treeType, planId } = data;
+            const { selectedData, treeType, planId, caseVersion } = data;
             const messageData = JSON.stringify(selectedData);
             if (PreviousMessageData === messageData) return;
             PreviousMessageData = messageData;
@@ -305,8 +318,9 @@ const TestEntitySelector: React.FC<TestEntitySelectorProps> = props => {
                 ? {
                     selectedData,
                     treeType,
+                    caseVersion,
                   }
-                : selectedData,
+                : { selectedData, caseVersion },
             );
             // 下一轮事件循环取消锁
             setTimeout(() => {
@@ -332,10 +346,10 @@ const TestEntitySelector: React.FC<TestEntitySelectorProps> = props => {
     }
 
     typeof props.onSelect === 'function' && props.onSelect(selectedData);
-
-    eventBusRef.current.dispatch(AddExistedTestEventType, { selectedData, treeType, planId });
+    eventBusRef.current.dispatch(AddExistedTestEventType, { selectedData, treeType, planId, caseVersion: versionMapKeySelected });
     setSelectValue(isSingleMode ? undefined : []);
     setVisible(false);
+    setVersionMapKeySelected({})
   }, [
     selectedTestDetails,
     testType,
@@ -347,6 +361,7 @@ const TestEntitySelector: React.FC<TestEntitySelectorProps> = props => {
     setVisible,
     selectValue,
     needFillValue,
+    versionMapKeySelected,
   ]);
 
   const filterOptions = React.useCallback(
@@ -419,10 +434,15 @@ const TestEntitySelector: React.FC<TestEntitySelectorProps> = props => {
         isWorkspaceIsolate={isolateTestType.includes(TestType.Case)}
         onTestDetailSelect={testDetails => setSelectedTestDetails(testDetails ?? [])}
         planId={planId}
+        caseSetId={caseSetId}
+        isPlanForTestSet={isPlanForTestSet}
         treeType={treeType}
         setTreeType={setTreeType}
         showDefaultRange={showDefaultRange}
         validateCaseStatus
+        enableCaseVersion={enableCaseVersion}
+        versionMapKeySelected={versionMapKeySelected}
+        setVersionMapKeySelected={setVersionMapKeySelected}
       />
     );
   }, [
@@ -434,6 +454,9 @@ const TestEntitySelector: React.FC<TestEntitySelectorProps> = props => {
     planId,
     treeType,
     showDefaultRange,
+    enableCaseVersion,
+    versionMapKeySelected,
+    setVersionMapKeySelected,
   ]);
 
   const ModalFooterNode = React.useMemo(() => {
@@ -515,34 +538,36 @@ const TestEntitySelector: React.FC<TestEntitySelectorProps> = props => {
   ]);
 
   return (
-    <Modal
-      destroyOnClose
-      afterClose={() => {
-        PreviousButtonClicked = false;
-        PreviousMessageData = null;
-        afterClose?.();
-      }}
-      keyboard={false}
-      open={visible}
-      maskClosable={false}
-      className={cx('modal')}
-      getContainer={getContainer ?? getTestManagerContainer}
-      footer={ModalFooterNode}
-      onCancel={() => {
-        testType === TestType.Case && setTreeType('repository');
-        setSelectValue(isSingleMode ? undefined : []);
-        setVisible(false);
-      }}
-      title={
-        modelProps?.title ??
-        props.title ??
-        `${t('components.business.testEntitySelectorModal.pleaseSelect')}${testTypeName}`
-      }
-      width={testType === TestType.Case ? 830 : width ?? 580}
-    >
-      {testSelectNode}
-    </Modal>
+    <TestEntitySelectorProvider type={type}>
+      <Modal
+        destroyOnClose
+        afterClose={() => {
+          PreviousButtonClicked = false;
+          PreviousMessageData = null;
+          afterClose?.();
+        }}
+        keyboard={false}
+        open={visible}
+        maskClosable={false}
+        className={cx('modal')}
+        getContainer={getContainer ?? getTestManagerContainer}
+        footer={ModalFooterNode}
+        onCancel={() => {
+          testType === TestType.Case && setTreeType('repository');
+          setSelectValue(isSingleMode ? undefined : []);
+          setVisible(false);
+        }}
+        title={
+          modelProps?.title ??
+          props.title ??
+          `${t('components.business.testEntitySelectorModal.pleaseSelect')}${testTypeName}`
+        }
+        width={testType === TestType.Case ? 830 : width ?? 580}
+      >
+        {testSelectNode}
+      </Modal>
+    </TestEntitySelectorProvider>
   );
 };
-
+TestEntitySelector.displayName = 'TestEntitySelectorModal';
 export default React.memo(TestEntitySelector);

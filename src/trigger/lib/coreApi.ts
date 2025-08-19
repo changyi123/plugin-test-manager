@@ -24,6 +24,8 @@ const withCoreApiRequest = (
       {
         ...headers,
         'accept-language': genAcceptLanguage(getLang()),
+        // cookie: 'team_tenant=osc; sessionToken=r:183e8801633b0089e44d9de37db2e866',
+        // 'content-type': 'team_tenant=osc; sessionToken=r:183e8801633b0089e44d9de37db2e866',
       },
       {
         fullError,

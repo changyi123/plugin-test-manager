@@ -330,6 +330,7 @@ export const batchCreateItems = async (params: IBatchCreateParams) => {
   return result;
 };
 
+// todo  最后更新事项调用的就是这个接口
 export const batchUpdateItems = async (params: IBatchUpdateParams) => {
   const result = await fetch.$post('/parse/api/v2/items/batch/update', params);
 
@@ -490,7 +491,7 @@ export const searchFields = async (params: {
     .then(result => result.payload);
 };
 
-export const search = async (iql, fields = [], size = InfinityLimit) => {
+export const search = async (iql, fields = [], size = InfinityLimit, throwError = false) => {
   try {
     const {
       data: { payload },
@@ -504,6 +505,6 @@ export const search = async (iql, fields = [], size = InfinityLimit) => {
     return payload?.items ?? [];
   } catch (e) {
     console.info('search fail: ', e.message);
-    return [];
+    return throwError ? Promise.reject(e) : [];
   }
 };

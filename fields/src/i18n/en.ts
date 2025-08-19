@@ -7,6 +7,7 @@ const en: {
   expected: 'Expected',
   data: 'Data',
   precondition: 'Precondition',
+  dataHasRemove: 'Related data has been removed',
 };
 
 export default en;

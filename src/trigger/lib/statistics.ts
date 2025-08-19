@@ -22,6 +22,11 @@ const condition = {
     source: false,
     fieldType: TestFieldTypeKeyMapping.status,
   },
+  testSet: {
+    key: TestFiledKeyMapping.testSet,
+    source: true,
+    fieldType: TestFieldTypeKeyMapping.testSet,
+  },
   count: {
     key: 'count',
     name: '事项数',
@@ -101,6 +106,22 @@ export async function statisticsCaseFromPlan(
   } = '${TestType.Case}'`;
   const { payload: data } = await statisticsApi({
     group: [condition.linkItems],
+    value: [condition.count],
+    iql,
+    ...condition.testManagerIqlContext,
+  });
+  return data;
+}
+
+// 根据测试用例集id,获取规划的用例总数
+export async function statisticsCaseFromTestSet(
+  ids: string[],
+): Promise<{ count: number; value: Record<string, any>[] }> {
+  const iql = `${BuiltinFieldNameMapping.testSet} in [${ids.map(i => `'${i}'`)}] and ${
+    BuiltinFieldNameMapping.type
+  } = '${TestType.Case}'`;
+  const { payload: data } = await statisticsApi({
+    group: [condition.testSet],
     value: [condition.count],
     iql,
     ...condition.testManagerIqlContext,
@@ -231,7 +252,7 @@ export function computeCaseStatus(planId: string, list) {
   targetList.forEach(i => {
     const _case =
       i.statistics.hits.hits[0]?._source[
-      'r_test_manager_referenceCase#r_test_manager_es_text_keyword'
+        'r_test_manager_referenceCase#r_test_manager_es_text_keyword'
       ];
     result[_case] =
       i.statistics.hits.hits[0]?._source['r_test_manager_status#r_test_manager_es_text_keyword'];
@@ -264,4 +285,20 @@ export function computeStatusCount(planId: string, list, total) {
   }
 
   return result;
+}
+
+// 获取测试执行任务规划的测试执行数量
+export async function getExecutionCases(executionIds: string[]) {
+  const iql = `${BuiltinFieldNameMapping.linkItems} in [${executionIds.map(i => `'${i}'`)}] and ${
+    BuiltinFieldNameMapping.type
+  } = '${TestType.Run}'`;
+
+  console.info('getExecutionCases', iql);
+  const { payload: data } = await statisticsApi({
+    group: [condition.linkItems],
+    value: [condition.count],
+    iql,
+    ...condition.testManagerIqlContext,
+  });
+  return data;
 }

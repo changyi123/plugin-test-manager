@@ -2,7 +2,7 @@ app:
   key: test_manager
   uuid: bf73e61c-e15a-4461-a1f7-f940c2009332
   name: test_manager
-  version: "4.38.0"
+  version: "4.38.69"
 modules:
   webtrigger:
     # TODO: Debug 使用，生产环境禁止调用下面的 trigger
@@ -16,6 +16,9 @@ modules:
     # 动态配置 one 路由
     - key: gitee-menus
       function: gitee-menus-function
+    # 批量创建版本
+    - key: api-batch-create-versions
+      function: batch-create-versions-function
     # 批量创建统计报表
     - key: batch-create-chart-groups
       function: batch-create-chart-groups-function
@@ -60,6 +63,8 @@ modules:
       function: api-batch-delete-function
     - key: api-batch-delete-v2
       function: api-batch-delete-v2-function
+    - key: api-batch-delete-run
+      function: api-batch-delete-run-function
     - key: api-batch-update-items-v2
       function: api-batch-update-items-v2-function
     - key: api-batch-update
@@ -80,6 +85,8 @@ modules:
       function: job-create-test-run-function
     - key: job-batch-delete-items
       function: job-batch-delete-items-function
+    - key: job-batch-delete-runs
+      function: job-batch-delete-runs-function
     - key: job-update-items-v2
       function: job-update-items-v2-function
     - key: job-copy-test-case
@@ -116,9 +123,15 @@ modules:
       function: api-batch-remove-bug-function
     - key: api-copy-folder
       function: api-copy-folder-function
+    - key: api-batch-update-execution-cases
+      function: api-batch-update-execution-cases-function
+    - key: api-update-all-execution-cases
+      function: api-update-all-execution-cases-function
     # 数据统计
     - key: api-stats-test-plan
       function: api-stats-test-plan-function
+    - key: api-stats-test-set
+      function: api-stats-test-set-function
     - key: api-stats-test-execution
       function: api-stats-test-execution-function
     - key: api-stats-test-case
@@ -179,6 +192,12 @@ modules:
     - key: create-repository
       function: test-manager-create-repository-function
 
+    - key: api-update-run-version
+      function: test-manager-update-run-version-function
+
+    - key: api-batch-update-run-version
+      function: test-manager-batch-update-run-version-function
+
   trigger:
     - key: test-manager-initial-script-install
       events:
@@ -198,6 +217,11 @@ modules:
       events:
         - gei:proxima:item:beforeCreate
       function: item-before-create-trigger-function
+      async: false
+    - key: item-before-update-trigger
+      events:
+        - gei:proxima:item:beforeUpdate
+      function: item-before-update-trigger-function
       async: false
     # - key: test-manager-item-after-save-trigger
     #   events:
@@ -235,6 +259,8 @@ modules:
       handler: trigger.deleteTestLink
     - key: item-before-create-trigger-function
       handler: trigger.handleBeforeCreate
+    - key: item-before-update-trigger-function
+      handler: trigger.handleBeforeUpdate
     - key: item-created-trigger-function
       handler: trigger.createdItemLinkType
     - key: test-manager-validate-script-function
@@ -297,6 +323,9 @@ modules:
     - key: api-batch-delete-function
       handler: api.batchDelete
       timeout: 300000
+    - key: api-batch-delete-run-function
+      handler: api.batchDeleteRun
+      timeout: 300000
      # api batch
     - key: api-batch-update-items-v2-function
       handler: api.batchUpdateItemsV2
@@ -332,6 +361,10 @@ modules:
       handler: job.batchDeleteItemsJob
       # 60 分钟超时时长
       timeout: 3600000
+    - key: job-batch-delete-runs-function
+      handler: job.batchDeleteRunsJob
+      # 60 分钟超时时长
+      timeout: 3600000
     - key: job-update-items-v2-function
       handler: job.updateItemsV2Job
       # 60 分钟超时时长
@@ -342,6 +375,11 @@ modules:
       timeout: 3600000
     - key: job-copy-test-case-function
       handler: job.copyTesCasesJob
+      # 60 分钟超时时长
+      timeout: 3600000
+    # 批量创建版本
+    - key: batch-create-versions-function
+      handler: api.batchCreateVersions
       # 60 分钟超时时长
       timeout: 3600000
     - key: job-add-execution-to-plan-function
@@ -402,10 +440,17 @@ modules:
     - key: api-copy-folder-function
       handler: api.batchCopyFolder
       timeout: 300000
-
+    - key: api-batch-update-execution-cases-function
+      handler: api.batchUpdateExecutionCases
+      timeout: 300000
+    - key: api-update-all-execution-cases-function
+      handler: api.updateAllExecutionCases
+      timeout: 7200000
     # api stats
     - key: api-stats-test-plan-function
       handler: query.testPlanStats
+    - key: api-stats-test-set-function
+      handler: query.testSetStats
     - key: api-stats-test-execution-function
       handler: api.testExecutionStats
     - key: api-stats-test-case-function
@@ -461,6 +506,12 @@ modules:
     - key: test-manager-create-repository-function
       handler: api.createRepository
 
+    - key: test-manager-update-run-version-function
+      handler: api.updateRunVersion
+
+    - key: test-manager-batch-update-run-version-function
+      handler: api.batchUpdateRunVersion
+
     - key: init-test-config-function
       handler: api.initTestConfig
     - key: run-script-function
@@ -469,6 +520,10 @@ modules:
       handler: exporter.runScript
     # - key: test-manager-item-after-save-function
     #   handler: trigger.itemAfterSave
+    - key: iql-function-test-execution-cases
+      handler: iqlFunction.testExecutionCases
+    - key: iql-function-test-case-executions
+      handler: iqlFunction.testCaseExecutions
 
   proxima:itemDetail:
     - key: test-manager-item-detail
@@ -521,6 +576,14 @@ modules:
       route: /repository
       icon: /main/icons/Panel_Testcase.svg
       activeIcon: /main/icons/Panel_TestcaseB.svg
+      displayInBoardManage: true
+      parent: test-manager-group
+      {workspacePageHidden}
+    - key: test-case-set
+      resource: main
+      title: 测试用例集
+      loadType: Micro
+      route: /caseset
       displayInBoardManage: true
       parent: test-manager-group
       {workspacePageHidden}
@@ -598,6 +661,37 @@ modules:
         title: importer.itemFields.executor
       - key: executionCount
         title: importer.itemFields.executionCount
+  proxima:iqlFunction:
+    - key: iql-test-execution-cases
+      name: testExecutionCases
+      function: iql-function-test-execution-cases
+      title: iqlFunction.executionCases
+      field: item
+      operator: in
+      arguments:
+        - name: item
+          source:
+            type: Item
+            mode: multiple
+            iql: test_manager_type = 'TestExecution'
+            valueKey: objectId
+            context:
+              displayContext: test_manager
+    - key: iql-test-case-executions
+      name: testCaseExecutions
+      function: iql-function-test-case-executions
+      title: iqlFunction.caseExecutions
+      field: item
+      operator: in
+      arguments:
+        - name: item
+          source:
+            type: Item
+            mode: multiple
+            iql: test_manager_type = 'TestCase'
+            valueKey: objectId
+            context:
+              displayContext: test_manager
   proxima:exporter:
     function: test-manager-export-script
   # 初始化 dataType 为 object， array 的数据类型
@@ -629,6 +723,11 @@ modules:
       description: 测试管理内置字段类型-测试用例库模块（勿删改）
       dataType: text
       resource: test_repository
+    - key: test_reference
+      name: 测试管理内置字段类型-引用
+      description: 测试管理内置字段类型-引用（勿删改）
+      dataType: number
+      resource: test_reference
   proxima:CustomField:
     - key: r_test_manager_reportTemplate
       name: test_report_template
@@ -642,6 +741,17 @@ modules:
       undeletable: true
       locked: true
       description: 测试管理内置字段-测试报告引用的报表（勿删改）
+    - key: r_test_manager_referenceSet
+      name: 测试用例集
+      fieldType: DataQuote
+      undeletable: true
+      locked: true
+      readonly: true
+      description: 测试管理用来用例所引用的测试用例集
+      property:
+        mode: multiple
+        ignoreInvalidValue: true
+
     - key: r_test_manager_reportOverviewData
       name: test_report_overview_data
       fieldType: r_test_manager_es_object
@@ -735,6 +845,64 @@ modules:
       name: test_manager_runMapCaseKey
       description: 测试管理内置字段-测试执行关联的测试用例 key（勿删改）
       type: Text
+    - key: isCaseUpdate
+      name: 是否有更新
+      type: Radio
+      undeletable: true
+      locked: true
+      readonly: true
+      description: 测试管理内置字段-用例是否有更新
+      data:
+        customData:
+          - label: '是'
+            value: '1'
+    - key: executionCases
+      name: 引用测试用例
+      type: _self:test_reference
+      undeletable: true
+      locked: true
+      readonly: true
+      description: 测试管理内置字段-测试执行任务引用的测试用例（勿删改）
+    - key: testCases
+      name: 测试用例
+      type: DataQuote
+      undeletable: true
+      locked: true
+      readonly: true
+      description: 测试管理内置字段-测试用例
+      property:
+        mode: multiple
+        showDataNumber: Y
+    - key: testExecutions
+      name: 测试执行任务
+      type: DataQuote
+      undeletable: true
+      locked: true
+      readonly: true
+      description: 测试管理内置字段-测试执行任务
+      property:
+        mode: multiple
+        showDataNumber: Y
+    - key: testPlans
+      name: 测试计划
+      type: DataQuote
+      undeletable: true
+      locked: true
+      readonly: true
+      description: 测试管理内置字段-测试计划
+      property:
+        mode: multiple
+        showDataNumber: Y
+    - key: testDefects
+      name: 测试缺陷
+      type: DataQuote
+      undeletable: true
+      locked: true
+      readonly: true
+      description: 测试管理内置字段-测试缺陷
+      property:
+        mode: multiple
+        showDataNumber: Y
   customItemType:
     - key: test_manager_detail
       name: 测试用例
@@ -757,6 +925,23 @@ modules:
       name: 测试计划
       icon: /icons/Issue_Plan.svg
       description: 测试管理类型-测试计划
+      displayConditions:
+        displayModules:
+          adminPage:
+            - automation
+            - itemType
+            - hierarchy
+            - linkType
+            - screenScheme
+            - workflowScheme
+            - fieldBehavior
+          plugin:
+            - testManager
+        displayContext: test_manager
+    - key: test_manager_caseset
+      name: 测试用例集
+      icon: /icons/Issue_Plan.svg
+      description: 测试管理类型-测试用例集
       displayConditions:
         displayModules:
           adminPage:
@@ -927,8 +1112,8 @@ tables:
       # 关联统计报表
       chartGroups:
         type: Object
-      enableCaseSnapshot:
-        type: Boolean
+      caseSnapshot:
+        type: Object
   - className: TestRelation
     fields:
       from:
@@ -1141,3 +1326,5 @@ resources:
     path: ./fields/build/test-text
   - key: test_object
     path: ./fields/build/test-object
+  - key: test_reference
+    path: ./fields/build/test-reference

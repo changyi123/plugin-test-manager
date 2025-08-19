@@ -280,9 +280,9 @@ const TestStep: React.FC<TestStepProps> = props => {
               </span>
               <span className={cx('data')} style={{ paddingTop: !isUseEditor ? '8px' : 0 }}>
                 {isUseEditor ? (
-                  <Editor value={step.result} readonly />
+                  <Editor value={step.data} readonly />
                 ) : (
-                  <span>{getEditorOrStringText(step.result)}</span>
+                  <span>{getEditorOrStringText(step.data)}</span>
                 )}
               </span>
             </div>
