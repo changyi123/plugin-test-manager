@@ -1,20 +1,13 @@
 /* eslint-disable react-hooks/exhaustive-deps */
 import { useSDK } from '@giteeteam/plugin-sdk';
 import createProximaSdk from '@projectproxima/proxima-sdk-js';
-import { useDrop, useReactive } from 'ahooks';
-import { Button, Dropdown, Input, message, Modal, notification, Tree } from 'antd';
+import { useDrop } from 'ahooks';
+import { Button, Dropdown, Input, message, Modal, notification } from 'antd';
 import { sum, uniq } from 'lodash';
 import React, { useCallback } from 'react';
 
 import { copyFolderWithProcess } from '@/components/business/BatchResult/hooks';
-import {
-  CaretDownOutlined,
-  CustomMore,
-  CustomPlus,
-  CustomScreenOff,
-  FileClose,
-  FileOpen,
-} from '@/icons';
+import { CustomMore, CustomPlus, CustomScreenOff } from '@/icons';
 import { updateTestEntity } from '@/lib/api/item';
 import { createFolder, deleteFolder, updateFolders } from '@/lib/api/repository';
 import { getAppEnv } from '@/lib/appEnv';
@@ -37,10 +30,9 @@ import { getTreeDepthBFS, traverseTreeNodes, traverseTreeNodesAndAddTitle } from
 import { getTreeNodeByKey } from '../util';
 import cx from './index.less';
 import ChangeFolderModal, { CHANGE_TYPE } from './Modal/ChangeFolder';
+import VirtualTree from './VirtualTree';
 
 const proxima = createProximaSdk();
-
-const { DirectoryTree } = Tree;
 
 type OpenFolderNameModal = (args: {
   name?: string;
@@ -144,6 +136,7 @@ type TreeNode = {
   caseIds?: string[];
   children: TreeNode[];
   counts: number[];
+  disabledMenuKeys?: string[];
 };
 
 type FolderTreeProps = {
@@ -162,11 +155,13 @@ const FolderTree: React.FC<FolderTreeProps> = ({
   onFolderTreeChange,
 }) => {
   const { t } = useI18n();
-  const state = useReactive({
-    expandedKeys: [],
-    selectedKeys: ['root'],
-  });
+  const [expandedKeys, setExpandedKeys] = React.useState([]);
+  const [selectedKeys, setSelectedKeys] = React.useState(['root']);
   const treeFn = useTreeFn(traverseTreeNodesAndAddTitle(treeNodeData));
+
+  // 树容器的ref，用于计算自适应高度
+  const treeContainerRef = React.useRef<HTMLDivElement>(null);
+  const [treeHeight, setTreeHeight] = React.useState(600); // 默认高度
 
   const isInitialRef = React.useRef(false);
   const changeFolderModalRef = React.useRef(null);
@@ -181,13 +176,13 @@ const FolderTree: React.FC<FolderTreeProps> = ({
   const checkCaseForDeleteRepository = context?.env?.CHECK_CASE_FOR_DELETE_REPOSITORY;
 
   const selectedTreeNode = React.useMemo(() => {
-    return treeFn.getTreeNodeByKey(state.selectedKeys[0]);
-  }, [treeFn, state.selectedKeys]);
+    return treeFn.getTreeNodeByKey(selectedKeys[0]);
+  }, [treeFn, selectedKeys]);
 
   // 获取节点数据
   const treeData = React.useMemo(() => {
     return treeFn.traverseTreeNodes();
-  }, [treeFn]);
+  }, [treeFn, treeNodeData]);
 
   const folderMenuDisabledKeys = React.useMemo(() => {
     const keys = [];
@@ -209,18 +204,18 @@ const FolderTree: React.FC<FolderTreeProps> = ({
         keys.push(node.key);
       });
       if (hasArrayItem(keys)) {
-        state.expandedKeys = uniq(state.expandedKeys.concat(keys));
+        setExpandedKeys(prev => uniq(prev.concat(keys)));
       }
     },
-    [state, treeFn],
+    [setExpandedKeys, treeFn],
   );
 
   const handleSelect = React.useCallback(
     (selectedKeys, { node }) => {
-      state.selectedKeys = selectedKeys;
+      setSelectedKeys(selectedKeys);
       onSelect(node);
     },
-    [onSelect, state],
+    [onSelect, setSelectedKeys],
   );
 
   const inputNameValidator = React.useCallback((inputName, nodes) => {
@@ -305,7 +300,7 @@ const FolderTree: React.FC<FolderTreeProps> = ({
           // 忽略根目录 folder key
           parentKey,
         });
-        node?.key && state.expandedKeys.push(node.key);
+        node?.key && setExpandedKeys(prev => [...prev, node.key]);
         const { objectId: createdFolderKey } = createdFolder.toJSON();
         await onFolderTreeChange();
         handleSelect([createdFolderKey], {
@@ -499,7 +494,7 @@ const FolderTree: React.FC<FolderTreeProps> = ({
     [
       treeFn,
       workspace,
-      state.expandedKeys,
+      expandedKeys,
       onFolderTreeChange,
       handleSelect,
       inputNameValidator,
@@ -514,22 +509,69 @@ const FolderTree: React.FC<FolderTreeProps> = ({
     if (node.key === UNGROUPED_FOLDER_KEY) return;
   }, []);
 
-  const handleExpand = React.useCallback(
-    expandedKeys => {
-      state.expandedKeys = expandedKeys;
-    },
-    [state],
-  );
+  const handleExpand = React.useCallback(expandedKeys => {
+    // 防抖处理，避免频繁更新
+    requestAnimationFrame(() => {
+      setExpandedKeys(expandedKeys);
+    });
+  }, []);
 
   const isEmptyFolderTree = React.useMemo(() => {
     return hasArrayItem(treeData) && treeData[0].children?.length === 0;
   }, [treeData]);
 
+  // 计算树的自适应高度
+  React.useEffect(() => {
+    const calculateHeight = () => {
+      if (treeContainerRef.current) {
+        const container = treeContainerRef.current;
+        const containerRect = container.getBoundingClientRect();
+        const toolkitBar = container.querySelector('.toolkit-bar') as HTMLElement;
+        const toolkitHeight = toolkitBar?.offsetHeight || 46;
+
+        // 可用高度 = 容器高度 - 工具栏高度 - 小间距
+        const availableHeight = containerRect.height - toolkitHeight - 10;
+        setTreeHeight(Math.max(300, availableHeight)); // 最小300px
+      }
+    };
+
+    // 初始计算
+    calculateHeight();
+
+    // 使用ResizeObserver监听容器大小变化
+    let resizeObserver: ResizeObserver | null = null;
+
+    if (treeContainerRef.current && window.ResizeObserver) {
+      resizeObserver = new ResizeObserver(() => {
+        requestAnimationFrame(calculateHeight);
+      });
+      resizeObserver.observe(treeContainerRef.current);
+    }
+
+    // 备用方案：监听窗口大小变化
+    const handleResize = () => {
+      requestAnimationFrame(calculateHeight);
+    };
+
+    window.addEventListener('resize', handleResize);
+
+    // 延迟再次计算，确保DOM完全渲染
+    const timer = setTimeout(calculateHeight, 100);
+
+    return () => {
+      if (resizeObserver) {
+        resizeObserver.disconnect();
+      }
+      window.removeEventListener('resize', handleResize);
+      clearTimeout(timer);
+    };
+  }, []);
+
   React.useEffect(() => {
     if (treeData?.length && !isInitialRef.current) {
       isInitialRef.current = true;
       const node = treeData[0];
-      // 默认展开模块第一层
+      // 批量更新，避免多次重渲染
       handleExpand([node.key]);
       handleSelect([node.key], {
         node,
@@ -556,7 +598,7 @@ const FolderTree: React.FC<FolderTreeProps> = ({
     <Button
       key={t('page.repository.folderTree.buttonName.1')}
       style={{ height: 24, width: 24 }}
-      onClick={() => (state.expandedKeys = [])}
+      onClick={() => setExpandedKeys([])}
       icon={<CustomScreenOff />}
       type="text"
     />,
@@ -599,19 +641,43 @@ const FolderTree: React.FC<FolderTreeProps> = ({
     [onFolderTreeChange, repositoryFolderTreeEvent],
   );
 
+  // 优化titleRender - 使用稳定的回调和缓存
+  const getDisabledKeysCache = React.useRef(new Map());
+
+  const getDisabledKeys = React.useCallback(
+    (node: TreeNode) => {
+      const cacheKey = `${node.key}-${getCreatePermission(TestType.Case)}`;
+      if (getDisabledKeysCache.current.has(cacheKey)) {
+        return getDisabledKeysCache.current.get(cacheKey);
+      }
+
+      let keys =
+        node.key === 'root'
+          ? [MenuKey.deleteFolder, MenuKey.renameFolder, MenuKey.copyFolder, MenuKey.moveFolder]
+          : node.disabledMenuKeys ?? [];
+
+      if (getCreatePermission(TestType.Case)) {
+        keys = keys.concat(MenuKey.createTest);
+      }
+
+      getDisabledKeysCache.current.set(cacheKey, keys);
+      return keys;
+    },
+    [getCreatePermission],
+  );
+
+  // 预生成稳定的回调，减少titleRender内的函数创建
+  const handleMenuClickStable = React.useCallback(
+    (key, node) => {
+      handleMenuClick(key, node);
+    },
+    [handleMenuClick],
+  );
+
   const titleRender = React.useCallback(
     node => {
-      const getDisabledKeys = (keys = []) => {
-        keys =
-          node.key === 'root'
-            ? [MenuKey.deleteFolder, MenuKey.renameFolder, MenuKey.copyFolder, MenuKey.moveFolder]
-            : node.disabledMenuKeys ?? [];
-        if (getCreatePermission(TestType.Case)) {
-          keys = keys.concat(MenuKey.createTest);
-        }
-
-        return keys;
-      };
+      const disabledKeys = getDisabledKeys(node);
+      const countsText = node?.counts ? `${node.counts[0]}(${node.counts[1]})` : '';
 
       return (
         <DropTreeTitle key={node.key} nodeKey={node.key} onItemDrop={handleItemDrop}>
@@ -619,14 +685,12 @@ const FolderTree: React.FC<FolderTreeProps> = ({
             <span className="ellipsis" title={node.name}>
               {node.name}
             </span>
-            <span className={cx('tree-node-length')}>
-              {`${node?.counts ? `${node?.counts?.[0]}(${node?.counts?.[1]})` : ''}`}
-            </span>
+            <span className={cx('tree-node-length')}>{countsText}</span>
             <Dropdown
               dropdownRender={() => (
                 <FolderMenu
-                  disabledKeys={getDisabledKeys()}
-                  onClick={({ key }) => handleMenuClick(key, node)}
+                  disabledKeys={disabledKeys}
+                  onClick={({ key }) => handleMenuClickStable(key, node)}
                 />
               )}
             >
@@ -641,7 +705,7 @@ const FolderTree: React.FC<FolderTreeProps> = ({
         </DropTreeTitle>
       );
     },
-    [handleMenuClick, handleItemDrop, getCreatePermission],
+    [handleItemDrop, getDisabledKeys, handleMenuClickStable],
   );
 
   const updateRepository = useCallback(
@@ -654,112 +718,218 @@ const FolderTree: React.FC<FolderTreeProps> = ({
 
   const onDrop = useCallback(
     async info => {
-      const { node, dragNode } = info;
-      const dropKey = node.key;
-      const nodeChild = node?.children ?? [];
-      const dragKey = dragNode.key;
-      const dropPos = node.pos.split('-');
-      const dropPosition = info.dropPosition - Number(dropPos[dropPos.length - 1]);
+      const { node, dragNode, dropPosition } = info;
 
-      let hierarchy = 1;
+      console.log('📋 FolderTree onDrop 收到数据:', {
+        dragNodeName: dragNode.name,
+        dragNodeKey: dragNode.key,
+        dragNodePos: dragNode.pos,
+        targetNodeName: node.name,
+        targetNodeKey: node.key,
+        targetNodePos: node.pos,
+        targetParentKey: node.parentKey,
+        targetSortIndex: node.sortIndex,
+        dropPosition,
+        dropToGap: info.dropToGap,
+      });
 
-      const getHierarchy = nodes => {
-        const children = nodes.map(d => d.children ?? []).flat();
-        if (!children?.length) return;
-        hierarchy++;
-        getHierarchy(children);
-      };
-
-      getHierarchy([dragNode]);
-
-      const validateHierarchy = (index = 0) => {
-        const newHierarchy = (dropPos.length - 2 - index || 0) + hierarchy;
-        return newHierarchy >= 9;
-      };
-
-      if (dropPosition < 0) return;
-      if (!info.dropToGap) {
-        // 拖拽到子级, 排序到子节点的首位
-        if (validateHierarchy(0)) {
-          notification.warning({
-            message: t('page.repository.folderTree.dropCaseTips.1'),
-          });
-          return;
-        }
-        const needUpdateDragNode = {
-          key: dragKey,
-          parentKey: node.key,
-          sortIndex: nodeChild?.length ? nodeChild[0]?.sortIndex - 10e5 : dragNode.sortIndex,
-        };
-
-        await updateRepository([needUpdateDragNode]);
-      } else if (
-        ((node as any).children || []).length > 0 && // Has children
-        dropPosition === 1 // On the bottom gap
-      ) {
-        // 拖拽目标用例库底部，排序到底部
-        if (validateHierarchy(0)) {
-          notification.warning({
-            message: t('page.repository.folderTree.dropCaseTips.1'),
-          });
-          return;
-        }
-        const num = nodeChild?.length;
-        const needUpdateDragNode = {
-          key: dragKey,
-          parentKey: node.key,
-          sortIndex: nodeChild?.[num]?.sortIndex + 10e5,
-        };
-
-        await updateRepository([needUpdateDragNode]);
-      } else {
-        // 平级拖拽，排序到目标节点后位，dropKey 为 root 不操作,
-        if (dropKey === 'root') return;
-        if (validateHierarchy(1)) {
-          notification.warning({
-            message: t('page.repository.folderTree.dropCaseTips.1'),
-          });
-          return;
-        }
-        const needUpdateDragNode = {
-          key: dragKey,
-          parentKey: node.parentKey,
-          ...getSortIndex(getTargetNodesSortIndex(treeData, node.parentKey, dropKey)),
-        };
-        await updateRepository([needUpdateDragNode]);
+      // 防止拖拽到自己或根节点
+      if (dragNode.key === node.key || node.key === 'root') {
+        return;
       }
-      await repositoryFolderTreeEvent.dispatch();
-      await proxima.execute('updateItemList', { type: 'delete' });
+
+      const dragKey = dragNode.key;
+
+      // 对于同级拖拽，应该检查 dropToGap 参数
+      // 如果 dropToGap 为 true，说明是同级插入，不需要层级检查
+      if (!info.dropToGap) {
+        // 只有在拖拽到节点内部时才需要层级检查
+        const targetPos = node.pos ? node.pos.split('-') : [];
+        const targetLevel = targetPos.length - 1;
+
+        // 检查被拖拽节点的最大子层级深度
+        const getMaxChildDepth = (nodes: any[], currentDepth = 0): number => {
+          let maxDepth = currentDepth;
+          nodes.forEach(node => {
+            if (node.children && node.children.length > 0) {
+              const childDepth = getMaxChildDepth(node.children, currentDepth + 1);
+              maxDepth = Math.max(maxDepth, childDepth);
+            }
+          });
+          return maxDepth;
+        };
+        const maxChildDepth = getMaxChildDepth([dragNode]);
+
+        // 拖入节点内部的最终层级 = 目标层级 + 1 + 被拖拽节点的子层级深度
+        const finalHierarchy = targetLevel + 1 + maxChildDepth;
+
+        // 层级限制检查（最多8层，从0开始计算，所以限制是7）
+        if (finalHierarchy >= 8) {
+          notification.warning({
+            message: t('page.repository.folderTree.hierarchyTips'),
+          });
+          return;
+        }
+      }
+
+      // 区分同级插入和子节点插入
+      let needUpdateDragNode: { key: string; parentKey: string | null; sortIndex: number };
+
+      if (info.dropToGap) {
+        // 同级插入逻辑
+        const parentNode = treeFn.getTreeNodeByKey(node.parentKey);
+        const siblings = parentNode?.children || treeData; // 如果是根节点，使用treeData
+        const sortedSiblings = siblings.sort(
+          (a: any, b: any) => (a.sortIndex || 0) - (b.sortIndex || 0),
+        );
+        const targetIndex = sortedSiblings.findIndex((sibling: any) => sibling.key === node.key);
+
+        console.log('📊 同级插入位置计算:', {
+          dropPosition,
+          targetNodeName: node.name,
+          targetSortIndex: node.sortIndex,
+          targetParentKey: node.parentKey,
+          targetIndex,
+          siblingsCount: sortedSiblings.length,
+        });
+
+        let newSortIndex: number;
+
+        if (dropPosition === 0) {
+          // 插入到目标节点前面
+          if (targetIndex === 0) {
+            // 插入到第一个位置
+            newSortIndex = (node.sortIndex || 0) - 1000000;
+          } else {
+            // 插入到中间位置，取前一个和当前的中间值
+            const prevSortIndex = sortedSiblings[targetIndex - 1]?.sortIndex || 0;
+            const currentSortIndex = node.sortIndex || 0;
+            newSortIndex = Math.floor((prevSortIndex + currentSortIndex) / 2);
+
+            // 如果中间值相同，则向前偏移
+            if (newSortIndex === currentSortIndex || newSortIndex === prevSortIndex) {
+              newSortIndex = prevSortIndex - 1000000;
+            }
+          }
+
+          needUpdateDragNode = {
+            key: dragKey,
+            parentKey: node.parentKey,
+            sortIndex: newSortIndex,
+          };
+
+          console.log('🔼 插入到前面:', {
+            targetIndex,
+            originalSortIndex: node.sortIndex,
+            newSortIndex,
+          });
+        } else {
+          // 插入到目标节点后面
+          if (targetIndex === sortedSiblings.length - 1) {
+            // 插入到最后一个位置
+            newSortIndex = (node.sortIndex || 0) + 1000000;
+          } else {
+            // 插入到中间位置，取当前和后一个的中间值
+            const currentSortIndex = node.sortIndex || 0;
+            const nextSortIndex =
+              sortedSiblings[targetIndex + 1]?.sortIndex || currentSortIndex + 2000000;
+            newSortIndex = Math.floor((currentSortIndex + nextSortIndex) / 2);
+
+            // 如果中间值相同，则向后偏移
+            if (newSortIndex === currentSortIndex || newSortIndex === nextSortIndex) {
+              newSortIndex = nextSortIndex + 1000000;
+            }
+          }
+
+          needUpdateDragNode = {
+            key: dragKey,
+            parentKey: node.parentKey,
+            sortIndex: newSortIndex,
+          };
+
+          console.log('🔽 插入到后面:', {
+            targetIndex,
+            originalSortIndex: node.sortIndex,
+            newSortIndex,
+          });
+        }
+      } else {
+        // 子节点插入逻辑
+        console.log('📦 子节点插入逻辑:', {
+          dragNodeName: dragNode.name,
+          targetNodeName: node.name,
+          targetNodeKey: node.key,
+        });
+
+        // 插入为目标节点的第一个子节点
+        const targetChildren = node.children || [];
+        let newSortIndex: number;
+
+        if (targetChildren.length === 0) {
+          // 目标节点没有子节点，使用基础sortIndex
+          newSortIndex = 1000000000; // 10亿作为基础值
+        } else {
+          // 目标节点有子节点，插入到第一个位置
+          const sortedChildren = targetChildren.sort(
+            (a: any, b: any) => (a.sortIndex || 0) - (b.sortIndex || 0),
+          );
+          const firstChildSortIndex = sortedChildren[0]?.sortIndex || 1000000000;
+          newSortIndex = firstChildSortIndex - 1000000;
+        }
+
+        needUpdateDragNode = {
+          key: dragKey,
+          parentKey: node.key, // 父节点是目标节点
+          sortIndex: newSortIndex,
+        };
+
+        console.log('📁 作为子节点插入:', {
+          newParentKey: node.key,
+          newParentName: node.name,
+          newSortIndex,
+          targetChildrenCount: targetChildren.length,
+        });
+      }
+
+      console.log('💾 最终数据库更新参数:', needUpdateDragNode);
+      await updateRepository([needUpdateDragNode]);
+      repositoryFolderTreeEvent.dispatch();
+      proxima.execute('updateItemList', { type: 'delete' });
     },
-    [treeData, updateRepository, onFolderTreeChange],
+    [treeData, updateRepository, t],
   );
 
   return (
-    <div className={cx('folder-tree', className)}>
+    <div ref={treeContainerRef} className={cx('folder-tree', className)}>
       <ChangeFolderModal ref={changeFolderModalRef} validate={changeFolderValidate} />
       <div className={cx('toolkit-bar')}>{ToolKitButtons.map(Button => Button)}</div>
 
-      <DirectoryTree
+      <VirtualTree
         treeData={treeData}
-        expandAction={false}
-        className={cx('tree')}
-        onExpand={(keys, { nativeEvent }) => {
-          if (['dragenter'].includes(nativeEvent.type)) return;
-          handleExpand(keys);
-        }}
-        onSelect={handleSelect}
-        titleRender={titleRender}
+        selectedKeys={selectedKeys}
+        expandedKeys={expandedKeys}
+        onSelect={(keys, info) => handleSelect(keys, info)}
+        onExpand={handleExpand}
         onRightClick={handleRightClick}
-        selectedKeys={state.selectedKeys}
-        expandedKeys={state.expandedKeys}
-        icon={({ expanded }) => (expanded ? <FileOpen /> : <FileClose />)}
-        switcherIcon={<CaretDownOutlined style={{ color: '#878C96' }} />}
-        draggable
         onDrop={onDrop}
+        titleRender={titleRender}
+        height={treeHeight}
+        itemHeight={32}
+        className={cx('tree')}
+        draggable
       />
       {EmptyNode}
     </div>
   );
 };
 
-export default React.memo(FolderTree);
+export default React.memo(FolderTree, (prevProps, nextProps) => {
+  // 精确的props比较，避免不必要的重渲染
+  return (
+    prevProps.treeNodeData === nextProps.treeNodeData &&
+    prevProps.onSelect === nextProps.onSelect &&
+    prevProps.loading === nextProps.loading &&
+    prevProps.className === nextProps.className &&
+    prevProps.onFolderTreeChange === nextProps.onFolderTreeChange
+  );
+});

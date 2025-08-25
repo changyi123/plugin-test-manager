@@ -1,3 +1,4 @@
+import { Typography } from 'antd';
 import dayjs from 'dayjs';
 import React, { useMemo, useState, useCallback } from 'react';
 import { getTestEntityByQuery } from '@/lib/api/item';
@@ -13,6 +14,9 @@ import {
   Typography,
 } from 'antd';
 import { openBaseLineViewItemModal } from '@/lib/api/sdk';
+import { CASESNAPSHOT_TYPE, TestType } from '@/lib/constants';
+import { useTestConfig } from '@/lib/hooks/useContext';
+import useI18n from '@/lib/hooks/useI18n';
 import { goToItemDetailPage } from '@/lib/utils/helper';
 
 const getDefectIds = data =>
@@ -33,7 +37,7 @@ const TestDefect: React.FC = () => {
 
   const tableDataGetter = useCallback(
     async (queryParams, tableFields) => {
-      const workspaceKey = testEntity?.workspace?.key
+      const workspaceKey = testEntity?.workspace?.key;
       if (!workspaceKey || !tableFields?.length)
         return {
           list: [],
@@ -48,19 +52,19 @@ const TestDefect: React.FC = () => {
           },
           limit: 999999,
         });
-        let _defectIds = []
-        _.forEach(testRunList, (item) => {
-          const _arr1 = item?.runDetail?.defectItemIds || []
-          let _arr2 = []
-          const _stepsArr1 =  item?.runDetail?.steps || []
-          _.forEach(_stepsArr1, (_item) => {
-            _arr2 = _.concat(_arr2, _item?.defectItemIds)
-          })
+        let _defectIds = [];
+        _.forEach(testRunList, item => {
+          const _arr1 = item?.runDetail?.defectItemIds || [];
+          let _arr2 = [];
+          const _stepsArr1 = item?.runDetail?.steps || [];
+          _.forEach(_stepsArr1, _item => {
+            _arr2 = _.concat(_arr2, _item?.defectItemIds);
+          });
           const result = _.concat(_arr1, _arr2);
-          _defectIds = [ ..._defectIds, ...result ]
-        })
-        
-        const { count, items } = await getItemByIQL({ itemId: _defectIds, ...queryParams })
+          _defectIds = [..._defectIds, ...result];
+        });
+
+        const { count, items } = await getItemByIQL({ itemId: _defectIds, ...queryParams });
         setTableLoading(false);
         return {
           list:
@@ -101,7 +105,13 @@ const TestDefect: React.FC = () => {
               ellipsis={true}
               target="_blank"
               onClick={() => {
-                if (item?.referenceCaseSnapshot && [CASESNAPSHOT_TYPE.AUTO_BUILDVERSION, CASESNAPSHOT_TYPE.NO_BUILDVERSION_SELVERSION].includes(config?.caseSnapshot?.type))
+                if (
+                  item?.referenceCaseSnapshot &&
+                  [
+                    CASESNAPSHOT_TYPE.AUTO_BUILDVERSION,
+                    CASESNAPSHOT_TYPE.NO_BUILDVERSION_SELVERSION,
+                  ].includes(config?.caseSnapshot?.type)
+                )
                   openBaseLineViewItemModal(item?.key, item?.referenceCaseSnapshot);
                 else
                   goToItemDetailPage({
@@ -120,11 +130,7 @@ const TestDefect: React.FC = () => {
         key: 'name',
         width: 200,
         render: (_, record) => {
-          return (
-            <OverflowTooltip title={record?.name}>
-              {record?.name}
-            </OverflowTooltip>
-          );
+          return <OverflowTooltip title={record?.name}>{record?.name}</OverflowTooltip>;
         },
       },
       {
@@ -164,7 +170,7 @@ const TestDefect: React.FC = () => {
         ]}
         scroll = {{ 
           x: 'max-content',
-          y: 200
+          y: 200,
         }}
         // privateColumnKey={['repositoryGroup', 'caseLatestStatus', 'runCount']}
         rowKey="key"

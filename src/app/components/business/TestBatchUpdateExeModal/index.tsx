@@ -10,7 +10,7 @@ import { getRootContainer } from '@/lib/utils/helper';
 
 export type TestBatchUpateModalActionRef = {
   open: (params: {
-    caseId?: string,
+    caseId?: string;
     testRunIds?: string[];
     tableData?: any[];
     workspaceKey?: string;
