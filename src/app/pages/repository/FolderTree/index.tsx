@@ -912,6 +912,16 @@ const FolderTree: React.FC<FolderTreeProps> = ({
         onExpand={handleExpand}
         onRightClick={handleRightClick}
         onDrop={onDrop}
+        onExternalDrop={({ data, targetNode }) => {
+          // 处理从右侧表格拖入的用例
+          if (data && targetNode) {
+            handleItemDrop({
+              testId: data.testId,
+              fromFolderKey: data.folderKey,
+              toFolderKey: targetNode.key,
+            });
+          }
+        }}
         titleRender={titleRender}
         height={treeHeight}
         itemHeight={32}

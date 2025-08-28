@@ -10,13 +10,7 @@ import { BusinessTable } from '@/components/common/BusinessTable';
 import type { BusinessTableActionType } from '@/components/common/BusinessTable/type';
 import useI18n from '@/lib/hooks/useI18n';
 import _ from 'lodash';
-import {
-  Typography,
-} from 'antd';
 import { openBaseLineViewItemModal } from '@/lib/api/sdk';
-import { CASESNAPSHOT_TYPE, TestType } from '@/lib/constants';
-import { useTestConfig } from '@/lib/hooks/useContext';
-import useI18n from '@/lib/hooks/useI18n';
 import { goToItemDetailPage } from '@/lib/utils/helper';
 
 const getDefectIds = data =>

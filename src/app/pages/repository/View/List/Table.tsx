@@ -58,26 +58,140 @@ const proxima = createProximaSdk();
 const RowDragBox = ({ children, ...data }) => {
   const ref = React.useRef();
 
+  // 使用鼠标事件处理拖拽
+  const handleMouseDown = React.useCallback((e: React.MouseEvent) => {
+    if (e.button !== 0) return; // 只处理左键
+    
+    const dragData = {
+      ...data,
+      name: data.rowData?.name || data.name || '用例',
+      title: data.rowData?.name || data.name || '用例'
+    };
+    
+    global.dragNode = dragData;
+    (window as any).dragNode = dragData;
+    
+    let isDragging = false;
+    const startPos = { x: e.clientX, y: e.clientY };
+    
+    const handleMouseMove = (moveEvent: MouseEvent) => {
+      const moved = Math.abs(moveEvent.clientX - startPos.x) + Math.abs(moveEvent.clientY - startPos.y);
+      
+      if (!isDragging && moved > 5) {
+        isDragging = true;
+        document.body.style.cursor = 'grabbing';
+        document.body.style.userSelect = 'none';
+        createDragPreview(moveEvent, dragData);
+      } else if (isDragging) {
+        updatePreviewPosition(moveEvent);
+      }
+    };
+    
+    const createDragPreview = (event: MouseEvent, data: any) => {
+      const nodeName = data?.rowData?.name || data.name || '用例';
+      const preview = document.createElement('div');
+      
+      preview.innerHTML = `
+        <div style="
+          display: flex;
+          align-items: center;
+          padding: 8px 12px;
+          font-size: 14px;
+          color: #333;
+          white-space: nowrap;
+          line-height: 1.4;
+        ">
+          <div style="
+            width: 16px;
+            height: 16px;
+            margin-right: 8px;
+            background: #1890ff;
+            border-radius: 2px;
+            flex-shrink: 0;
+          "></div>
+          <span style="overflow: hidden; text-overflow: ellipsis; max-width: 200px;">${nodeName}</span>
+        </div>
+      `;
+
+      preview.style.cssText = `
+        position: fixed;
+        top: 0;
+        left: 0;
+        z-index: 9999;
+        pointer-events: none;
+        background: white;
+        border-radius: 6px;
+        box-shadow: 0 4px 16px rgba(0, 0, 0, 0.15);
+        border: 1px solid #d9d9d9;
+        max-width: 250px;
+        font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+        transform: translate(${event.clientX + 15}px, ${event.clientY - 8}px);
+        opacity: 0.9;
+      `;
+
+      document.body.appendChild(preview);
+      (global as any).tableDragPreview = preview;
+      (window as any).tableDragPreview = preview;
+    };
+    
+    const updatePreviewPosition = (event: MouseEvent) => {
+      const preview = (global as any).tableDragPreview;
+      if (preview) {
+        preview.style.transform = `translate(${event.clientX + 15}px, ${event.clientY - 8}px)`;
+      }
+    };
+    
+    const handleMouseUp = () => {
+      document.removeEventListener('mousemove', handleMouseMove);
+      document.removeEventListener('mouseup', handleMouseUp);
+      
+      document.body.style.cursor = '';
+      document.body.style.userSelect = '';
+      
+      const preview = (global as any).tableDragPreview;
+      if (preview && preview.parentNode) {
+        preview.remove();
+      }
+      delete (global as any).tableDragPreview;
+      delete (window as any).tableDragPreview;
+      
+      requestAnimationFrame(() => {
+        delete global.dragNode;
+        delete (window as any).dragNode;
+      });
+    };
+    
+    document.addEventListener('mousemove', handleMouseMove);
+    document.addEventListener('mouseup', handleMouseUp);
+    e.preventDefault();
+  }, [data]);
+
+  // H5 拖拽作为备用
   useDrag(null, ref, {
     onDragStart(e) {
-      // setDragging(true);
       const dragElem = Array.from(
         document
           .querySelector(`[data-row-key="${data.testId}"]`)
           ?.querySelectorAll('.ant-table-cell') ?? [],
       ).find(dom => dom.querySelector(`[data-element-id="row-title"]`));
-
-      // onDropEnter 无法接收到 data
-      global.dragNode = data;
-      // 使用 dataTransfer 传入数据
+      
       e.dataTransfer.setData('data', JSON.stringify(data));
       e.dataTransfer?.setDragImage(dragElem, 0, 0);
     },
     onDragEnd() {
-      // setDragging(false);
+      // 由鼠标事件处理清理
     },
   } as any);
-  return <span ref={ref}>{children}</span>;
+  
+  return (
+    <span 
+      ref={ref} 
+      onMouseDown={handleMouseDown}
+      style={{ cursor: 'default' }}
+    >
+      {children}
+    </span>
+  );
 };
 
 const DropRow = ({ rowData, ...restProps }) => {
@@ -585,7 +699,31 @@ const TestDetailTable: React.FC<TestDetailTableProps> = props => {
                     overlayClassName={`${cx('tooltip')} global_arrow_tooltip_overflow`}
                     title={t('page.repository.view.list.dropCaseToGroup')}
                   >
-                    <DragHandler style={{ marginRight: 10 }} />
+                    <DragHandler 
+                      style={{ 
+                        marginRight: 10, 
+                        cursor: 'grab',
+                        padding: '4px',
+                        borderRadius: '2px',
+                        transition: 'background-color 0.2s ease',
+                        display: 'inline-flex',
+                        alignItems: 'center',
+                        justifyContent: 'center'
+                      }}
+                      onMouseEnter={e => {
+                        e.currentTarget.style.backgroundColor = 'rgba(0, 0, 0, 0.05)';
+                        e.currentTarget.style.cursor = 'grab';
+                      }}
+                      onMouseLeave={e => {
+                        e.currentTarget.style.backgroundColor = 'transparent';
+                      }}
+                      onMouseDown={e => {
+                        e.currentTarget.style.cursor = 'grabbing';
+                      }}
+                      onMouseUp={e => {
+                        e.currentTarget.style.cursor = 'grab';
+                      }}
+                    />
                   </Tooltip>
                 ) : null}
                 <span

@@ -1,4 +1,4 @@
-import React, { useCallback, useLayoutEffect, useMemo, useRef, useState } from 'react';
+import React, { useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState } from 'react';
 
 import cx from './index.less';
 
@@ -25,6 +25,11 @@ interface VirtualTreeProps {
     dropPosition: number;
     dropToGap: boolean;
   }) => void;
+  onExternalDrop?: (info: {
+    data: any;
+    targetNode: TreeNode;
+    dropToGap: boolean;
+  }) => void;
   titleRender?: (node: TreeNode) => React.ReactNode;
   height?: number;
   itemHeight?: number;
@@ -40,6 +45,7 @@ const VirtualTree: React.FC<VirtualTreeProps> = ({
   onExpand,
   onRightClick,
   onDrop,
+  onExternalDrop,
   titleRender,
   height = 600,
   itemHeight = 32,
@@ -649,22 +655,25 @@ const VirtualTree: React.FC<VirtualTreeProps> = ({
           </div>
         `;
 
-        // 设置预览容器样式
+        // 设置预览容器样式 - 与 Table.tsx 保持一致
         preview.style.cssText = `
           position: fixed;
+          top: 0;
+          left: 0;
           z-index: 9999;
           pointer-events: none;
           background: white;
           border-radius: 6px;
           box-shadow: 0 4px 16px rgba(0, 0, 0, 0.15);
-          border: 1px solid #e1e8ed;
+          border: 1px solid #d9d9d9;
           max-width: 250px;
           font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+          opacity: 0.9;
         `;
 
-        // 初始位置
-        preview.style.left = `${e.clientX + 15}px`;
-        preview.style.top = `${e.clientY - 8}px`;
+        // 初始位置 - 使用 transform
+        preview.style.transform = `translate(${e.clientX + 15}px, ${e.clientY - 8}px)`;
+        preview.style.willChange = 'transform';
 
         document.body.appendChild(preview);
         dragStateRef.current.dragPreviewElement = preview;
@@ -695,8 +704,8 @@ const VirtualTree: React.FC<VirtualTreeProps> = ({
 
         // 更新拖拽预览位置
         if (dragStateRef.current.dragPreviewElement) {
-          dragStateRef.current.dragPreviewElement.style.left = `${moveEvent.clientX + 15}px`;
-          dragStateRef.current.dragPreviewElement.style.top = `${moveEvent.clientY - 8}px`;
+          const newTransform = `translate(${moveEvent.clientX + 15}px, ${moveEvent.clientY - 8}px)`;
+          dragStateRef.current.dragPreviewElement.style.transform = newTransform;
         }
 
         // 找到鼠标下的节点元素（忽略预览元素）
@@ -792,6 +801,131 @@ const VirtualTree: React.FC<VirtualTreeProps> = ({
     },
     [draggable, onDrop, allExpandedNodes, showVerifiedDropIndicator, hideDropIndicator],
   );
+
+  // 外部拖拽处理 - 监听从Table.tsx拖拽过来的用例
+  useEffect(() => {
+    if (!onExternalDrop) return;
+
+    let isProcessingExternalDrag = false;
+    let externalDragData: any = null;
+    let moveThrottleTimer: any = null;
+
+    // 全局鼠标移动处理
+    const handleGlobalMouseMove = (e: MouseEvent) => {
+      // 检查是否有外部拖拽数据
+      const dragData = (global as any).dragNode || (window as any).dragNode;
+      if (!dragData) return;
+
+      // 检查鼠标是否在树容器内
+      const container = scrollRef.current;
+      if (!container) return;
+
+      const rect = container.getBoundingClientRect();
+      const isInContainer = 
+        e.clientX >= rect.left && 
+        e.clientX <= rect.right && 
+        e.clientY >= rect.top && 
+        e.clientY <= rect.bottom;
+
+      if (isInContainer && !isProcessingExternalDrag) {
+        isProcessingExternalDrag = true;
+        externalDragData = dragData;
+      } else if (!isInContainer && isProcessingExternalDrag) {
+        // 鼠标离开容器，停止处理外部拖拽
+        isProcessingExternalDrag = false;
+        externalDragData = null;
+        hideDropIndicator();
+        return;
+      }
+
+      if (!isProcessingExternalDrag) return;
+
+      // 节流处理移动事件
+      if (moveThrottleTimer) {
+        clearTimeout(moveThrottleTimer);
+      }
+
+      moveThrottleTimer = setTimeout(() => {
+        // 找到鼠标下的节点
+        const elementUnderMouse = document.elementFromPoint(e.clientX, e.clientY);
+        const nodeElement = elementUnderMouse?.closest('[data-row-key]') as HTMLElement;
+        
+        if (nodeElement) {
+          const nodeKey = nodeElement.getAttribute('data-row-key');
+          const targetNode = allExpandedNodes.find(item => item.node.key === nodeKey);
+          
+          if (targetNode) {
+            // 外部拖拽（用例）只能作为子节点插入，显示子节点插入指示器
+            updateChildDropIndicator(nodeElement, targetNode.level + 1, targetNode.node.key);
+          }
+        } else {
+          hideDropIndicator();
+        }
+      }, 16);
+    };
+
+    // 全局鼠标释放处理
+    const handleGlobalMouseUp = (e: MouseEvent) => {
+      if (!isProcessingExternalDrag || !externalDragData) {
+        hideDropIndicator();
+        return;
+      }
+
+      const container = scrollRef.current;
+      if (!container) {
+        hideDropIndicator();
+        return;
+      }
+
+      // 检查鼠标是否在树容器内释放
+      const rect = container.getBoundingClientRect();
+      const isInContainer = 
+        e.clientX >= rect.left && 
+        e.clientX <= rect.right && 
+        e.clientY >= rect.top && 
+        e.clientY <= rect.bottom;
+
+      if (isInContainer) {
+        // 找到释放位置的目标节点
+        const elementUnderMouse = document.elementFromPoint(e.clientX, e.clientY);
+        const nodeElement = elementUnderMouse?.closest('[data-row-key]') as HTMLElement;
+        
+        if (nodeElement) {
+          const nodeKey = nodeElement.getAttribute('data-row-key');
+          const targetNode = allExpandedNodes.find(item => item.node.key === nodeKey);
+          
+          if (targetNode) {
+            // 处理拖拽放置
+            onExternalDrop({
+              data: externalDragData,
+              targetNode: targetNode.node,
+              dropToGap: false, // 外部拖拽默认作为子节点
+            });
+          }
+        }
+      }
+
+      // 清理状态
+      hideDropIndicator();
+      isProcessingExternalDrag = false;
+      externalDragData = null;
+    };
+
+    // 添加全局事件监听
+    document.addEventListener('mousemove', handleGlobalMouseMove, { passive: true });
+    document.addEventListener('mouseup', handleGlobalMouseUp, { passive: true });
+
+    return () => {
+      // 移除事件监听
+      document.removeEventListener('mousemove', handleGlobalMouseMove);
+      document.removeEventListener('mouseup', handleGlobalMouseUp);
+      
+      // 清理定时器
+      if (moveThrottleTimer) {
+        clearTimeout(moveThrottleTimer);
+      }
+    };
+  }, [onExternalDrop, allExpandedNodes, updateChildDropIndicator, hideDropIndicator]);
 
   return (
     <div
