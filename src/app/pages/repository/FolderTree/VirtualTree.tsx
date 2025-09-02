@@ -1,5 +1,7 @@
 import React, { useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState } from 'react';
 
+import useI18n from '@/lib/hooks/useI18n';
+
 import cx from './index.less';
 
 interface TreeNode {
@@ -52,7 +54,8 @@ const VirtualTree: React.FC<VirtualTreeProps> = ({
   const [scrollTop, setScrollTop] = useState(0);
 
   // 记录初始渲染状态，避免滚动条跳动
-  const [isInitialized, setIsInitialized] = useState(false);
+  const [, setIsInitialized] = useState(false);
+  const { t } = useI18n();
 
   // 自定义拖拽状态 - 使用ref避免频繁重渲染
   const dragStateRef = useRef({
@@ -98,7 +101,7 @@ const VirtualTree: React.FC<VirtualTreeProps> = ({
 
     traverse(treeData);
 
-    console.log('[VirtualTree] 已展开节点计算:', {
+    console.info('[VirtualTree] 已展开节点计算:', {
       totalExpandedNodes: result.length,
       expandedKeys: expandedKeys.length,
       conceptNote: '包含所有展开状态下的可见节点，无论是否在屏幕内',
@@ -112,7 +115,7 @@ const VirtualTree: React.FC<VirtualTreeProps> = ({
     // 这是虚拟滚动的核心：所有展开节点的理论总高度
     const totalVirtualHeight = allExpandedNodes.length * itemHeight;
 
-    console.log('[VirtualTree] 🎯 虚拟滚动高度:', {
+    console.info('[VirtualTree] 🎯 虚拟滚动高度:', {
       expandedNodeCount: allExpandedNodes.length,
       itemHeight,
       totalVirtualHeight,
@@ -127,7 +130,7 @@ const VirtualTree: React.FC<VirtualTreeProps> = ({
     // 关键修复：占位div高度 = 虚拟总高度，让滚动条反映真实的内容量
     const finalHeight = Math.max(virtualScrollHeight, height);
 
-    console.log('[VirtualTree] 📏 占位div高度:', {
+    console.info('[VirtualTree] 📏 占位div高度:', {
       virtualScrollHeight,
       containerMinHeight: height,
       finalPlaceholderHeight: finalHeight,
@@ -148,7 +151,7 @@ const VirtualTree: React.FC<VirtualTreeProps> = ({
 
     // 减少日志频率，仅在范围显著变化时输出
     if (result.start % 10 === 0 || result.end >= allExpandedNodes.length - 5) {
-      console.log('[VirtualTree] 可见范围:', {
+      console.info('[VirtualTree] 可见范围:', {
         scrollTop,
         totalNodes: allExpandedNodes.length,
         visibleRange: `${result.start}-${result.end}`,
@@ -165,7 +168,7 @@ const VirtualTree: React.FC<VirtualTreeProps> = ({
 
     // 减少日志输出，仅在范围边界时记录
     if (visibleRange.start % 20 === 0) {
-      console.log('[VirtualTree] 渲染节点:', {
+      console.info('[VirtualTree] 渲染节点:', {
         total: allExpandedNodes.length,
         rendering: `${visibleRange.start}-${visibleRange.end} (${nodes.length} 个)`,
         firstNode: nodes[0]?.node?.name,
@@ -188,7 +191,7 @@ const VirtualTree: React.FC<VirtualTreeProps> = ({
       // 节流日志输出，每500ms最多输出一次
       const now = Date.now();
       if (now - lastLogTime.current > 500) {
-        console.log('[VirtualTree] 🔍 虚拟滚动诊断:', {
+        console.info('[VirtualTree] 🔍 虚拟滚动诊断:', {
           scrollTop: newScrollTop,
           actualScrollHeight: scrollContainer.scrollHeight,
           expectedPlaceholderHeight: placeholderHeight,
@@ -220,12 +223,12 @@ const VirtualTree: React.FC<VirtualTreeProps> = ({
   // 初始化时设置标记，用于其他优化
   useLayoutEffect(() => {
     setIsInitialized(true);
-    console.log('[VirtualTree] 组件已初始化');
+    console.info('[VirtualTree] 组件已初始化');
 
     // 调试：检查实际DOM高度
     if (scrollRef.current) {
       const scrollContainer = scrollRef.current;
-      console.log('[VirtualTree] 🔍 DOM初始化检查:', {
+      console.info('[VirtualTree] 🔍 DOM初始化检查:', {
         scrollHeight: scrollContainer.scrollHeight,
         clientHeight: scrollContainer.clientHeight,
         offsetHeight: scrollContainer.offsetHeight,
@@ -393,13 +396,17 @@ const VirtualTree: React.FC<VirtualTreeProps> = ({
             font-weight: 600;
             white-space: nowrap;
             box-shadow: 0 2px 8px rgba(0,0,0,0.15);
-          ">${showLineAbove ? '↑ 插入到上方' : '↓ 插入到下方'}</div>
+          ">${
+            showLineAbove
+              ? `↑ ${t('common.insertItIntoTheTop')}`
+              : `↓ ${t('common.insertItIntoTheBottom')}`
+          }</div>
         `;
       } catch (error) {
         // 静默处理错误
       }
     },
-    [createDropIndicator, highlightParentNode],
+    [createDropIndicator, highlightParentNode, t],
   );
 
   const hideDropIndicator = useCallback(() => {
@@ -483,7 +490,7 @@ const VirtualTree: React.FC<VirtualTreeProps> = ({
             box-shadow: 0 2px 8px rgba(0,0,0,0.15);
           ">
             <span style="margin-right: 4px; font-size: 14px;">📁</span>
-            <span>→ 作为子节点</span>
+            <span>→ ${t('common.asChildNode')}</span>
           </div>
           <div style="
             position: absolute;
@@ -497,13 +504,13 @@ const VirtualTree: React.FC<VirtualTreeProps> = ({
             font-size: 11px;
             font-weight: 600;
             white-space: nowrap;
-          ">插入到节点内部</div>
+          ">${t('common.insertNodeInner')}</div>
         `;
       } catch (error) {
         // 静默处理错误
       }
     },
-    [createDropIndicator, highlightParentNode],
+    [createDropIndicator, highlightParentNode, t],
   );
 
   // 重新设计的插入位置计算 - 更精确的区域划分
@@ -870,7 +877,7 @@ const VirtualTree: React.FC<VirtualTreeProps> = ({
 
     // 全局鼠标释放处理
     const handleGlobalMouseUp = (e: MouseEvent) => {
-      console.log('[外部拖拽] mouseup事件触发', {
+      console.info('[外部拖拽] mouseup事件触发', {
         isProcessing: isProcessingExternalDrag,
         hasData: !!externalDragData,
         timestamp: Date.now(),
@@ -878,7 +885,7 @@ const VirtualTree: React.FC<VirtualTreeProps> = ({
 
       // 立即清理样式，无论后续操作如何
       const immediateCleanup = () => {
-        console.log('[外部拖拽] 执行立即清理', { timestamp: Date.now() });
+        console.info('[外部拖拽] 执行立即清理', { timestamp: Date.now() });
         hideDropIndicator();
 
         // 强制清理所有可能的样式
@@ -924,7 +931,7 @@ const VirtualTree: React.FC<VirtualTreeProps> = ({
           const targetNode = allExpandedNodes.find(item => item.node.key === nodeKey);
 
           if (targetNode) {
-            console.log('[外部拖拽] 调用onExternalDrop前', { timestamp: Date.now() });
+            console.info('[外部拖拽] 调用onExternalDrop前', { timestamp: Date.now() });
 
             // 保存数据的副本，因为清理会删除原始数据
             const dragDataCopy = { ...externalDragData };
@@ -942,7 +949,7 @@ const VirtualTree: React.FC<VirtualTreeProps> = ({
               });
             });
 
-            console.log('[外部拖拽] 调用onExternalDrop后', { timestamp: Date.now() });
+            console.info('[外部拖拽] 调用onExternalDrop后', { timestamp: Date.now() });
             return; // 已经清理，直接返回
           }
         }
@@ -959,7 +966,7 @@ const VirtualTree: React.FC<VirtualTreeProps> = ({
     // 防御性清理：监听鼠标离开文档
     const handleMouseLeave = () => {
       if (isProcessingExternalDrag) {
-        console.log('[外部拖拽] 鼠标离开文档，执行防御性清理');
+        console.info('[外部拖拽] 鼠标离开文档，执行防御性清理');
         hideDropIndicator();
         document.querySelectorAll('.virtual-tree-parent-highlight').forEach(el => {
           el.classList.remove('virtual-tree-parent-highlight');

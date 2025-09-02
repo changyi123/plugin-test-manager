@@ -12,6 +12,10 @@
     "cannotExecuteTestCase": "The current test case is not assigned to an executor and cannot be executed"
   },
   "common": {
+    "insertItIntoTheTop": "Insert into the top",
+    "insertItIntoTheBottom": "Insert into the bottom",
+    "asChildNode": "As child node",
+    "insertNodeInner": "Insert into node inner",
     "snapshot": "Snapshot",
     "createPermissionTip": "Please contact the administrator to check the type mapping of the workspace, or enable",
     "haveDelete": "deleted",
