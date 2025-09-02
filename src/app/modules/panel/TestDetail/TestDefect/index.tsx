@@ -1,16 +1,17 @@
 import { Typography } from 'antd';
 import dayjs from 'dayjs';
-import React, { useMemo, useState, useCallback } from 'react';
-import { getTestEntityByQuery } from '@/lib/api/item';
-import { useTestConfig } from '@/lib/hooks/useContext';
-import OverflowTooltip from '@/components/common/OverflowTooltip';
-import { CASESNAPSHOT_TYPE, TestType } from '@/lib/constants';
-import { getItemByIQL } from '@/lib/api/proxima';
+import _ from 'lodash';
+import React, { useCallback, useMemo, useState } from 'react';
+
 import { BusinessTable } from '@/components/common/BusinessTable';
 import type { BusinessTableActionType } from '@/components/common/BusinessTable/type';
-import useI18n from '@/lib/hooks/useI18n';
-import _ from 'lodash';
+import OverflowTooltip from '@/components/common/OverflowTooltip';
+import { getTestEntityByQuery } from '@/lib/api/item';
+import { getItemByIQL } from '@/lib/api/proxima';
 import { openBaseLineViewItemModal } from '@/lib/api/sdk';
+import { CASESNAPSHOT_TYPE, TestType } from '@/lib/constants';
+import { useTestConfig } from '@/lib/hooks/useContext';
+import useI18n from '@/lib/hooks/useI18n';
 import { goToItemDetailPage } from '@/lib/utils/helper';
 
 const getDefectIds = data =>
@@ -155,14 +156,8 @@ const TestDefect: React.FC = () => {
         }}
         useColumnSetting
         getContainer={() => document.getElementById('container-1')}
-        defaultColumnKey={[
-          'key',
-          'name',
-          'status',
-          'createdBy',
-          'createdAt',
-        ]}
-        scroll = {{ 
+        defaultColumnKey={['key', 'name', 'status', 'createdBy', 'createdAt']}
+        scroll={{
           x: 'max-content',
           y: 200,
         }}

@@ -3,7 +3,8 @@ import dayjs from 'dayjs';
 // Reduce obj arr
 export const reduceObjArr = ({ arr, keys }: { arr: any[]; keys: string[] }): string => {
   return arr.reduce((accumulatorStr, nextObj) => {
-    const nextValue = keys.length > 1 ? `${nextObj[keys[0]]}(${nextObj[keys[1]]})` : nextObj[keys[0]];
+    const nextValue =
+      keys.length > 1 ? `${nextObj[keys[0]]}(${nextObj[keys[1]]})` : nextObj[keys[0]];
     if (!accumulatorStr) return nextValue;
     return accumulatorStr + ',' + nextValue;
   }, undefined);

@@ -1,5 +1,4 @@
 import { useSDK } from '@giteeteam/plugin-sdk';
-
 import createProximaSdk from '@projectproxima/proxima-sdk-js';
 import { useDrag, useDrop, useMemoizedFn, useRequest } from 'ahooks';
 import { message, notification, Space, Tooltip } from 'antd';
@@ -16,6 +15,7 @@ import RenderRepository from '@/components/business/RenderRepository';
 import RepositorySelector, {
   ActionType as RepositorySelectorActionType,
 } from '@/components/business/RepositorySelector';
+import TestBatchCreateVersionnModal, { TestBatchCreateVersionModalActionRef } from '@/components/business/TestBatchCreateVersionModal';
 import UserCell from '@/components/business/UserCell';
 import type {
   BusinessTableActionType,
@@ -38,6 +38,7 @@ import {
 } from '@/lib/api/item';
 import { useCurrentUser } from '@/lib/api/user';
 import { getCurrentUserSetting, saveUserSetting } from '@/lib/api/userSetting';
+import { featureFlags, SupportFeatureFlags } from '@/lib/appEnv';
 import { TestType } from '@/lib/constants';
 import { useTestConfig } from '@/lib/hooks/useContext';
 import useI18n from '@/lib/hooks/useI18n';
@@ -45,13 +46,11 @@ import fetch from '@/lib/utils/fetch';
 import { getProximaBasePath, getTenantKey } from '@/lib/utils/helper';
 import { actionConfirm, getPluginWebTriggerBaseUrl, openItemViewScreen } from '@/lib/utils/helper';
 import { SearchSelectors, selectorToIql } from '@/lib/utils/iql';
+import TableCellTestDetailForm from '@/modules/beforeCreateOrUpdateModal/TableCellTestDetailForm';
 
 import { UNGROUPED_FOLDER_KEY } from '../../constant';
 import CopyButton from '../Copy/Button';
 import cx from './Table.less';
-import TableCellTestDetailForm from '@/modules/beforeCreateOrUpdateModal/TableCellTestDetailForm';
-import { featureFlags, SupportFeatureFlags } from '@/lib/appEnv';
-import TestBatchCreateVersionnModal, { TestBatchCreateVersionModalActionRef } from '@/components/business/TestBatchCreateVersionModal';
 
 const proxima = createProximaSdk();
 
@@ -59,39 +58,41 @@ const RowDragBox = ({ children, ...data }) => {
   const ref = React.useRef();
 
   // 使用鼠标事件处理拖拽
-  const handleMouseDown = React.useCallback((e: React.MouseEvent) => {
-    if (e.button !== 0) return; // 只处理左键
-    
-    const dragData = {
-      ...data,
-      name: data.rowData?.name || data.name || '用例',
-      title: data.rowData?.name || data.name || '用例'
-    };
-    
-    global.dragNode = dragData;
-    (window as any).dragNode = dragData;
-    
-    let isDragging = false;
-    const startPos = { x: e.clientX, y: e.clientY };
-    
-    const handleMouseMove = (moveEvent: MouseEvent) => {
-      const moved = Math.abs(moveEvent.clientX - startPos.x) + Math.abs(moveEvent.clientY - startPos.y);
-      
-      if (!isDragging && moved > 5) {
-        isDragging = true;
-        document.body.style.cursor = 'grabbing';
-        document.body.style.userSelect = 'none';
-        createDragPreview(moveEvent, dragData);
-      } else if (isDragging) {
-        updatePreviewPosition(moveEvent);
-      }
-    };
-    
-    const createDragPreview = (event: MouseEvent, data: any) => {
-      const nodeName = data?.rowData?.name || data.name || '用例';
-      const preview = document.createElement('div');
-      
-      preview.innerHTML = `
+  const handleMouseDown = React.useCallback(
+    (e: React.MouseEvent) => {
+      if (e.button !== 0) return; // 只处理左键
+
+      const dragData = {
+        ...data,
+        name: data.rowData?.name || data.name || '用例',
+        title: data.rowData?.name || data.name || '用例',
+      };
+
+      global.dragNode = dragData;
+      (window as any).dragNode = dragData;
+
+      let isDragging = false;
+      const startPos = { x: e.clientX, y: e.clientY };
+
+      const handleMouseMove = (moveEvent: MouseEvent) => {
+        const moved =
+          Math.abs(moveEvent.clientX - startPos.x) + Math.abs(moveEvent.clientY - startPos.y);
+
+        if (!isDragging && moved > 5) {
+          isDragging = true;
+          document.body.style.cursor = 'grabbing';
+          document.body.style.userSelect = 'none';
+          createDragPreview(moveEvent, dragData);
+        } else if (isDragging) {
+          updatePreviewPosition(moveEvent);
+        }
+      };
+
+      const createDragPreview = (event: MouseEvent, data: any) => {
+        const nodeName = data?.rowData?.name || data.name || '用例';
+        const preview = document.createElement('div');
+
+        preview.innerHTML = `
         <div style="
           display: flex;
           align-items: center;
@@ -113,7 +114,7 @@ const RowDragBox = ({ children, ...data }) => {
         </div>
       `;
 
-      preview.style.cssText = `
+        preview.style.cssText = `
         position: fixed;
         top: 0;
         left: 0;
@@ -129,42 +130,44 @@ const RowDragBox = ({ children, ...data }) => {
         opacity: 0.9;
       `;
 
-      document.body.appendChild(preview);
-      (global as any).tableDragPreview = preview;
-      (window as any).tableDragPreview = preview;
-    };
-    
-    const updatePreviewPosition = (event: MouseEvent) => {
-      const preview = (global as any).tableDragPreview;
-      if (preview) {
-        preview.style.transform = `translate(${event.clientX + 15}px, ${event.clientY - 8}px)`;
-      }
-    };
-    
-    const handleMouseUp = () => {
-      document.removeEventListener('mousemove', handleMouseMove);
-      document.removeEventListener('mouseup', handleMouseUp);
-      
-      document.body.style.cursor = '';
-      document.body.style.userSelect = '';
-      
-      const preview = (global as any).tableDragPreview;
-      if (preview && preview.parentNode) {
-        preview.remove();
-      }
-      delete (global as any).tableDragPreview;
-      delete (window as any).tableDragPreview;
-      
-      requestAnimationFrame(() => {
-        delete global.dragNode;
-        delete (window as any).dragNode;
-      });
-    };
-    
-    document.addEventListener('mousemove', handleMouseMove);
-    document.addEventListener('mouseup', handleMouseUp);
-    e.preventDefault();
-  }, [data]);
+        document.body.appendChild(preview);
+        (global as any).tableDragPreview = preview;
+        (window as any).tableDragPreview = preview;
+      };
+
+      const updatePreviewPosition = (event: MouseEvent) => {
+        const preview = (global as any).tableDragPreview;
+        if (preview) {
+          preview.style.transform = `translate(${event.clientX + 15}px, ${event.clientY - 8}px)`;
+        }
+      };
+
+      const handleMouseUp = () => {
+        document.removeEventListener('mousemove', handleMouseMove);
+        document.removeEventListener('mouseup', handleMouseUp);
+
+        document.body.style.cursor = '';
+        document.body.style.userSelect = '';
+
+        const preview = (global as any).tableDragPreview;
+        if (preview && preview.parentNode) {
+          preview.remove();
+        }
+        delete (global as any).tableDragPreview;
+        delete (window as any).tableDragPreview;
+
+        requestAnimationFrame(() => {
+          delete global.dragNode;
+          delete (window as any).dragNode;
+        });
+      };
+
+      document.addEventListener('mousemove', handleMouseMove);
+      document.addEventListener('mouseup', handleMouseUp);
+      e.preventDefault();
+    },
+    [data],
+  );
 
   // H5 拖拽作为备用
   useDrag(null, ref, {
@@ -174,7 +177,7 @@ const RowDragBox = ({ children, ...data }) => {
           .querySelector(`[data-row-key="${data.testId}"]`)
           ?.querySelectorAll('.ant-table-cell') ?? [],
       ).find(dom => dom.querySelector(`[data-element-id="row-title"]`));
-      
+
       e.dataTransfer.setData('data', JSON.stringify(data));
       e.dataTransfer?.setDragImage(dragElem, 0, 0);
     },
@@ -182,13 +185,9 @@ const RowDragBox = ({ children, ...data }) => {
       // 由鼠标事件处理清理
     },
   } as any);
-  
+
   return (
-    <span 
-      ref={ref} 
-      onMouseDown={handleMouseDown}
-      style={{ cursor: 'default' }}
-    >
+    <span ref={ref} onMouseDown={handleMouseDown} style={{ cursor: 'default' }}>
       {children}
     </span>
   );
@@ -607,9 +606,13 @@ const TestDetailTable: React.FC<TestDetailTableProps> = props => {
       >
         <DeleteIcon className={cx('icon')} /> {t('common.delete')}
       </span>,
-      <span className={cx(!hasRowSelected && 'disabled')} key="batchCreateVersion" onClick={() => hasRowSelected && batchCreateVersion()}>
+      <span
+        className={cx(!hasRowSelected && 'disabled')}
+        key="batchCreateVersion"
+        onClick={() => hasRowSelected && batchCreateVersion()}
+      >
         {t('components.business.testBatchUpateModel.batchCreateVersion')}
-      </span>
+      </span>,
     ];
   }, [
     hasRowSelected,
@@ -673,16 +676,63 @@ const TestDetailTable: React.FC<TestDetailTableProps> = props => {
         },
         render(_, rowData) {
           const folderKey = rowData?.repository ?? UNGROUPED_FOLDER_KEY;
+          console.log('Table render - enableRepositoryTableStep:', enableRepositoryTableStep);
+          console.log('Table render - selectionMode:', rowData._tableState.selectionMode);
+          
           if (enableRepositoryTableStep) {
             return (
-              <span
-                className="test-case-title"
-                data-drawer-handle-target
-                data-element-id="row-title"
-                style={{ cursor: 'pointer' }}
-              >
-                {rowData?.name}
-              </span>
+              <>
+                <RowDragBox
+                  folderKey={folderKey}
+                  testId={rowData.objectId}
+                  sortIndex={rowData.sortIndex}
+                  rowData={rowData}
+                >
+                  {!rowData._tableState.selectionMode ? (
+                    <Tooltip
+                      overlayClassName={`${cx('tooltip')} global_arrow_tooltip_overflow`}
+                      title={t('page.repository.view.list.dropCaseToGroup')}
+                    >
+                      <DragHandler
+                        style={{
+                          marginRight: 10,
+                          cursor: 'grab',
+                          padding: '4px',
+                          borderRadius: '2px',
+                          transition: 'background-color 0.2s ease',
+                          display: 'inline-flex',
+                          alignItems: 'center',
+                          justifyContent: 'center',
+                          position: 'relative',
+                          zIndex: 15,
+                        }}
+                        onMouseEnter={e => {
+                          e.currentTarget.style.backgroundColor = 'rgba(0, 0, 0, 0.05)';
+                          e.currentTarget.style.cursor = 'grab';
+                        }}
+                        onMouseLeave={e => {
+                          e.currentTarget.style.backgroundColor = 'transparent';
+                        }}
+                        onMouseDown={e => {
+                          console.log('DragHandler clicked in expanded mode');
+                          e.currentTarget.style.cursor = 'grabbing';
+                        }}
+                        onMouseUp={e => {
+                          e.currentTarget.style.cursor = 'grab';
+                        }}
+                      />
+                    </Tooltip>
+                  ) : null}
+                  <span
+                    className="test-case-title"
+                    data-drawer-handle-target
+                    data-element-id="row-title"
+                    style={{ cursor: 'pointer' }}
+                  >
+                    {rowData?.name}
+                  </span>
+                </RowDragBox>
+              </>
             );
           }
 
@@ -699,16 +749,16 @@ const TestDetailTable: React.FC<TestDetailTableProps> = props => {
                     overlayClassName={`${cx('tooltip')} global_arrow_tooltip_overflow`}
                     title={t('page.repository.view.list.dropCaseToGroup')}
                   >
-                    <DragHandler 
-                      style={{ 
-                        marginRight: 10, 
+                    <DragHandler
+                      style={{
+                        marginRight: 10,
                         cursor: 'grab',
                         padding: '4px',
                         borderRadius: '2px',
                         transition: 'background-color 0.2s ease',
                         display: 'inline-flex',
                         alignItems: 'center',
-                        justifyContent: 'center'
+                        justifyContent: 'center',
                       }}
                       onMouseEnter={e => {
                         e.currentTarget.style.backgroundColor = 'rgba(0, 0, 0, 0.05)';
@@ -784,7 +834,9 @@ const TestDetailTable: React.FC<TestDetailTableProps> = props => {
               >
                 <a>{t('common.copy')}</a>
               </CopyButton>
-              <a onClick={() => deleteTestDetail(rowData)} style={{ color: 'red' }}>{t('common.delete')}</a>
+              <a onClick={() => deleteTestDetail(rowData)} style={{ color: 'red' }}>
+                {t('common.delete')}
+              </a>
             </Space>
           );
         },
@@ -828,25 +880,30 @@ const TestDetailTable: React.FC<TestDetailTableProps> = props => {
         queryDeps={queryDeps}
         virtualSelectAll
         enableCacheEpandedRowKeys={enableCacheEpandedRowKeys}
-        expandable={enableRepositoryTableStep && {
-          expandedRowClassName: () => {
-            return cx('expandedRowClassName')
-          },
-          expandedRowRender: record => {
-            return (
-              <div className={cx('form')}>
-                <TableCellTestDetailForm values={record?.detail ?? {}} objectId={record?.objectId}/>
-              </div>
-            )
-          },
-        }}
+        expandable={
+          enableRepositoryTableStep && {
+            expandedRowClassName: () => {
+              return cx('expandedRowClassName');
+            },
+            expandedRowRender: record => {
+              return (
+                <div className={cx('form')}>
+                  <TableCellTestDetailForm
+                    values={record?.detail ?? {}}
+                    objectId={record?.objectId}
+                  />
+                </div>
+              );
+            },
+          }
+        }
       />
       <RepositorySelector actionRef={repositorySelectorRef} />
 
       {/* 批量创建版本 */}
       <TestBatchCreateVersionnModal
         actionRef={testBatchCreateVersionModalActionRef}
-        refresh = {() => {
+        refresh={() => {
           // 刷新依赖数据
           tableActionRef.current.resetSelectedRowKeys();
           tableActionRef.current.refresh();

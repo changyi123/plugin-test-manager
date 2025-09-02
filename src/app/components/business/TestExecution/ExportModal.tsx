@@ -6,10 +6,11 @@ import { exportTestExecution } from '@/lib/api/item';
 import { EXPORT_EXECUTION_FIELDS } from '@/lib/constants';
 import useI18n from '@/lib/hooks/useI18n';
 import { alert, getTestManagerContainer } from '@/lib/utils/helper';
-import cx from './ExportModal.less';
-import { downLoadFile, getFileNameFromContentDisposition } from './common/util';
+
 import useRequest from './common/useRequest';
+import { downLoadFile, getFileNameFromContentDisposition } from './common/util';
 import { defaultFilterOptions } from './common/util';
+import cx from './ExportModal.less';
 const ExportModal = props => {
   const { t } = useI18n();
   const basicFields = useMemo(() => {

@@ -207,7 +207,6 @@ const getProximaGateWay = () => {
   );
 };
 
-
 /** 获取 proxima baseUrl */
 export const getProximaBasePath = () => {
   // FIXME: 确认 spa 环境改造后 接口前缀 和 页面前缀有没有不一致的情况？

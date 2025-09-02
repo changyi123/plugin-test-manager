@@ -104,7 +104,7 @@ const TestEntitySelector: React.FC<TestEntitySelectorProps> = props => {
   // 测试类型名
   const testTypeName = t(`common.${TestTypeNameMapping[testType]}`);
 
-  const [versionMapKeySelected, setVersionMapKeySelected] = React.useState({})
+  const [versionMapKeySelected, setVersionMapKeySelected] = React.useState({});
 
   const [modelProps, setModelProps] = useSafeState<ModelProps | undefined>(undefined);
 
@@ -346,10 +346,15 @@ const TestEntitySelector: React.FC<TestEntitySelectorProps> = props => {
     }
 
     typeof props.onSelect === 'function' && props.onSelect(selectedData);
-    eventBusRef.current.dispatch(AddExistedTestEventType, { selectedData, treeType, planId, caseVersion: versionMapKeySelected });
+    eventBusRef.current.dispatch(AddExistedTestEventType, {
+      selectedData,
+      treeType,
+      planId,
+      caseVersion: versionMapKeySelected,
+    });
     setSelectValue(isSingleMode ? undefined : []);
     setVisible(false);
-    setVersionMapKeySelected({})
+    setVersionMapKeySelected({});
   }, [
     selectedTestDetails,
     testType,

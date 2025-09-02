@@ -755,7 +755,7 @@ const BusinessTable: React.FC<BusinessTableProps> = props => {
                   }
                   setExpandedKeys(expandedRows as any[]);
                   // 保存展开状态到缓存
-                  setCachedExpandedRowKeys(expandedRows as any[])
+                  setCachedExpandedRowKeys(expandedRows as any[]);
                 },
               }
             : undefined

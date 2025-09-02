@@ -217,7 +217,10 @@ const AttachmentList: React.FC<any> = props => {
                       <div className={cx('name-text')}>{file.name}</div>
                       {testImg(file.name) && file.url && (
                         <div className={cx('name-img')}>
-                          <Image src={file.url} preview={{ getContainer: getRootContainer }} ></Image>
+                          <Image
+                            src={file.url}
+                            preview={{ getContainer: getRootContainer }}
+                          ></Image>
                         </div>
                       )}
                     </div>
