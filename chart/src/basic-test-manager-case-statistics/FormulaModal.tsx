@@ -26,13 +26,25 @@ const FormulaModal: React.FC<FormulaModalProps> = ({
   const validate = async value => {
     const errors = {} as FormError;
     if (!value.name?.trim()) {
-      errors.name = addErrorMessage(errors.name, i18n.t('reportPlugin.basicTableChart.option.errorMsg.nameEmpty'));
+      errors.name = addErrorMessage(
+        errors.name,
+        i18n.t('reportPlugin.basicTableChart.option.errorMsg.nameEmpty'),
+      );
     } else if (value.name.length > 20) {
-      errors.name = addErrorMessage(errors.name, i18n.t('reportPlugin.basicTableChart.option.errorMsg.nameLength'));
+      errors.name = addErrorMessage(
+        errors.name,
+        i18n.t('reportPlugin.basicTableChart.option.errorMsg.nameLength'),
+      );
     } else if (!isValidFormulaName(value.name)) {
-      errors.name = addErrorMessage(errors.name, i18n.t('reportPlugin.basicTableChart.option.errorMsg.nameChar'));
+      errors.name = addErrorMessage(
+        errors.name,
+        i18n.t('reportPlugin.basicTableChart.option.errorMsg.nameChar'),
+      );
     } else if (formulasName.includes(value.name) && !isEdit) {
-      errors.name = addErrorMessage(errors.name, i18n.t('reportPlugin.basicTableChart.option.errorMsg.nameDuplicate'));
+      errors.name = addErrorMessage(
+        errors.name,
+        i18n.t('reportPlugin.basicTableChart.option.errorMsg.nameDuplicate'),
+      );
     }
     if (!value.formula?.trim()) {
       errors.formula = addErrorMessage(
@@ -44,7 +56,12 @@ const FormulaModal: React.FC<FormulaModalProps> = ({
   };
 
   return (
-    <Formik innerRef={form} onSubmit={handleSubmit} initialValues={initialValues} validate={validate}>
+    <Formik
+      innerRef={form}
+      onSubmit={handleSubmit}
+      initialValues={initialValues}
+      validate={validate}
+    >
       {({ handleSubmit }) => (
         <Modal
           title={i18n.t('reportPlugin.basicTableChart.modal.title')}
@@ -58,7 +75,11 @@ const FormulaModal: React.FC<FormulaModalProps> = ({
           <FormField label={i18n.t('reportPlugin.basicTableChart.modal.name')} name="name" required>
             {({ field }) => <Input {...field} />}
           </FormField>
-          <FormField label={i18n.t('reportPlugin.basicTableChart.modal.formula')} name="formula" required>
+          <FormField
+            label={i18n.t('reportPlugin.basicTableChart.modal.formula')}
+            name="formula"
+            required
+          >
             {({ field }) => (
               <TextArea
                 {...field}
@@ -70,12 +91,19 @@ const FormulaModal: React.FC<FormulaModalProps> = ({
           <FormField label={i18n.t('reportPlugin.basicTableChart.modal.type')} name="type">
             {({ field }) => (
               <Radio.Group {...field}>
-                <Radio value="number">{i18n.t('reportPlugin.basicTableChart.modal.typeNumber')}</Radio>
-                <Radio value="percentage">{i18n.t('reportPlugin.basicTableChart.modal.typePercentage')}</Radio>
+                <Radio value="number">
+                  {i18n.t('reportPlugin.basicTableChart.modal.typeNumber')}
+                </Radio>
+                <Radio value="percentage">
+                  {i18n.t('reportPlugin.basicTableChart.modal.typePercentage')}
+                </Radio>
               </Radio.Group>
             )}
           </FormField>
-          <FormField label={i18n.t('reportPlugin.basicTableChart.modal.precision')} name="precision">
+          <FormField
+            label={i18n.t('reportPlugin.basicTableChart.modal.precision')}
+            name="precision"
+          >
             {({ field }) => (
               <InputNumber
                 className={cx('formulas-precision')}

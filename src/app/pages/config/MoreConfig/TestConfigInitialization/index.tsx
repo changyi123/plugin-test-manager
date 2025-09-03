@@ -1,6 +1,6 @@
 import { useMutation } from '@tanstack/react-query';
 import { useMemoizedFn } from 'ahooks';
-import { Button, Form, message, Switch, Radio } from 'antd';
+import { Button, Form, message, Radio, Switch } from 'antd';
 import React from 'react';
 import { useTranslation } from 'react-i18next';
 
@@ -78,9 +78,7 @@ const TestConfigInitialization = () => {
           label={<div>{scopeT('switchSnapshotLabel')}</div>}
           name={['caseSnapshot', 'type']}
         >
-          <Radio.Group
-            options={caseSnapshotOpt(t)}
-          />
+          <Radio.Group options={caseSnapshotOpt(t)} />
         </Form.Item>
       )}
       {[CASESNAPSHOT_TYPE.NO_BUILDVERSION_SELVERSION].includes(caseSnapshotType) && (
@@ -89,7 +87,7 @@ const TestConfigInitialization = () => {
           name={['caseSnapshot', 'enableCaseExeUpdate']}
           valuePropName="checked"
         >
-          <Switch/>
+          <Switch />
         </Form.Item>
       )}
       <Form.Item

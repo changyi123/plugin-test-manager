@@ -12,6 +12,10 @@
     "cannotExecuteTestCase": "当前测试用例未分配执行人，无法执行"
   },
   "common": {
+    "insertItIntoTheTop": "插入到上方",
+    "insertItIntoTheBottom": "插入到下方",
+    "asChildNode": "作为子节点",
+    "insertNodeInner": "插入到节点内部",
     "snapshot": "快照",
     "createPermissionTip": "请联系管理员检查空间的类型映射，或开启",
     "haveDelete": "已删除",

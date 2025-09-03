@@ -58,7 +58,13 @@ const SearchInput: React.FC<
           className={cx('input')}
           onChange={handleChange}
           onKeyDown={handleKeyDown}
-          suffix={<SearchOutlined onClick={() => { restInputProps?.searchIconClick  && onSearch(inputValueRef.current) }}/>}
+          suffix={
+            <SearchOutlined
+              onClick={() => {
+                restInputProps?.searchIconClick && onSearch(inputValueRef.current);
+              }}
+            />
+          }
           defaultValue={inputValueRef.current}
         />
       ) : (

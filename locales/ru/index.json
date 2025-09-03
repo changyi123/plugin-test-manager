@@ -12,6 +12,10 @@
     "cannotExecuteTestCase": "Текущий тест-кейс не назначен исполнителю и не может быть выполнен"
   },
   "common": {
+    "insertItIntoTheTop": "Вставить вверх",
+    "insertItIntoTheBottom": "Вставить вниз",
+    "asChildNode": "Вставить вниз",
+    "insertNodeInner": "Вставить внутрь узла",
     "snapshot": "Снимок",
     "createPermissionTip": "Обратитесь к администратору, чтобы проверить сопоставление типов проектов или включить",
     "haveDelete": "удалено",

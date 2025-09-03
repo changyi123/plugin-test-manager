@@ -17,6 +17,12 @@
       line-height: 32px !important;
       font-size: 14px;
     }
+    
+    /* 拖拽时完全禁用hover效果 */
+    .dragging .ant-tree-treenode:hover {
+      background-color: transparent !important;
+      border-radius: 0 !important;
+    }
     .ant-tree-iconEle {
       width: 22px !important;
       line-height: 30px !important;
@@ -74,9 +80,85 @@
   }
 
   .tree {
-    overflow-y: auto;
-    padding: 10px 16px;
-    .custom-scrollbar-mixin();
+    // 移除padding，改由内部控制
+    // .custom-scrollbar-mixin(); // 使用自定义滚动条样式
+    flex: 1; // 占据剩余空间
+    
+    /* 针对卡顿电脑的性能优化 */
+    will-change: scroll-position; /* 提示浏览器优化滚动 */
+    
+    /* 始终显示的固定滑块滚动条 */
+    overflow-y: scroll; // 强制显示滚动条
+    
+    &::-webkit-scrollbar {
+      width: 14px; /* 增加宽度，便于点击 */
+      background: #f1f3f4;
+      border-left: 1px solid #e1e4e6;
+      transition: width 0.2s ease; /* 平滑过渡 */
+    }
+    
+    &::-webkit-scrollbar-track {
+      background: #f1f3f4;
+      border-radius: 0;
+      /* 鼠标悬停时轨道高亮 */
+      &:hover {
+        background: #e8eaed;
+      }
+    }
+    
+    &::-webkit-scrollbar-thumb {
+      background: #bdc1c6;
+      border-radius: 8px;
+      border: 3px solid #f1f3f4; /* 默认边框较厚，为变粗做准备 */
+      min-width: 8px; /* 确保最小宽度 */
+      
+      /* 设置固定最小高度，保持视觉稳定 */
+      min-height: 100px;
+      max-height: 180px;
+      
+      /* 性能优化：预设过渡 */
+      transition: border-width 0.2s ease, background-color 0.15s ease, box-shadow 0.15s ease;
+      
+      /* 滑块hover效果 - 真正的加粗效果 */
+      &:hover {
+        background: #6b7280; /* 更深的颜色 */
+        border-width: 1px; /* 减少边框 = 滑块变粗 */
+        border-color: #f1f3f4;
+        cursor: pointer;
+        /* 添加外发光效果，增强立体感 */
+        box-shadow: 0 0 0 1px rgba(107, 114, 128, 0.3), 0 2px 8px rgba(0, 0, 0, 0.15);
+      }
+      
+      /* 点击时的反馈 - 最粗状态 */
+      &:active {
+        background: #4b5563;
+        border-width: 0px; /* 无边框 = 滑块最粗 */
+        box-shadow: 0 0 0 2px rgba(75, 85, 99, 0.4), 0 1px 4px rgba(0, 0, 0, 0.25);
+      }
+    }
+    
+    &::-webkit-scrollbar-corner {
+      background: #f1f3f4;
+    }
+    
+    /* Firefox滚动条样式 - 始终显示，增强hover效果 */
+    scrollbar-width: auto;
+    scrollbar-color: #bdc1c6 #f1f3f4;
+    
+    /* Firefox hover效果 - 模拟加粗效果 */
+    &:hover {
+      scrollbar-color: #4b5563 #e8eaed; /* 滑块颜色更深，模拟加粗 */
+      scrollbar-width: thick; /* Firefox的加粗效果 */
+    }
+    
+    /* 容器级别的滚动优化 - 针对卡顿电脑 */
+    &:hover {
+      /* 鼠标悬停时稍微突出滚动条区域 */
+      &::-webkit-scrollbar {
+        width: 16px; /* hover时稍微加宽 */
+        background: #e8eaed;
+      }
+    }
 
     .tree-node {
       display: flex;
@@ -143,25 +225,69 @@
         }
         &-draggable {
           .ant-tree-draggable-icon {
-            line-height: 32px !important;
-            visibility: hidden;
+            opacity: 0 !important;
+            transition: opacity 0.2s ease, transform 0.2s ease !important;
+            margin-left: 2px; // 确保拖拽手柄不被挤压
+            
+            &:hover {
+              transform: scale(1.1);
+              
+              svg {
+                fill: #595959 !important;
+              }
+            }
+            
+            &:active {
+              transform: scale(0.95);
+            }
           }
         }
 
         &-dragover {
-          border: 0.5px dashed #0c62ff;
+          /* 移除拖拽高亮样式，只保留拖拽图标的显示 */
+        }
+        
+        /* 父节点高亮样式 - 拖拽时显示目标父节点 */
+        :global(.virtual-tree-parent-highlight) {
+          background-color: rgba(24, 144, 255, 0.08) !important;
+          border: 1px solid rgba(24, 144, 255, 0.3) !important;
+          border-radius: 6px !important;
+          box-shadow: 0 0 8px rgba(24, 144, 255, 0.2) !important;
+          
+          /* 添加动画效果让高亮更明显 */
+          animation: parentHighlight 0.3s ease-in-out;
+        }
+        
+        @keyframes parentHighlight {
+          0% {
+            transform: scale(1);
+            box-shadow: 0 0 0 rgba(24, 144, 255, 0.2);
+          }
+          50% {
+            transform: scale(1.02);
+            box-shadow: 0 0 12px rgba(24, 144, 255, 0.4);
+          }
+          100% {
+            transform: scale(1);
+            box-shadow: 0 0 8px rgba(24, 144, 255, 0.2);
+          }
         }
 
-        &-dragover,
         &:hover {
           background-color: #e6f3ff;
           border-radius: 4px;
 
           &.ant-tree-treenode-draggable {
             .ant-tree-draggable-icon {
-              visibility: visible;
+              opacity: 1 !important;
             }
           }
+        }
+        
+        /* 禁用拖拽时的hover效果 */
+        .dragging &:hover {
+          background-color: transparent !important;
+          border-radius: 0 !important;
         }
         &:before {
           display: none;

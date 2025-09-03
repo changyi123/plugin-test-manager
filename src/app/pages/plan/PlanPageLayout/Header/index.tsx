@@ -126,7 +126,7 @@ const Header: React.FC<HeaderProps> = ({
         width={800}
       />
     </div>
-  )
+  );
   return (
     <>
       <div className={cx('page-header')}>
@@ -160,7 +160,9 @@ const Header: React.FC<HeaderProps> = ({
             </div>
             {wordTemplate ? (
               <div className={cx('tab-extra-action')}>
-                {['TestExecution'].includes(activeType) && selectedExecution?.objectId && renderAddTestExecution}
+                {['TestExecution'].includes(activeType) &&
+                  selectedExecution?.objectId &&
+                  renderAddTestExecution}
                 <Button
                   onClick={generateReport}
                   icon={<ExportOutlined />}
@@ -171,7 +173,9 @@ const Header: React.FC<HeaderProps> = ({
               </div>
             ) : (
               <div className={cx('tab-extra-action')}>
-                {['TestExecution'].includes(activeType) && selectedExecution?.objectId && renderAddTestExecution}
+                {['TestExecution'].includes(activeType) &&
+                  selectedExecution?.objectId &&
+                  renderAddTestExecution}
               </div>
             )}
           </div>
