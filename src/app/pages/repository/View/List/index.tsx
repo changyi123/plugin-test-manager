@@ -52,7 +52,7 @@ const ApprovalEntryDropdown = ({ setApprovalEntry, createTestApproval }) => {
       <a onClick={() => {
         setApprovalEntry(ApprovalEntry.View)
       }}>
-        查看评审事项
+        查看用例评审
       </a>
     ),
   },
@@ -64,7 +64,7 @@ const ApprovalEntryDropdown = ({ setApprovalEntry, createTestApproval }) => {
         createTestApproval();
         // setApprovalEntry(ApprovalEntry.Create)
       }}>
-        新建评审事项
+        新建用例评审
       </a>
     ),
   },

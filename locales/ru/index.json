@@ -640,6 +640,7 @@
           "notSelectMessage": "Тест-кейс не выбран",
           "createTestRunSuccessMessage": "?-> Выполнение тест-кейса успешно создано",
           "caseToPlanSuccessMessage": "Тест-кейс был успешно добавлен в план тестирования",
+          "caseToApprovalSuccessMessage": "Тест-кейс был успешно добавлен в тестовое утверждение",
           "caseSelectModelTitle": "Выберите запланированный тест-кейс",
           "createTestExecutionSuccessMessage": ["Задача выполнения теста", "создано успешно"],
           "createTestExecutionFailMessage": "Не удалось создать новую задачу для выполнения теста"

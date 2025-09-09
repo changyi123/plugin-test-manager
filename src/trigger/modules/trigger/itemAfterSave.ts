@@ -60,8 +60,8 @@ export const itemAfterSave = async () => {
 // 审批事项关联，批量扭转用例状态
 export const itemAfterSaveForApproval = async () => {
   const { item, originalItem, env } = global as any;
-  const approvalItemTypeKey = env.approvalItemTypeKey || 'test_manager_approval';
-  const itemTargatStatusId = env.itemTargatStatusId || 'bbk6FgJG9D';
+  const approvalItemTypeKey = env.APPROVAL_ITEM_TYPE_KEY || 'test_manager_approval';
+  const itemTargatStatusId = env.ITEM_TARGAT_STATUS_ID || 'bbk6FgJG9D';
   console.info('itemAfterSaveForApproval', item, JSON.stringify(item));
   console.info('itemAfterSaveForApproval env', env);
 
@@ -91,7 +91,7 @@ export const itemAfterSaveForApproval = async () => {
   const {data: { list: cases = [] }} = await iqlRequest({
     fields: ['id', 'name', 'status'],
     pagination: { limit: InfinityLimit },
-    selector: `r_test_manager_testApprovals = '${item.objectId}'`,
+    selector: `测试评审 = '${item.objectId}'`,
   });
 
   console.info('itemAfterSaveForApproval request done', cases, JSON.stringify(cases));
@@ -106,8 +106,8 @@ export const itemAfterSaveForApproval = async () => {
 
   console.info('itemWorkflowRes', itemWorkflowRes, (itemWorkflowRes as any)?.transitions, JSON.stringify(itemWorkflowRes));
 
-  const caseTargetStatusName = env.caseTargetStatusName || '进行中';
-  const caseTargatStatusId = env.caseTargatStatusId || 'bbk6FgJG9D';
+  const caseTargetStatusName = env.CASE_TARGET_STATUS_NAME || '进行中';
+  const caseTargatStatusId = env.CASE_TARGAT_STATUS_ID || 'bbk6FgJG9D';
 
   const targetTransitions = ((itemWorkflowRes as any).transitions || []).filter(item => item.targetId === caseTargatStatusId);
 
@@ -144,6 +144,8 @@ export const itemAfterSaveForApproval = async () => {
         transition: caseTargetStatusName,
         currentState: statusId,
         items: caseStatutIdMap[statusId],
+      }, {
+        'X-Parse-Session-Token': env.AUTOMATION_TOKEN || 'a:5342414fbd5b66363156fb08',
       })
       console.info('扭转完成, 执行结果:', execRes);
     } catch (error) {

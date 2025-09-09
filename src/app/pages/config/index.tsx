@@ -105,13 +105,13 @@ const ConfigPages = [
     component: TableFields,
     description: 'tableFields',
   },
-  {
-    key: 'ApprovalConfig',
-    title: 'approvalConfig',
-    component: ApprovalConfig,
-    description: 'approvalConfig',
-    isGlobalConfig: true,
-  },
+  // {
+  //   key: 'ApprovalConfig',
+  //   title: 'approvalConfig',
+  //   component: ApprovalConfig,
+  //   description: 'approvalConfig',
+  //   isGlobalConfig: true,
+  // },
   {
     key: 'TestConfigInitialization',
     title: 'testConfigInitialization',
