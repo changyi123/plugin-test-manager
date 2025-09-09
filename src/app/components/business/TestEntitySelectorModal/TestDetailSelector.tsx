@@ -79,6 +79,8 @@ const TestDetailSelector: React.FC<TestDetailSelectorProps> = props => {
     setVersionMapKeySelected
   } = props;
 
+  console.log('TestDetailSelector', props);
+
   const { testCaseFieldKeys } = useBaseAction();
   const { t } = useI18n();
   const repositoryFolderTreeRef = React.useRef<ActionType>();

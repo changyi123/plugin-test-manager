@@ -419,6 +419,10 @@
         "restrictiveConditions": "Ограничивающие условия",
         "restrictiveConditionsPlaceholder": "Введите ограничивающие условия"
       },
+      "approvalConfig": {
+        "title": "审批配置",
+        "description": "审批配置"
+      },
       "testCaseRemoveDuplicates": {
         "title": "Дедупликация тест-кейса",
         "description": "Отфильтруйте варианты использования текущего пространства и выполните обработку дедупликации",
