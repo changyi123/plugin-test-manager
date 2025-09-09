@@ -72,27 +72,9 @@ export const useGetApprovalLinkCaseIds = (params: ScopedTestDetailIdsParams) => 
           workspaceKey: workspaceKey,
           type: TestType.Case,
         },
-        // fields: uniq(
-        //   ['id', SystemField.ItemType].concat(
-        //     SystemFieldKeys,
-        //     tableFields.map(i => i.key).filter(i => i !== 'action'),
-        //   ),
-        // ),
-        selector: `r_test_manager_testApprovals = '${testApprovalId}'`,
+        selector: `测试评审 = '${testApprovalId}'`,
         notConcatField: true,
-        // ...queryParams,
       });
-      // const { list: caseIds } = await getLinkedTestEntityByQuery({
-      //   query: {
-      //     workspaceKey: workspaceKey,
-      //     type: TestType.Case,
-      //   },
-      //   limit: 99999,
-      //   linkType: TestLinkType.CaseLinkPlan,
-      //   sourceIds: [testPlanId],
-      //   destinationType: TestType.Case,
-      //   onlySelectId: true,
-      // });
 
       console.log('useGetApprovalLinkCaseIds', list);
 
@@ -404,7 +386,7 @@ export const useTreeParams = (props: {
   useUpdateEffect(() => {
     if (!workspaceKey || !selectedTestApproval?.objectId) return;
     setTreeParams({
-      selector: `r_test_manager_testApprovals = '${selectedTestApproval?.objectId}'`,
+      selector: `测试评审 = '${selectedTestApproval?.objectId}'`,
     });
   }, [
     activeType,

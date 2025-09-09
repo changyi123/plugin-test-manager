@@ -618,6 +618,7 @@
           "notSelectMessage": "未选择测试用例",
           "createTestRunSuccessMessage": "用例执行创建成功",
           "caseToPlanSuccessMessage": "测试用例已成功添加至测试计划中",
+          "caseToApprovalSuccessMessage": "测试用例已成功添加至测试审批中",
           "caseSelectModelTitle": "选择规划的测试用例",
           "createTestExecutionSuccessMessage": ["测试执行任务", "新建成功"],
           "createTestExecutionFailMessage": "测试执行任务新建失败"

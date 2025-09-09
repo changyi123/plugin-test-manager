@@ -649,6 +649,7 @@
           "notSelectMessage": "No test case selected",
           "createTestRunSuccessMessage": "Test case execution created successfully",
           "caseToPlanSuccessMessage": "The test case has been successfully added to the test plan",
+          "caseToApprovalSuccessMessage": "The test case has been successfully added to the test approval",
           "caseSelectModelTitle": "Select a planned test case",
           "createTestExecutionSuccessMessage": ["Test execution task", "created successfully"],
           "createTestExecutionFailMessage": "Test execution of task new failure"

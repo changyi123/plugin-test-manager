@@ -231,7 +231,7 @@ const TestEntityList: React.FC<TestEntityListProps> = ({
               tableFields.map(i => i.key).filter(i => i !== 'action'),
             ),
           ),
-          selector: mergeIQL(selectorToIql(handleSelector(selectors)), `r_test_manager_testApprovals = '${selectedTestApproval?.objectId}'`),
+          selector: mergeIQL(selectorToIql(handleSelector(selectors)), `测试评审 = '${selectedTestApproval?.objectId}'`),
           // notConcatField: true,
           ...queryParams,
         });

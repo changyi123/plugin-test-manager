@@ -179,13 +179,7 @@ const Right: React.FC<RightProps> = props => {
     await updateItemsWithProcess({
       title: '用例规划中',
       items: itemData,
-      // fields: {
-      //   values: { [TestFiledKeyMapping.linkType]: TestLinkType.CaseLinkPlan },
-      // },
       update: {
-        // [TestFiledKeyMapping.linkItems]: {
-        //   concat: [selectedTestApproval.objectId],
-        // },
         [TestFiledKeyMapping.testApprovals]: {
           concat: [selectedTestApproval.objectId],
         },
@@ -198,7 +192,7 @@ const Right: React.FC<RightProps> = props => {
         }, 500);
         setLoading(false);
         notification.success({
-          message: t('page.plan.planPageLayout.right.caseToPlanSuccessMessage'),
+          message: t('page.plan.planPageLayout.right.caseToApprovalSuccessMessage'),
         });
       },
       handleFail: error => {

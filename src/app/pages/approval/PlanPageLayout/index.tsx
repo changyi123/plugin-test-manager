@@ -58,6 +58,8 @@ const PlanPageLayout: React.FC<any> = ({ setApprovalEntry }) => {
   const { t } = useI18n();
   const { config } = useTestConfig();
 
+  console.log('useTestConfig', config);
+
   const executionListRef = React.useRef<ExecutionListRef>();
   const selectorModalRef = React.useRef<ModelActionType>();
   const detailSearchRef = useRef(null);
