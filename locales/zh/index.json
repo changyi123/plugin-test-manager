@@ -443,6 +443,10 @@
         "restrictiveConditions": "限制条件",
         "restrictiveConditionsPlaceholder": "请输入限制条件"
       },
+      "approvalConfig": {
+        "title": "审批配置",
+        "description": "审批配置"
+      },
       "testCaseRemoveDuplicates": {
         "title": "测试用例去重",
         "description": "筛选当前空间的测试用例，进行去重处理",

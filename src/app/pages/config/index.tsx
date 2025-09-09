@@ -19,6 +19,7 @@ import FieldSettings from './MoreConfig/FieldSettings';
 import GeneralSettings from './MoreConfig/GeneralSettings';
 import IsolatedSystem from './MoreConfig/IsolatedSystem';
 import TestConfigInitialization from './MoreConfig/TestConfigInitialization';
+import ApprovalConfig from './ApprovalConfig';
 import WordTemplate from './MoreConfig/WordTemplate';
 import TableFields from './TableFields';
 import TestCaseRemoveDuplicates from './TestCaseRemoveDuplicates';
@@ -103,6 +104,13 @@ const ConfigPages = [
     title: 'tableFields',
     component: TableFields,
     description: 'tableFields',
+  },
+  {
+    key: 'ApprovalConfig',
+    title: 'approvalConfig',
+    component: ApprovalConfig,
+    description: 'approvalConfig',
+    isGlobalConfig: true,
   },
   {
     key: 'TestConfigInitialization',

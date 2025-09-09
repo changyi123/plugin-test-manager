@@ -429,6 +429,10 @@
         "restrictiveConditions": "Restrictive conditions",
         "restrictiveConditionsPlaceholder": "Please enter restrictive conditions"
       },
+      "approvalConfig": {
+        "title": "审批配置",
+        "description": "审批配置"
+      },
       "testCaseRemoveDuplicates": {
         "title": "Test case deduplication",
         "description": "Filter the use cases of the current space and perform deduplication processing",

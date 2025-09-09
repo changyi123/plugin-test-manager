@@ -277,6 +277,7 @@ const TestEntitySelector: React.FC<TestEntitySelectorProps> = props => {
 
   React.useImperativeHandle(actionRef, () => ({
     async open(params) {
+      console.log('open', params);
       if (params?.selectValue) {
         setSelectValue(params?.selectValue ?? []);
       }
@@ -344,7 +345,7 @@ const TestEntitySelector: React.FC<TestEntitySelectorProps> = props => {
 
       selectedData = needFillValue ? filledValue : selectValue;
     }
-
+    console.log('handleOkButtonClick', selectedData);
     typeof props.onSelect === 'function' && props.onSelect(selectedData);
     eventBusRef.current.dispatch(AddExistedTestEventType, {
       selectedData,

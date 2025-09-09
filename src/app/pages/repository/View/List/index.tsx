@@ -1,8 +1,9 @@
 import { useSDK } from '@giteeteam/plugin-sdk';
 import { useListener } from '@projectproxima/proxima-sdk-js';
 import { useUpdateEffect } from 'ahooks';
-import { Button, notification, Select } from 'antd';
+import { Button, notification, Select, Dropdown, MenuProps } from 'antd';
 import React, { useCallback, useMemo, useRef } from 'react';
+import { useLocation } from 'react-router-dom';
 
 import CreatePermission from '@/components/business/Contianer/CreatePermission';
 import TestCaseFilterGroup from '@/components/business/TestCaseFilterGroup';
@@ -24,6 +25,7 @@ import { reverseTreeNodes } from '../../util';
 import { ViewComponentProps } from '../type';
 import cx from './index.less';
 import Table, { ActionType } from './Table';
+import { ApprovalEntry } from '@/pages/repository';
 
 type GroupedMode = 'all' | 'current';
 
@@ -38,12 +40,50 @@ const GroupModeSelector = (props: { mode: GroupedMode; onChange: (mode: GroupedM
   );
 };
 
+/** 评审入口 */
+const ApprovalEntryDropdown = ({ setApprovalEntry, createTestApproval }) => {
+  const { t } = useI18n();
+  const location = useLocation();
+  console.log('location', location);
+  const items: MenuProps['items'] = [
+  {
+    key: '1',
+    label: (
+      <a onClick={() => {
+        setApprovalEntry(ApprovalEntry.View)
+      }}>
+        查看评审事项
+      </a>
+    ),
+  },
+  {
+    key: '2',
+    label: (
+      <a onClick={() => {
+        console.log('click createTestApproval')
+        createTestApproval();
+        // setApprovalEntry(ApprovalEntry.Create)
+      }}>
+        新建评审事项
+      </a>
+    ),
+  },
+];
+  return (
+    <Dropdown menu={{ items }}>
+      <Button>评审</Button>
+    </Dropdown>
+  );
+};
+
 logPluginVersion();
 
 const ListView: React.FC<ViewComponentProps> = ({
   selectedNode,
   folderTreeData,
   onFolderTreeChange,
+  setApprovalEntry,
+  createTestApproval,
 }) => {
   const { t } = useI18n();
   const tableActionRef = React.useRef<ActionType>();
@@ -251,6 +291,7 @@ const ListView: React.FC<ViewComponentProps> = ({
         </div>
 
         <div className={cx('actions')}>
+          <ApprovalEntryDropdown setApprovalEntry={setApprovalEntry} createTestApproval={createTestApproval} />
           <GroupModeSelector mode={groupedMode} onChange={mode => setGroupedMode(mode)} />
           <Button onClick={() => toggleSelection()}>
             {tableSelectionVisible ? t('common.cancelAction') : t('common.batchAction')}
