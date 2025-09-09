@@ -1,5 +1,5 @@
 import { useMemoizedFn, useMount } from 'ahooks';
-import { Button, Input, message, Radio, Switch } from 'antd';
+import { Button, Input, InputNumber, message, Radio, Switch } from 'antd';
 import { pick } from 'lodash';
 import { components } from 'proxima-sdk';
 import React, { useState } from 'react';
@@ -26,6 +26,10 @@ const DefaultTestRunAction = {
   canOnlyExecuteMineCase: false,
   // 未分配的测试用例无法执行
   canOnlyExecuteAssignedCase: false,
+  // 测试任务下批量更新状态数量限制
+  canActionTestTaskLimit: false,
+  // 限制数量
+  actionTestTaskLimitQuantity: '',
   // 当前空间可以规划的测试用例状态名单类型：黑 | 白
   listType: 'black',
   // 当前空间可以规划的测试用例状态名单
@@ -151,6 +155,12 @@ const ExecuteTestRunAction = () => {
           return;
         }
       }
+      if (testRunAction?.canActionTestTaskLimit) {
+        if (!testRunAction.actionTestTaskLimitQuantity) {
+          message.info(t('page.config.executeTestRunAction.pleaseEnterCaseNumber'));
+          return;
+        }
+      }
       await testConfig.save({
         caseSnapshot,
         testRunAction,
@@ -171,6 +181,8 @@ const ExecuteTestRunAction = () => {
       listType: e => e.target.value,
       statusList: val => val.map(v => pick(v, ['statusId', 'name', 'isStartStatus'])),
       iql: e => e.target.value,
+      canActionTestTaskLimit: val => val,
+      actionTestTaskLimitQuantity: val => val,
     };
 
     const handleConfigChange = data => {
@@ -216,6 +228,17 @@ const ExecuteTestRunAction = () => {
 
   return (
     <div className={cx('container')}>
+      <h3>{t('page.config.executeTestRunAction.testCaseStatusLimist')}</h3>
+      <div className={cx('section')}>
+      <span className={cx('section-label')}>
+        {t('page.config.executeTestRunAction.worksapceTestCaseStatusLimistNumber')}：
+      </span>
+      <InputNumber className={cx('section-inputNumber')} value={testRunAction?.actionTestTaskLimitQuantity} min={1} max={100} onChange={buildConfigChange('actionTestTaskLimitQuantity')} />
+      <Switch
+        checked={testRunAction?.canActionTestTaskLimit}
+        onChange={buildConfigChange('canActionTestTaskLimit')}
+      />
+      </div>
       <div className={cx('section')}>
         <h3>{t('page.config.executeTestRunAction.caseToPlan')}</h3>
         <SearchPopoverSelect

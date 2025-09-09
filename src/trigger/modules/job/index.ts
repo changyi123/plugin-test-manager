@@ -604,7 +604,7 @@ export const updateItemsV2 = async (props: ProcessJobParams<IBatchUpdateParams>)
   const { processId, retry, items, ...updatePropParams } = props;
   const withProcess = !!processId;
   const result = getResult(processId);
-  result.total = items.length;
+  result.total = items?.length;
   try {
     const updateItems = async items => {
       const updateParams = {
@@ -615,10 +615,10 @@ export const updateItemsV2 = async (props: ProcessJobParams<IBatchUpdateParams>)
 
       try {
         await batchUpdateItemsV2(updateParams);
-        result.success += items.length;
+        result.success += items?.length;
       } catch (e) {
         result.message.push(getErrorMessage(e));
-        result.fail += items.length;
+        result.fail += items?.length;
         result.items = result.items.concat(items);
         throw e;
       }

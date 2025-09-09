@@ -70,6 +70,7 @@ import {
 import { getRepositoryQuery } from '@/lib/utils/tree';
 import TableCellTestDetailForm from '@/modules/beforeCreateOrUpdateModal/TableCellTestDetailForm';
 import TableCellTestDetailFormReadOnly from '@/modules/beforeCreateOrUpdateModal/TableCellTestDetailFormReadOnly';
+import { useCurrentTestConfig } from '@/pages/config/hooks';
 
 import { usePageContext } from '../hook';
 import { getTestRunSelector } from '../PlanPageLayout/helps';
@@ -151,6 +152,10 @@ const TestEntityList: React.FC<TestEntityListProps> = ({
   const [hasRowSelected, setHasRowSelected] = useState(false);
   const currentRunRef = useRef(null);
   const loading = loadingFromParentElement || tableLoading;
+  const testConfig = useCurrentTestConfig(workspaceKey);
+  const testRunAction = testConfig?.get('testRunAction');
+  const canActionTestTaskLimit = testRunAction?.canActionTestTaskLimit;
+  const actionTestTaskLimitQuantity = testRunAction?.actionTestTaskLimitQuantity;
 
   // 批量更新执行用例
   const [batchUpdateLoading, setBatchUpdateLoading] = useState(false);
@@ -1220,7 +1225,12 @@ const TestEntityList: React.FC<TestEntityListProps> = ({
       const testRunIds = getTestRunIds();
 
       // 可执行的测试执行 id
-      const canExecuteTestRunIds = await getCanExecuteTestRunIdSequence(testRunIds);
+      let canExecuteTestRunIds = await getCanExecuteTestRunIdSequence(testRunIds);
+      let isOver = false;
+      if (canActionTestTaskLimit && Number(canExecuteTestRunIds?.length) > Number(actionTestTaskLimitQuantity)) {
+        canExecuteTestRunIds = canExecuteTestRunIds.slice(0, actionTestTaskLimitQuantity);
+        isOver = true;
+      }
 
       // 没有可执行的测试执行时直接返回
       if (!canExecuteTestRunIds.length) {
@@ -1237,9 +1247,15 @@ const TestEntityList: React.FC<TestEntityListProps> = ({
       await updateItemsWithProcess({
         ...updateParams,
         handleSuccess: () => {
-          notification.success({
-            message: t('page.plan.testEntityList.updateRunStateTips'),
-          });
+          if (isOver) {
+            notification.success({
+              message: t('page.plan.testEntityList.updateRunStateAndLimitTips', { number: actionTestTaskLimitQuantity }),
+            });
+          } else {
+            notification.success({
+              message: t('page.plan.testEntityList.updateRunStateTips'),
+            });
+          }
           actionRef.current.refresh();
           // mutateTestPlanEvent.emit(selectedTestPlan?.objectId);
           mutateStatusEvent.emit('refreshExecutionStatus');
@@ -1394,6 +1410,8 @@ const TestEntityList: React.FC<TestEntityListProps> = ({
     t,
     config?.caseSnapshot?.enableCaseExeUpdate,
     selectedExecution?.objectId,
+    canActionTestTaskLimit,
+    actionTestTaskLimitQuantity,
   ]);
 
   tableSelectionToggleEvent.useSubscription(visible => {
