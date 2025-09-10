@@ -33,7 +33,7 @@ import RepoDropDown from '@/pages/repository/RepoDropDown';
 
 import { usePageContext } from '../../hook';
 import TestEntityList from '../../TestEntityList';
-import ExecutionStatus from '../ExecutionStatus';
+// import ExecutionStatus from '../ExecutionStatus';
 import { useSetTableHeight } from './hooks';
 import { useTestConfig } from '@/lib/hooks/useContext';
 import cx from './index.less';
@@ -83,6 +83,9 @@ const Right: React.FC<RightProps> = props => {
 
   useSetTableHeight();
 
+  const DISABLED_STATUSES = window.QiankunProps?.context?.env?.TEST_APPROVAL_DISABLED_STATUS;
+  const isCreateDisabled = DISABLED_STATUSES && DISABLED_STATUSES.includes((selectedTestApproval as any)?.status?.objectId);
+
   const testEntitySelectorRef = useRef<ModelActionType>();
   const detailSearchRef = useRef(null);
   // const [curTestRuns, setCurTestRuns] = useState<Record<string, any>[] | undefined>(undefined);
@@ -90,11 +93,11 @@ const Right: React.FC<RightProps> = props => {
   const [tableSelectionVisible, setTableSelectionVisible] = useState(false);
   const [loading, setLoading] = useState(false);
 
-  const toggleTableSelection = (visible?: boolean) => {
-    visible = typeof visible === 'boolean' ? visible : !tableSelectionVisible;
-    tableSelectionToggleEvent.emit(visible);
-    setTableSelectionVisible(visible);
-  };
+  // const toggleTableSelection = (visible?: boolean) => {
+  //   visible = typeof visible === 'boolean' ? visible : !tableSelectionVisible;
+  //   tableSelectionToggleEvent.emit(visible);
+  //   setTableSelectionVisible(visible);
+  // };
 
   tableSelectionToggleEvent.useSubscription(visible => {
     setTableSelectionVisible(visible);
@@ -202,49 +205,35 @@ const Right: React.FC<RightProps> = props => {
     });
   };
 
-  const renderDropdown = (
-    <Dropdown
-      // open={true}
-      dropdownRender={menu => (
-        <div className={cx('right-box-dropdown-content')}>
-          <RepositoryFolderTree
-            hideEmptyFolder
-            // actionRef={folderTreeRef}
-            workspaceKey={workspaceKey}
-            params={treeParams}
-            onFolderSelect={onFolderSelect}
-            isShowAll={false}
-          />
-        </div>
-      )}
-    >
-      <div className={cx('right-box-dropdown-text')}>
-        <div className={cx('right-box-text')}>{selectNode?.name || t('common.allTestCase')}</div>
-        <DownOutlined style={{ color: '#b4bac6' }} />
-      </div>
-    </Dropdown>
-  );
+  // const renderDropdown = (
+  //   <Dropdown
+  //     // open={true}
+  //     dropdownRender={menu => (
+  //       <div className={cx('right-box-dropdown-content')}>
+  //         <RepositoryFolderTree
+  //           hideEmptyFolder
+  //           // actionRef={folderTreeRef}
+  //           workspaceKey={workspaceKey}
+  //           params={treeParams}
+  //           onFolderSelect={onFolderSelect}
+  //           isShowAll={false}
+  //         />
+  //       </div>
+  //     )}
+  //   >
+  //     <div className={cx('right-box-dropdown-text')}>
+  //       <div className={cx('right-box-text')}>{selectNode?.name || t('common.allTestCase')}</div>
+  //       <DownOutlined style={{ color: '#b4bac6' }} />
+  //     </div>
+  //   </Dropdown>
+  // );
+
   return (
     <div className={cx('right-box')}>
       <div data-element-id="test-manager-execution-table-header" className={cx('box-header')}>
         <div className={cx('extra-content')}>
           <div className={cx('extra-content-left')}>
-            {activeType === 'TestExecution' ? (
-              <Space size={10}>
-                {['/plan'].includes(pathname) && renderDropdown}
-                <Tooltip title={selectedExecution?.name ?? ''} placement="topLeft">
-                  <div className={cx('title')}>{selectedExecution?.name}</div>
-                </Tooltip>
-                <div className={cx('rate')}>
-                  <ExecutionStatus
-                    selectedExecution={selectedExecution}
-                    // setCurTestRuns={setCurTestRuns}
-                  />
-                </div>
-              </Space>
-            ) : (
-              t('common.allTestCase')
-            )}
+            {t('common.allTestCase')}
           </div>
           <div className={cx('extra-content-right')}>
             <Button type='primary' onClick={() => {
@@ -271,9 +260,9 @@ const Right: React.FC<RightProps> = props => {
             <>
               <Button
                 type="primary"
-                onClick={activeType === 'TestPlan' ? addTestDetail : addTestExecutionDetail}
+                onClick={activeType === 'TestPlan' ? addTestDetail : null}
                 className={cx('action')}
-                disabled={!selectedTestApproval || getCreatePermission(TestType.Case)}
+                disabled={!selectedTestApproval || getCreatePermission(TestType.Case) || isCreateDisabled}
               >
                 {t('common.planCase')}
               </Button>

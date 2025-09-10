@@ -14,17 +14,13 @@ import { useDataContext } from '../hooks';
 import TestTypeMappingSelector from './formControl/TestTypeMappingSelector';
 import cx from './style.less';
 
-  const FormFieldKey = {
-  enableItemTypeAutoBind: 'enableItemTypeAutoBind',
-  initialItemTypeMapping: 'initialItemTypeMapping',
-  caseSnapshot: {
-    type: 'type',
-    enableCaseExeUpdate: 'enableCaseExeUpdate',
-  },
+const FormFieldKey = {
+  actionDisabledItemStatuses: 'actionDisabledItemStatuses',
+  itemApprovalStatus: 'itemApprovalStatus',
+  caseApprovalStatus: 'caseApprovalStatus',
 } as const;
 
 const ApprovalConfig = () => {
-  // 事项类型映射
   const { globalConfig, refreshGlobalConfig } = useDataContext();
   const { t } = useTranslation();
   const { t: scopeT } = useTranslation('', {
@@ -32,7 +28,7 @@ const ApprovalConfig = () => {
   });
 
   const form = Form.useForm()[0];
-  const enableItemTypeAutoBind = Form.useWatch(FormFieldKey.enableItemTypeAutoBind, form);
+  // const enableItemTypeAutoBind = Form.useWatch(FormFieldKey.enableItemTypeAutoBind, form);
   // const caseSnapshotType = Form.useWatch(['caseSnapshot', 'type'], form);
 
   React.useEffect(() => {
@@ -53,16 +49,10 @@ const ApprovalConfig = () => {
   const { mutateAsync: handleSubmit, isLoading } = useMutation({
     mutationFn: async () => {
       const values = form.getFieldsValue();
-      // if (values.enableItemTypeAutoBind && !Object.keys(values.initialItemTypeMapping).length) {
-      //   builtinItemTypes = await getBuiltinItemTypes();
-      //   if (builtinItemTypes.length !== 4) return message.error(scopeT('builtinItemTypeChanged'));
-      //   // 事项类型映射
-      //   values[FormFieldKey.initialItemTypeMapping] = BuiltinItemTypeMapping;
-      // }
-
+      console.log('ApprovalConfig useMutation update', globalConfig?.extra, values);
       // 更新全局配置
       await updateGlobalConfig({
-        extra: Object.assign({}, values),
+        extra: { ...globalConfig?.extra, ...values },
       });
       await refreshGlobalConfig();
       message.success(scopeT('messageSuccess'));
@@ -71,8 +61,11 @@ const ApprovalConfig = () => {
 
   return (
     <Form form={form} onFinish={handleSubmit} className={cx('container')}>
-      <Form.Item name={FormFieldKey.initialItemTypeMapping}>
+      {/* <Form.Item name={FormFieldKey.initialItemTypeMapping}>
         <TestTypeMappingSelector />
+      </Form.Item> */}
+      <Form.Item name={FormFieldKey.actionDisabledItemStatuses}>
+        {/* <Switch /> */}
       </Form.Item>
 
       <Button type="primary" loading={isLoading} className={cx('action-btn')} onClick={form.submit}>
