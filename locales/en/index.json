@@ -12,6 +12,10 @@
     "cannotExecuteTestCase": "The current test case is not assigned to an executor and cannot be executed"
   },
   "common": {
+    "insertItIntoTheTop": "Insert into the top",
+    "insertItIntoTheBottom": "Insert into the bottom",
+    "asChildNode": "As child node",
+    "insertNodeInner": "Insert into node inner",
     "snapshot": "Snapshot",
     "createPermissionTip": "Please contact the administrator to check the type mapping of the workspace, or enable",
     "haveDelete": "deleted",
@@ -301,6 +305,9 @@
         "radioBlackLabel": "Workflow states for use cases that are not allowed to be planned",
         "radioWhiteLabel": "Workflow states for use cases that are allowed to be planned",
         "testersCannotExecuteOtherCases": "Testers may not execute others test cases",
+        "testCaseStatusLimist": "Use case bulk operation limits",
+        "worksapceTestCaseStatusLimistNumber": "The number of execution states of a single-space batch change of use cases",
+        "pleaseEnterCaseNumber": "Enter the number of use case statuses",
         "unassignedCaseCannotBeExecuted": "Unassigned test cases cannot be executed",
         "defaultCaseRange": "The default planning scope for the test case"
       },
@@ -409,6 +416,7 @@
         "title": "Test Management Configuration Initialization",
         "description": "Enabling configuration initialization will modify the association mapping of the built-in matter types in the test management to the built-in matter types.",
         "switchLabel": "Enable Configuration Initialization",
+        "cloneItemWithTestPlanCase": "Copy the test plan while planning the original use cases",
         "switchSnapshotLabel": "Automatically take snapshots when planning cases for executions",
         "builtInItemTypeHasBeenModified": "Built-in matter types have been modified.",
         "messageSuccess": "Test management configuration initialization successful.",
@@ -671,6 +679,7 @@
         "addItemTips": "No item add permission at the moment, please check the item operation permission configuration or contact the administrator",
         "noCanUpdateRunStateTips": "The selected test execution cannot change execution status",
         "updateRunStateTips": "Selected test execution status updated successfully",
+        "updateRunStateAndLimitTips": "If the number of updates exceeds {{number}}, the previous update of {{number}} has been successful. If you have any questions, please contact the administrator",
         "updateDesigneeStateTips": "The selected test executor has been successfully updated",
         "notUpdateDesignee": "Cannot change executor of test case",
         "updateDesignee": "Change executor",

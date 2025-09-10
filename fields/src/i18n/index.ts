@@ -3,7 +3,9 @@ import { Key } from './types';
 
 const LANGUAGE = 'lang'; // 设置源为产品 one 中 个人信息设置页的逻辑
 export const storageLanguage: Language =
-  (window as any).globalState?.userInfo?.language || (window as any).env?.LOCALES || localStorage.getItem(LANGUAGE);
+  (window as any).globalState?.userInfo?.language ||
+  (window as any).env?.LOCALES ||
+  localStorage.getItem(LANGUAGE);
 let currentLanguage: Language;
 if (storageLanguage && Object.values(Language).includes(storageLanguage)) {
   currentLanguage = storageLanguage;

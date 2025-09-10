@@ -95,17 +95,17 @@ module.exports = (cliEnv = {}, argv) => {
     plugins: [
       // new BundleAnalyzerPlugin(),
       isProd &&
-      new Webpack.BannerPlugin({
-        banner: `(() => {let webpackStyleLink = document.createElement("link");webpackStyleLink.rel="stylesheet";let href = document.querySelector('#webpack-style-holder').getAttribute('data-diy-plugin-env') || '';href += 'test_manager/production/${tag}/client-side/combined-components/combined-components.css?t=${new Date().getTime()}';webpackStyleLink.href=href;const root = document.querySelector("#webpack-style-holder");root.appendChild(webpackStyleLink);href = '';webpackStyleLink = null;})();`,
-        raw: true,
-        entryOnly: true,
-        test: /\.js/,
-      }),
+        new Webpack.BannerPlugin({
+          banner: `(() => {let webpackStyleLink = document.createElement("link");webpackStyleLink.rel="stylesheet";let href = document.querySelector('#webpack-style-holder').getAttribute('data-diy-plugin-env') || '';href += 'test_manager/production/${tag}/client-side/combined-components/combined-components.css?t=${new Date().getTime()}';webpackStyleLink.href=href;const root = document.querySelector("#webpack-style-holder");root.appendChild(webpackStyleLink);href = '';webpackStyleLink = null;})();`,
+          raw: true,
+          entryOnly: true,
+          test: /\.js/,
+        }),
       isProd &&
-      new MiniCssExtractPlugin({
-        filename: '[name].css',
-        chunkFilename: '[name].chunk.css',
-      }),
+        new MiniCssExtractPlugin({
+          filename: '[name].css',
+          chunkFilename: '[name].chunk.css',
+        }),
       new AntdDayjsWebpackPlugin(),
       new WebpackBar(),
       new CleanWebpackPlugin(),

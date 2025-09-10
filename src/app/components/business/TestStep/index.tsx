@@ -99,7 +99,7 @@ const TestStep: React.FC<TestStepProps> = ({
 
       swap({ sourceIndex, destinationIndex }) {
         const newSteps = Array.from(steps);
-        const [movedStep]= newSteps.splice(sourceIndex, 1);
+        const [movedStep] = newSteps.splice(sourceIndex, 1);
         newSteps.splice(destinationIndex, 0, { ...((movedStep as any) || {}), copy: true });
         setSteps(newSteps);
       },

@@ -12,6 +12,10 @@
     "cannotExecuteTestCase": "当前测试用例未分配执行人，无法执行"
   },
   "common": {
+    "insertItIntoTheTop": "插入到上方",
+    "insertItIntoTheBottom": "插入到下方",
+    "asChildNode": "作为子节点",
+    "insertNodeInner": "插入到节点内部",
     "snapshot": "快照",
     "createPermissionTip": "请联系管理员检查空间的类型映射，或开启",
     "haveDelete": "已删除",
@@ -309,6 +313,9 @@
         "radioBlackLabel": "不允许被规划的用例工作流状态",
         "radioWhiteLabel": "允许被规划的用例工作流状态",
         "testersCannotExecuteOtherCases": "测试人员不可执行他人测试用例",
+        "testCaseStatusLimist": "用例批量操作限制",
+        "worksapceTestCaseStatusLimistNumber": "单空间批量更改用例执行状态数",
+        "pleaseEnterCaseNumber": "请填写用例状态数量数",
         "unassignedCaseCannotBeExecuted": "未分配的测试用例无法执行",
         "defaultCaseRange": "用例默认规划范围"
       },
@@ -423,6 +430,7 @@
         "title": "测试管理空间配置初始化",
         "description": "开启自动类型关联会将测试管理内置的事项类型关联配置修改为内置的事项类型",
         "switchLabel": "开启自动类型关联",
+        "cloneItemWithTestPlanCase": "复制测试计划同时规划原用例",
         "switchSnapshotLabel": "用例快照类型",
         "builtInItemTypeHasBeenModified": "内置事项类型已被修改",
         "messageSuccess": "测试管理初始化配置修改成功",
@@ -640,6 +648,7 @@
         "addItemTips": "暂无事项新增权限，请检查事项操作权限配置或联系管理员",
         "noCanUpdateRunStateTips": "所选测试执行不能更改执行状态",
         "updateRunStateTips": "所选测试执行状态更新成功",
+        "updateRunStateAndLimitTips": "更新数超过{{number}}，前{{number}}条更新成功，如有疑问请联系管理员",
         "updateDesigneeStateTips": "所选测试执行人更新成功",
         "notUpdateDesignee": "不可对用例更改执行人",
         "updateDesignee": "更改执行人",

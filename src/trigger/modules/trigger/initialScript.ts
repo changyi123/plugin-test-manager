@@ -153,6 +153,16 @@ const initGlobalTestConfig = async () => {
     });
   }
 
+  // 开启事项复制时，顺带复制测试用例.
+  if (
+    globalTestConfigData?.enableCloneItemWithPlanCase == null ||
+    globalTestConfigData?.enableCloneItemWithPlanCase === undefined
+  ) {
+    saveGlobalTestConfigData({
+      enableCloneItemWithPlanCase: true,
+    });
+  }
+
   if (!globalTestConfigData.builtInItemType) {
     // TODO: 内置事项类型
   }

@@ -51,7 +51,9 @@ const GlobalFilter: React.FC<GlobalFilterPropsType> = props => {
                     setGlobalFiltersIql(updatedFilters);
                   }}
                 />
-                <span style={{ marginLeft: '10px', fontSize: '14px' }}>{filterCond.filterName}</span>
+                <span style={{ marginLeft: '10px', fontSize: '14px' }}>
+                  {filterCond.filterName}
+                </span>
                 <div
                   className={
                     filterCond.queryType == SHOW_IQL_TYPE

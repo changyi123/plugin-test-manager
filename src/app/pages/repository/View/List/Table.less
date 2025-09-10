@@ -54,8 +54,19 @@
       .ant-table-cell {
         &.test-case-title {
           padding: 9.5px 16px 9.5px 6px !important;
+          
+          // 只针对表格标题列中的拖拽图标，确保其在展开图标之上
+          .anticon[onMouseDown] {
+            position: relative;
+            z-index: 10;
+          }
         }
       }
+    }
+    
+    // 确保展开图标层级较低
+    .ant-table-row-expand-icon {
+      z-index: 1;
     }
   }
 }

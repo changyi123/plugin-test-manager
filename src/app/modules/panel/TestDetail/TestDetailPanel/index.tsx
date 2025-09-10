@@ -1,4 +1,5 @@
 /* eslint-disable @typescript-eslint/no-unused-vars */
+import createProximaSdk from '@giteeteam/proxima-sdk-js';
 import { useDebounceFn } from 'ahooks';
 import { Button, Input, message, Spin } from 'antd';
 import { cloneDeep } from 'lodash';
@@ -11,7 +12,6 @@ import { useTestConfig } from '@/lib/hooks/useContext';
 import useI18n from '@/lib/hooks/useI18n';
 import { Item } from '@/lib/types/App';
 import { Step } from '@/lib/types/Test';
-import createProximaSdk from '@giteeteam/proxima-sdk-js';
 
 import css from './index.less';
 
@@ -57,7 +57,7 @@ const Detail: React.FC = () => {
 
       const cpDetail = cloneDeep(testEntity.detail) || { steps: [] };
       cpDetail.steps = newSteps;
-      proxima.execute('stepAfterUpdateItemList', cpDetail)
+      proxima.execute('stepAfterUpdateItemList', cpDetail);
       const data = await updateTestEntity([
         {
           objectId: testEntity.objectId,
@@ -76,7 +76,7 @@ const Detail: React.FC = () => {
   const { run: handlePreconditionChange } = useDebounceFn(async precondition => {
     const cpDetail = cloneDeep(testEntity.detail) || { precondition: '' };
     cpDetail.precondition = precondition;
-    proxima.execute('stepAfterUpdateItemList', cpDetail)
+    proxima.execute('stepAfterUpdateItemList', cpDetail);
     const data = await updateTestEntity([
       {
         objectId: testEntity.objectId,
