@@ -231,7 +231,10 @@ const TestEntityList: React.FC<TestEntityListProps> = ({
               tableFields.map(i => i.key).filter(i => i !== 'action'),
             ),
           ),
-          selector: mergeIQL(selectorToIql(handleSelector(selectors)), `测试评审 = '${selectedTestApproval?.objectId}'`),
+          selector: mergeIQL(
+            selectorToIql(handleSelector(selectors)),
+            `测试评审 = '${selectedTestApproval?.objectId}'`,
+          ),
           // notConcatField: true,
           ...queryParams,
         });
@@ -675,7 +678,7 @@ const TestEntityList: React.FC<TestEntityListProps> = ({
   const removeTestRelation = React.useCallback(
     async (testCaseItemId, testDetails) => {
       if (!Array.isArray(testDetails)) return;
-      
+
       // const res = await updateTestEntity(
       //   testDetails.map(d => ({
       //     objectId: d.id,
@@ -1048,7 +1051,14 @@ const TestEntityList: React.FC<TestEntityListProps> = ({
         <DeleteOutlined /> {t('common.remove')}
       </span>,
     ];
-  }, [userData, hasRowSelected, t, workspaceKey, addAndDeleteRefresh, selectedTestApproval?.objectId]);
+  }, [
+    userData,
+    hasRowSelected,
+    t,
+    workspaceKey,
+    addAndDeleteRefresh,
+    selectedTestApproval?.objectId,
+  ]);
 
   // 测试执行任务批量操作
   const InnerTableSelectionActionNodes = React.useMemo(() => {

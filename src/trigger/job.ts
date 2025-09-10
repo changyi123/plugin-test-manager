@@ -10,3 +10,5 @@ export {
   retryJob,
   copyFolderJob,
 } from './modules/job/index';
+
+export { processAutomationQueue } from './modules/automation/queueProcessor';

@@ -1,13 +1,17 @@
 /* eslint-disable react-hooks/exhaustive-deps */
 import { useSDK } from '@giteeteam/plugin-sdk';
 import createProximaSdk from '@projectproxima/proxima-sdk-js';
-import { useDrop } from 'ahooks';
+import { useDebounceFn, useDrop } from 'ahooks';
 import { Button, Dropdown, Input, message, Modal, notification } from 'antd';
 import { sum, uniq } from 'lodash';
-import React, { useCallback } from 'react';
+import React, { useCallback, useState } from 'react';
 
 import { copyFolderWithProcess } from '@/components/business/BatchResult/hooks';
-import { CustomMore, CustomPlus, CustomScreenOff } from '@/icons';
+import {
+  CustomMore,
+  CustomPlus,
+  CustomScreenOff,
+} from '@/icons';
 import { updateTestEntity } from '@/lib/api/item';
 import { createFolder, deleteFolder, updateFolders } from '@/lib/api/repository';
 import { getAppEnv } from '@/lib/appEnv';
@@ -155,6 +159,8 @@ const FolderTree: React.FC<FolderTreeProps> = ({
   onFolderTreeChange,
 }) => {
   const { t } = useI18n();
+  const [searchValue, setSearchValue] = useState('');
+  const [isSearching, setIsSearching] = useState(false);
   const [expandedKeys, setExpandedKeys] = React.useState([]);
   const [selectedKeys, setSelectedKeys] = React.useState(['root']);
   const treeFn = useTreeFn(traverseTreeNodesAndAddTitle(treeNodeData));
@@ -178,6 +184,96 @@ const FolderTree: React.FC<FolderTreeProps> = ({
   const selectedTreeNode = React.useMemo(() => {
     return treeFn.getTreeNodeByKey(selectedKeys[0]);
   }, [treeFn, selectedKeys]);
+
+  // 搜索处理函数 - 只处理展开逻辑
+  const { run: handleSearchDebounced } = useDebounceFn(
+    (value: string) => {
+      setIsSearching(!!value);
+
+      if (value) {
+        // 展开所有包含搜索内容的节点
+        const expandKeys: string[] = [];
+        const searchNodes = (nodes: TreeNode[]) => {
+          nodes.forEach(node => {
+            if (node.name?.toLowerCase().includes(value.toLowerCase())) {
+              // 添加所有父节点到展开列表
+              let currentNode = node;
+              while (currentNode.parentKey) {
+                expandKeys.push(currentNode.parentKey);
+                currentNode = treeFn.getTreeNodeByKey(currentNode.parentKey);
+              }
+              expandKeys.push(node.key);
+            }
+            if (node.children?.length) {
+              searchNodes(node.children);
+            }
+          });
+        };
+        searchNodes(treeNodeData);
+        setExpandedKeys(uniq(expandKeys));
+      } else {
+        // 清空搜索时，恢复默认展开状态
+        if (treeNodeData?.length) {
+          const node = treeNodeData[0];
+          setExpandedKeys([node.key]);
+        }
+      }
+    },
+    { wait: 300 },
+  );
+
+  // 输入框值改变处理 - 立即更新值，延迟执行搜索
+  const handleSearchChange = useCallback(
+    (e: React.ChangeEvent<HTMLInputElement>) => {
+      const value = e.target.value;
+      setSearchValue(value);
+      handleSearchDebounced(value);
+    },
+    [handleSearchDebounced],
+  );
+
+  // 清除搜索
+  const handleClearSearch = useCallback(() => {
+    setSearchValue('');
+    setIsSearching(false);
+    // 恢复默认展开状态
+    if (treeNodeData?.length) {
+      const node = treeNodeData[0];
+      setExpandedKeys([node.key]);
+    }
+  }, [treeNodeData]);
+
+  // 高亮搜索文本
+  const highlightText = useCallback(
+    (text: string) => {
+      if (!searchValue) return text;
+
+      const index = text.toLowerCase().indexOf(searchValue.toLowerCase());
+      if (index === -1) return text;
+
+      const beforeStr = text.substring(0, index);
+      const matchStr = text.substring(index, index + searchValue.length);
+      const afterStr = text.substring(index + searchValue.length);
+
+      return (
+        <span>
+          {beforeStr}
+          <span style={{ color: '#1890ff', backgroundColor: '#e6f7ff' }}>{matchStr}</span>
+          {afterStr}
+        </span>
+      );
+    },
+    [searchValue],
+  );
+
+  // 过滤树节点
+  const filterTreeNode = useCallback(
+    (node: TreeNode) => {
+      if (!searchValue) return true;
+      return node.name?.toLowerCase().includes(searchValue.toLowerCase());
+    },
+    [searchValue],
+  );
 
   // 获取节点数据
   const treeData = React.useMemo(() => {
@@ -683,7 +779,7 @@ const FolderTree: React.FC<FolderTreeProps> = ({
         <DropTreeTitle key={node.key} nodeKey={node.key} onItemDrop={handleItemDrop}>
           <>
             <span className="ellipsis" title={node.name}>
-              {node.name}
+              {highlightText(node.name)}
             </span>
             <span className={cx('tree-node-length')}>{countsText}</span>
             <Dropdown
@@ -902,6 +998,16 @@ const FolderTree: React.FC<FolderTreeProps> = ({
   return (
     <div ref={treeContainerRef} className={cx('folder-tree', className)}>
       <ChangeFolderModal ref={changeFolderModalRef} validate={changeFolderValidate} />
+      <div className={cx('search-box')} style={{ padding: '8px 12px' }}>
+        <Input.Search
+          placeholder={t('common.search') || '搜索'}
+          value={searchValue}
+          onChange={handleSearchChange}
+          onSearch={value => handleSearchDebounced(value)}
+          allowClear
+          onClear={handleClearSearch}
+        />
+      </div>
       <div className={cx('toolkit-bar')}>{ToolKitButtons.map(Button => Button)}</div>
 
       <VirtualTree

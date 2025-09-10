@@ -53,8 +53,11 @@ const Header: React.FC<HeaderProps> = ({
   // setExecutionKeys,
 }) => {
   const { t } = useI18n();
-  const { /**workspaceKey,*/ selectedTestApproval, setSelectedTestApproval, tableSelectionToggleEvent } =
-    usePageContext();
+  const {
+    /**workspaceKey,*/ selectedTestApproval,
+    setSelectedTestApproval,
+    tableSelectionToggleEvent,
+  } = usePageContext();
   const { testExecutionFieldKeys } = useBaseAction();
   const [isReportGenerating, setIsReportGenerating] = React.useState(false);
   // const [executionKeys, setExecutionKeys] = React.useState<string[]>([]);
@@ -126,7 +129,7 @@ const Header: React.FC<HeaderProps> = ({
         width={800}
       />
     </div>
-  )
+  );
   return (
     <>
       <div className={cx('page-header')}>

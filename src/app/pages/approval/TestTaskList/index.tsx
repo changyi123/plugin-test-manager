@@ -176,14 +176,14 @@ const TestTaskList: React.FC<any> = ({
         //   notConcatField: true,
         //   ...queryParams,
         //   selector: selectors,
-          // linkType: TestLinkType.ExecutionLinkPlan,
-          // sourceIds: [selectedTestApproval.objectId],
-          // destinationType: TestType.Execution,
+        // linkType: TestLinkType.ExecutionLinkPlan,
+        // sourceIds: [selectedTestApproval.objectId],
+        // destinationType: TestType.Execution,
         // });
         res = await getTestEntityByQuery({
           query: {
             workspaceKey: workspaceKey,
-            '测试评审': selectedTestApproval.objectId,
+            测试评审: selectedTestApproval.objectId,
             type: TestType.Approval,
           },
           fields: uniq(

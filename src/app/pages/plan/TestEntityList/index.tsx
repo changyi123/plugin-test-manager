@@ -1,14 +1,16 @@
 /* eslint-disable react-hooks/exhaustive-deps */
 import { DeleteOutlined, FlagOutlined, UserOutlined } from '@ant-design/icons';
+import { EllipsisOutlined, PlayCircleOutlined } from '@ant-design/icons';
 import { useListener } from '@projectproxima/proxima-sdk-js';
 import createProximaSdk from '@projectproxima/proxima-sdk-js';
 import { useMemoizedFn, useRequest } from 'ahooks';
-import { Button, message, notification, Tooltip } from 'antd';
+import { Button, Dropdown, Menu, message, notification, Tooltip } from 'antd';
 import { TestFiledKeyMapping, TestLinkType, TestType } from 'common/constant';
 import dayjs from 'dayjs';
 import { isEmpty, isEqual, keyBy, omit, pick } from 'lodash';
 import React, { useCallback, useEffect, useRef, useState } from 'react';
 
+import AutomationExecuteModal from '@/components/business/AutomationExecuteModal';
 import {
   deleteRunWithProcess,
   removeCaseFromPlanWithProcess,
@@ -159,6 +161,10 @@ const TestEntityList: React.FC<TestEntityListProps> = ({
 
   // 批量更新执行用例
   const [batchUpdateLoading, setBatchUpdateLoading] = useState(false);
+  // 自动化执行弹窗
+  const [automationModalVisible, setAutomationModalVisible] = useState(false);
+  // 单条自动化执行ID
+  const [singleExecutionId, setSingleExecutionId] = useState<string | null>(null);
 
   const statusesConfig = React.useMemo(() => {
     return keyBy(globalTestConfig?.statuses ?? [], 'key');
@@ -834,6 +840,35 @@ const TestEntityList: React.FC<TestEntityListProps> = ({
     [mutateStatusEvent, selectedTestPlan?.objectId, statusesConfig, t],
   );
 
+  // 自动化执行处理函数
+  const handleAutomationExecute = useMemoizedFn(() => {
+    const selectedRowKeys = actionRef.current?.selectedRowKeys || [];
+    if (!selectedRowKeys.length) {
+      return notification.warning({
+        message: t('请先选择要执行自动化测试的测试执行'),
+      });
+    }
+
+    setAutomationModalVisible(true);
+  });
+
+  // 单条自动化执行处理函数
+  const handleSingleAutomationExecute = useMemoizedFn((executionId: string) => {
+    setSingleExecutionId(executionId);
+    setAutomationModalVisible(true);
+  });
+
+  // 自动化执行成功回调
+  const handleAutomationSuccess = useMemoizedFn((executionId: string) => {
+    setAutomationModalVisible(false);
+    // 刷新列表
+    actionRef.current?.refresh();
+    notification.success({
+      message: `自动化执行已触发，执行ID: ${executionId}`,
+      description: '可在自动化执行记录中查看详情',
+    });
+  });
+
   /** 根据列表记录删除测试执行 */
   const deleteTestRunByIds = useMemoizedFn(testRunIds => {
     const enable = getAppEnv('CREATE_EXECUTION_DEFAULT_NAME_CONFIG')?.enable;
@@ -1075,6 +1110,29 @@ const TestEntityList: React.FC<TestEntityListProps> = ({
           !isEqual(record.designee, prevRecord.designee),
         render(_, record) {
           const { result: enabled, message } = canExecuteTestRun(record.designee);
+
+          // 更多操作下拉菜单
+          const moreActionsMenu = (
+            <Menu>
+              <Menu.Item
+                key="automation"
+                icon={<PlayCircleOutlined />}
+                onClick={() => handleSingleAutomationExecute(record.objectId)}
+              >
+                {t('自动化执行')}
+              </Menu.Item>
+              <Menu.Item
+                key="delete"
+                icon={<DeleteOutlined />}
+                disabled={getCreatePermission(TestType.Case)}
+                onClick={() => deleteTestRunByIds([record.id])}
+                style={{ color: 'red' }}
+              >
+                {t('common.remove')}
+              </Menu.Item>
+            </Menu>
+          );
+
           return (
             <div className={cx('run-link')}>
               <Tooltip title={message} placement="topLeft">
@@ -1104,17 +1162,14 @@ const TestEntityList: React.FC<TestEntityListProps> = ({
               >
                 {t('components.business.testRunModal.addDefectButton.createDefect')}
               </Button>
-              <Button
-                type="link"
-                size="small"
-                style={{ marginLeft: 10, color: 'red' }}
-                disabled={getCreatePermission(TestType.Case)}
-                onClick={async () => {
-                  deleteTestRunByIds([record.id]);
-                }}
-              >
-                {t('common.remove')}
-              </Button>
+              <Dropdown overlay={moreActionsMenu} trigger={['click']} placement="bottomRight">
+                <Button
+                  type="link"
+                  size="small"
+                  style={{ marginLeft: 10 }}
+                  icon={<EllipsisOutlined />}
+                />
+              </Dropdown>
             </div>
           );
         },
@@ -1125,6 +1180,7 @@ const TestEntityList: React.FC<TestEntityListProps> = ({
       deleteTestRunByIds,
       getCreatePermission,
       handleTestRunStatusChange,
+      handleSingleAutomationExecute,
       mutateStatusEvent,
       config,
       t,
@@ -1362,6 +1418,15 @@ const TestEntityList: React.FC<TestEntityListProps> = ({
       }
     };
     return [
+      // 自动化执行按钮
+      <span
+        className={cx('action', !hasRowSelected && 'disabled')}
+        key="automationExecute"
+        onClick={() => hasRowSelected && handleAutomationExecute()}
+      >
+        <PlayCircleOutlined /> {t('自动化执行')}
+      </span>,
+
       <Tooltip
         key="assignee"
         title={canDesigneeSelect ? null : t('page.plan.testEntityList.notUpdateDesignee')}
@@ -1649,6 +1714,24 @@ const TestEntityList: React.FC<TestEntityListProps> = ({
           }, 400);
         }}
       />
+
+      {/* 自动化执行弹窗 */}
+      {automationModalVisible && (
+        <AutomationExecuteModal
+          visible={automationModalVisible}
+          testExecutionIds={
+            singleExecutionId ? [singleExecutionId] : actionRef.current?.selectedRowKeys || []
+          }
+          onCancel={() => {
+            setAutomationModalVisible(false);
+            setSingleExecutionId(null);
+          }}
+          onSuccess={executionId => {
+            handleAutomationSuccess(executionId);
+            setSingleExecutionId(null);
+          }}
+        />
+      )}
     </div>
   );
 };

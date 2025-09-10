@@ -1,28 +1,28 @@
 import { useSDK } from '@giteeteam/plugin-sdk';
 import { useRequest } from 'ahooks';
+import { message, notification } from 'antd';
+import { TestFiledKeyMapping, TestType } from 'common/constant';
 import { after, cloneDeep } from 'lodash';
 import React, { useCallback, useState } from 'react';
 
+import { updateItemsWithProcess } from '@/components/business/BatchResult/hooks';
+import TestEntitySelectorModal, { ActionType } from '@/components/business/TestEntitySelectorModal';
 import TestManagerProvider from '@/components/business/TestManagerProvider';
 import ErrorBoundary from '@/components/common/ErrorBoundary';
 import PageLayout from '@/components/common/PageLayout';
 import { getDevConfig } from '@/devEnv';
 import { getRepositoryTreeV2 } from '@/lib/api/item';
 import { featureFlags } from '@/lib/appEnv';
+import { useBaseAction } from '@/lib/hooks/useContext';
 import useI18n from '@/lib/hooks/useI18n';
 import { logPluginVersion } from '@/lib/utils/helper';
 import FolderTree from '@/pages/repository/FolderTree';
 
+import ApprovalPage from '../approval';
 import cx from './index.less';
 import { getTreeNodeByKey } from './util';
 import MinderList from './View/List';
 import MinderView from './View/Minder';
-import ApprovalPage from '../approval';
-import TestEntitySelectorModal, { ActionType } from '@/components/business/TestEntitySelectorModal';
-import { TestFiledKeyMapping, TestType } from 'common/constant';
-import { useBaseAction } from '@/lib/hooks/useContext';
-import { message, notification } from 'antd';
-import { updateItemsWithProcess } from '@/components/business/BatchResult/hooks';
 
 /** 用例库视图切换 */
 const ViewModeSelector = ({ viewMode, onViewModeChange }) => {
@@ -113,41 +113,38 @@ const TestRepository: React.FC<{ workspaceKey: string }> = ({ workspaceKey }) =>
 
     return data;
   }, [t]);
-  
-  const createTestApproval = useCallback(
-    async () => {
-      const data = await getSelectCaseIds();
-      if (!data) return;
-      const { selectedData: caseIds } = data;
 
-      console.log('data', data);
-      const { item, extraData } = await createItemUseModal({
-        type: TestType.Approval,
-      });
-      if (!item) return;
+  const createTestApproval = useCallback(async () => {
+    const data = await getSelectCaseIds();
+    if (!data) return;
+    const { selectedData: caseIds } = data;
 
-      console.log('item', item);
+    console.log('data', data);
+    const { item, extraData } = await createItemUseModal({
+      type: TestType.Approval,
+    });
+    if (!item) return;
 
-      await updateItemsWithProcess({
-        title: '用例规划中',
-        items: caseIds,
-        update: {
-          [TestFiledKeyMapping.testApprovals]: {
-            concat: [item.objectId],
-          },
+    console.log('item', item);
+
+    await updateItemsWithProcess({
+      title: '用例规划中',
+      items: caseIds,
+      update: {
+        [TestFiledKeyMapping.testApprovals]: {
+          concat: [item.objectId],
         },
-        handleSuccess: () => {
-          notification.success({
-            message: t('page.plan.planPageLayout.right.caseToPlanSuccessMessage'),
-          });
-        },
-        handleFail: error => {
-          message.error(error.message);
-        },
-      });
-    },
-    [getSelectCaseIds, t],
-  );
+      },
+      handleSuccess: () => {
+        notification.success({
+          message: t('page.plan.planPageLayout.right.caseToPlanSuccessMessage'),
+        });
+      },
+      handleFail: error => {
+        message.error(error.message);
+      },
+    });
+  }, [getSelectCaseIds, t]);
 
   // 获取最新的 node 数据
   const selectedNode = React.useMemo(() => {
@@ -155,7 +152,7 @@ const TestRepository: React.FC<{ workspaceKey: string }> = ({ workspaceKey }) =>
   }, [folderTreeData, selectedNodeKey]);
 
   if (approvalEntry === ApprovalEntry.View) {
-    return <ApprovalPage setApprovalEntry={setApprovalEntry} />
+    return <ApprovalPage setApprovalEntry={setApprovalEntry} />;
   }
 
   return (

@@ -309,6 +309,7 @@ const exportDocx = async testReportData => {
     const snapshotParagraph = new Paragraph({
       children: [
         new ImageRun({
+          type: 'png',
           data: dataUrl,
           transformation: await getImageTransformation(dataUrl),
         }),

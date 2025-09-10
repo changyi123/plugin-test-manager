@@ -15,7 +15,9 @@ import RenderRepository from '@/components/business/RenderRepository';
 import RepositorySelector, {
   ActionType as RepositorySelectorActionType,
 } from '@/components/business/RepositorySelector';
-import TestBatchCreateVersionnModal, { TestBatchCreateVersionModalActionRef } from '@/components/business/TestBatchCreateVersionModal';
+import TestBatchCreateVersionnModal, {
+  TestBatchCreateVersionModalActionRef,
+} from '@/components/business/TestBatchCreateVersionModal';
 import UserCell from '@/components/business/UserCell';
 import type {
   BusinessTableActionType,

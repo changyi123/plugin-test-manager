@@ -1,6 +1,6 @@
 import { useMutation } from '@tanstack/react-query';
 import { useMemoizedFn } from 'ahooks';
-import { Button, Form, message, Switch, Radio } from 'antd';
+import { Button, Form, message, Radio, Switch } from 'antd';
 import React from 'react';
 import { useTranslation } from 'react-i18next';
 
@@ -14,7 +14,7 @@ import { useDataContext } from '../hooks';
 import TestTypeMappingSelector from './formControl/TestTypeMappingSelector';
 import cx from './style.less';
 
-  const FormFieldKey = {
+const FormFieldKey = {
   enableItemTypeAutoBind: 'enableItemTypeAutoBind',
   initialItemTypeMapping: 'initialItemTypeMapping',
   caseSnapshot: {
