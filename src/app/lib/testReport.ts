@@ -312,7 +312,7 @@ const exportDocx = async testReportData => {
           type: 'png',
           data: dataUrl,
           transformation: await getImageTransformation(dataUrl),
-        }),
+        } as any),
       ],
     });
 
