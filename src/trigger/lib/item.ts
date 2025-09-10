@@ -36,6 +36,8 @@ export const getItemCreateRequiredAttrs = async (workspaceInfo: {
   ]);
 
   if (!testConfigData) throw new Error('current workspace has no test config');
+  if (!testConfigData.itemTypeMap) throw new Error('current workspace has no itemTypeMap config');
+  if (!testConfigData.itemTypeMap.TestCase) throw new Error('current workspace has no TestCase itemType config');
 
   return {
     itemType: { key: testConfigData.itemTypeMap.TestCase },

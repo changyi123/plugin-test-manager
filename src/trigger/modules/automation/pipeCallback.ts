@@ -20,26 +20,37 @@ export interface PipeCallbackParams {
  * 轻量级接口，先保存再说，避免消息丢失
  */
 export const pipeAutomationCallback = async (params: any): Promise<any> => {
-  console.log('[pipeAutomationCallback] 收到Pipe回调请求:', JSON.stringify(params));
+  console.log('[PipeCallback] === 收到Pipe回调请求 ===');
+  console.log('[PipeCallback] 原始params:', JSON.stringify(params, null, 2));
+  console.log('[PipeCallback] params类型:', typeof params);
+  console.log('[PipeCallback] params.payload存在:', !!params.payload);
 
   try {
     // 从params.payload中获取回调数据
     const callbackData = params.payload as PipeCallbackParams;
-    console.log('[pipeAutomationCallback] 解析回调数据:', callbackData);
+    console.log('[PipeCallback] 解析后的回调数据:', JSON.stringify(callbackData, null, 2));
+    console.log('[PipeCallback] 回调数据关键字段检查:');
+    console.log('[PipeCallback] - buildId:', callbackData?.buildId);
+    console.log('[PipeCallback] - status:', callbackData?.status);
+    console.log('[PipeCallback] - pipeJmpUrl:', callbackData?.pipeJmpUrl);
+    console.log('[PipeCallback] - reportFile:', callbackData?.reportFile);
 
     // 宽松处理：先保存，避免消息丢失
     const buildId = callbackData.buildId || 'unknown_' + Date.now();
 
-    console.log(`[pipeAutomationCallback] 准备入队，buildId: ${buildId}`);
+    console.log(`[PipeCallback] 准备入队处理，buildId: ${buildId}`);
 
     // 将回调数据存储到队列中，由队列处理器异步消费
-    const queueId = await addToPipeCallbackQueue({
+    const queueData = {
       buildId: buildId,
       callbackData: JSON.stringify(callbackData),
       status: 'pending',
-    });
+    };
+    console.log('[PipeCallback] 入队数据:', queueData);
 
-    console.log(`[pipeAutomationCallback] 回调数据已入队，queueId: ${queueId}`);
+    const queueId = await addToPipeCallbackQueue(queueData);
+
+    console.log(`[PipeCallback] 回调数据已成功入队，queueId: ${queueId}`);
 
     // 快速响应，告知Pipe平台已接收
     return buildResponse({
@@ -53,7 +64,11 @@ export const pipeAutomationCallback = async (params: any): Promise<any> => {
       },
     });
   } catch (error) {
-    console.error('[pipeAutomationCallback] Pipe回调接收失败:', error);
+    console.error('[PipeCallback] === Pipe回调接收失败 ===');
+    console.error('[PipeCallback] 错误详情:', error);
+    console.error('[PipeCallback] 错误消息:', error?.message);
+    console.error('[PipeCallback] 错误堆栈:', error?.stack);
+    console.error('[PipeCallback] 原始请求数据:', JSON.stringify(params, null, 2));
 
     // 即使出错也尽量返回成功，避免第三方重复调用
     return buildResponse({
@@ -61,6 +76,7 @@ export const pipeAutomationCallback = async (params: any): Promise<any> => {
       code: 200,
       data: {
         message: 'Callback received, will be processed later',
+        error: error?.message,
       },
     });
   }

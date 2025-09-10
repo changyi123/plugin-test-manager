@@ -157,20 +157,36 @@ export async function callPipeWebHook(
       hasSecret: !!pipeConfig.secret,
     });
 
-    // 构建测试用例映射关系
+    // 构建测试用例映射关系 - 支持TestID和className#methodName两种映射
     const testCaseMapping: Record<string, any> = {};
+    
     params.testCases.forEach(testCase => {
-      const caseKey = `${testCase.className}#${testCase.methodName}`;
-      testCaseMapping[caseKey] = {
+      const executionData = {
         testExecutionId: testCase.testExecutionId || testCase.executionId,
         caseId: testCase.caseId,
         caseName: testCase.caseName,
         repository: testCase.repository,
         filePath: testCase.filePath,
+        className: testCase.className,
+        methodName: testCase.methodName,
+        testId: testCase.testId, // 用例唯一标识
       };
-    });
 
-    console.log('[Pipe] 构建映射关系，共', Object.keys(testCaseMapping).length, '个用例');
+      // 1. 通过TestID映射（主要映射方式，Excel中会用到）
+      if (testCase.testId) {
+        testCaseMapping[testCase.testId] = executionData;
+        console.log(`[Pipe] 添加TestID映射: ${testCase.testId} -> 执行${executionData.testExecutionId}`);
+      }
+
+      // 2. 通过className#methodName映射（备用映射方式）
+      if (testCase.className && testCase.methodName) {
+        const classMethodKey = `${testCase.className}#${testCase.methodName}`;
+        testCaseMapping[classMethodKey] = executionData;
+        console.log(`[Pipe] 添加类方法映射: ${classMethodKey} -> 执行${executionData.testExecutionId}`);
+      }
+    });
+    
+    console.log('[Pipe] 构建映射关系完成，共', Object.keys(testCaseMapping).length, '个映射条目');
 
     // 按仓库和分支分组
     const repoGroups = groupTestCasesByRepo(params.testCases);
@@ -226,14 +242,21 @@ export async function callPipeWebHook(
           },
         });
 
-        console.log(`[Pipe] 批次 ${i + 1} 响应:`, response.data);
+        console.log(`[Pipe] 批次 ${i + 1}/${batches.length} 完整响应数据:`, JSON.stringify(response.data, null, 2));
+        console.log(`[Pipe] 批次 ${i + 1} 响应状态码:`, response.status);
+        console.log(`[Pipe] 批次 ${i + 1} 响应头:`, response.headers);
 
-        // 构建返回结果
+        // 构建返回结果 - 根据Pipe接口文档，buildId从data.data.pipelineBuildId获取
         const buildId =
-          response.data?.buildId || response.data?.data?.buildId || `batch_${Date.now()}_${i}`;
+          response.data?.data?.pipelineBuildId ||
+          response.data?.buildId ||
+          response.data?.data?.buildId ||
+          `batch_${Date.now()}_${i}`;
         const pipeJumpUrl =
           response.data?.pipeJumpUrl ||
           `${pipeConfig.baseUrl.replace('http://pipe-uat', 'https://pipe')}/builds/${buildId}`;
+
+        console.log(`[Pipe] 提取的buildId: ${buildId} (来源: response.data.data.pipelineBuildId)`);
 
         results.push({
           buildId: String(buildId),
@@ -246,12 +269,15 @@ export async function callPipeWebHook(
       }
     }
 
-    console.log('[Pipe] 所有批次处理完成，总结果数量:', results.length);
+    console.log('[Pipe] === 所有批次处理完成 ===');
+    console.log('[Pipe] 总批次数量:', results.length);
+    console.log('[Pipe] 所有结果汇总:', JSON.stringify(results, null, 2));
 
     // 返回第一个结果作为主要结果，其他结果在日志中记录
     const mainResult = results[0];
     if (results.length > 1) {
-      console.log('[Pipe] 多批次执行结果汇总:', results);
+      console.log('[Pipe] 多批次执行，使用第一个结果作为主要结果');
+      console.log('[Pipe] 主要结果buildId:', mainResult.buildId);
     }
 
     return {

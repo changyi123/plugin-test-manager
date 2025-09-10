@@ -247,22 +247,38 @@ export class AutomationExecutionHandler {
   }
 
   /**
-   * 构建测试用例映射关系
+   * 构建测试用例映射关系 - 支持TestID和className#methodName两种映射
    */
   private buildTestCaseMapping(testCaseInfos: any[]): Record<string, any> {
     const testCaseMapping: Record<string, any> = {};
+    
     testCaseInfos.forEach(testCase => {
+      const executionData = {
+        testExecutionId: testCase.executionId,
+        caseId: testCase.caseId,
+        caseName: testCase.caseName,
+        repository: testCase.repository,
+        filePath: testCase.filePath,
+        className: testCase.className,
+        methodName: testCase.methodName,
+        testId: testCase.testId, // 用例唯一标识
+      };
+
+      // 1. 通过TestID映射（主要映射方式，Excel中会用到）
+      if (testCase.testId) {
+        testCaseMapping[testCase.testId] = executionData;
+        console.log(`[buildTestCaseMapping] 添加TestID映射: ${testCase.testId} -> 执行${executionData.testExecutionId}`);
+      }
+
+      // 2. 通过className#methodName映射（备用映射方式）
       if (testCase.className && testCase.methodName) {
-        const caseKey = `${testCase.className}#${testCase.methodName}`;
-        testCaseMapping[caseKey] = {
-          testExecutionId: testCase.executionId,
-          caseId: testCase.caseId,
-          caseName: testCase.caseName,
-          repository: testCase.repository,
-          filePath: testCase.filePath,
-        };
+        const classMethodKey = `${testCase.className}#${testCase.methodName}`;
+        testCaseMapping[classMethodKey] = executionData;
+        console.log(`[buildTestCaseMapping] 添加类方法映射: ${classMethodKey} -> 执行${executionData.testExecutionId}`);
       }
     });
+    
+    console.log(`[buildTestCaseMapping] 构建映射关系完成，共 ${Object.keys(testCaseMapping).length} 个映射条目`);
     return testCaseMapping;
   }
 

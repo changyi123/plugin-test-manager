@@ -8,6 +8,9 @@ modules:
     - key: automation-queue-processor
       function: automation-queue-processor-function
       cronTime: "*/5 * * * * *"
+    - key: pipe-callback-queue-processor
+      function: pipe-callback-queue-processor-function
+      cronTime: "*/5 * * * * *"
   webtrigger:
     # TODO: Debug 使用，生产环境禁止调用下面的 trigger
     # ---------------------------------------------
@@ -338,6 +341,10 @@ modules:
     # 自动化测试队列处理器函数
     - key: automation-queue-processor-function
       handler: modules/automation/queueProcessor.processAutomationQueue
+      timeout: 120000
+    # Pipe回调队列处理器函数
+    - key: pipe-callback-queue-processor-function
+      handler: job.processPipeCallbackQueue
       timeout: 120000
       # api backend Query
     - key: api-query-test-entity-function

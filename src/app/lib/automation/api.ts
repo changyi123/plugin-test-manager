@@ -164,8 +164,17 @@ export async function triggerAutomationExecution(
 
   try {
     const tenant = getTenantKey();
-    // TODO: 环境判断逻辑待完善，目前先写死development
-    const environment = 'development';
+    // 获取当前环境，优先从context中获取，如果没有则根据NODE_ENV判断，默认为development
+    const context = (globalThis as any)?.QiankunProps?.context;
+    let environment = 'development';
+    
+    if (context?.env?.NODE_ENV === 'production') {
+      environment = 'production';
+    } else if (process.env.NODE_ENV === 'production') {
+      environment = 'production';
+    }
+    
+    console.log('[Automation] 当前环境:', environment);
     const apiPath = `/apps/api/v1/${tenant}/apps/test_manager/environments/${environment}/webtriggers/api-automation-execute`;
 
     const requestData = {
