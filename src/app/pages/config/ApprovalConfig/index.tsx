@@ -11,7 +11,6 @@ import { getAppEnv } from '@/lib/appEnv';
 import { BuiltinItemTypeMapping, CASESNAPSHOT_TYPE, caseSnapshotOpt } from '@/lib/constants';
 
 import { useDataContext } from '../hooks';
-import TestTypeMappingSelector from './formControl/TestTypeMappingSelector';
 import cx from './style.less';
 
 const FormFieldKey = {
