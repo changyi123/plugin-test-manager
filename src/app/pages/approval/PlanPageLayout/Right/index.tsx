@@ -180,7 +180,7 @@ const Right: React.FC<RightProps> = props => {
 
     setLoading(true);
     await updateItemsWithProcess({
-      title: '用例规划中',
+      title: '用例添加中',
       items: itemData,
       update: {
         [TestFiledKeyMapping.testApprovals]: {
@@ -236,10 +236,7 @@ const Right: React.FC<RightProps> = props => {
             {t('common.allTestCase')}
           </div>
           <div className={cx('extra-content-right')}>
-            <Button type='primary' onClick={() => {
-              openItemViewScreen(selectedTestApproval?.objectId);
-            }}>审批</Button>
-            {/* <Select
+            <Select
               className={cx('select-group')}
               value={showType}
               options={[
@@ -253,7 +250,10 @@ const Right: React.FC<RightProps> = props => {
                 },
               ]}
               onChange={val => setShowType(val)}
-            ></Select> */}
+            ></Select>
+            <Button type='primary' onClick={() => {
+              openItemViewScreen(selectedTestApproval?.objectId);
+            }}>审批</Button>
             {/* <Button className={cx('action')} onClick={() => toggleTableSelection()}>
               {tableSelectionVisible ? t('common.cancelAction') : t('common.batchAction')}
             </Button> */}
