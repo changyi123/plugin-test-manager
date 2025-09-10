@@ -266,19 +266,64 @@ const FolderTree: React.FC<FolderTreeProps> = ({
     [searchValue],
   );
 
-  // 过滤树节点
-  const filterTreeNode = useCallback(
-    (node: TreeNode) => {
+  // 检查节点或其子节点是否匹配搜索条件
+  const hasMatchInSubtree = useCallback(
+    (node: TreeNode): boolean => {
       if (!searchValue) return true;
-      return node.name?.toLowerCase().includes(searchValue.toLowerCase());
+
+      // 如果当前节点匹配搜索词，显示
+      if (node.name?.toLowerCase().includes(searchValue.toLowerCase())) {
+        return true;
+      }
+
+      // 如果当前节点不匹配，检查子节点是否有匹配的
+      if (node.children?.length) {
+        return node.children.some(child => hasMatchInSubtree(child));
+      }
+
+      return false;
     },
     [searchValue],
   );
 
+  // 过滤树数据 - 保持树结构但隐藏不匹配的节点
+  const filterTreeData = useCallback(
+    (nodes: TreeNode[]): TreeNode[] => {
+      return nodes
+        .map(node => {
+          // 递归过滤子节点
+          const filteredChildren = node.children?.length ? filterTreeData(node.children) : [];
+
+          // 判断是否应该显示该节点（节点本身匹配或有子节点匹配）
+          const shouldShow = hasMatchInSubtree(node);
+
+          if (!shouldShow) {
+            // 如果节点不应该显示且没有需要显示的子节点，则隐藏
+            return null;
+          }
+
+          // 返回过滤后的节点
+          return {
+            ...node,
+            children: filteredChildren,
+          };
+        })
+        .filter(Boolean) as TreeNode[];
+    },
+    [hasMatchInSubtree],
+  );
+
   // 获取节点数据
   const treeData = React.useMemo(() => {
-    return treeFn.traverseTreeNodes();
-  }, [treeFn, treeNodeData]);
+    const baseTreeData = treeFn.traverseTreeNodes();
+
+    // 如果有搜索值，应用过滤
+    if (searchValue) {
+      return filterTreeData(baseTreeData);
+    }
+
+    return baseTreeData;
+  }, [treeFn, treeNodeData, searchValue, filterTreeData]);
 
   const folderMenuDisabledKeys = React.useMemo(() => {
     const keys = [];
