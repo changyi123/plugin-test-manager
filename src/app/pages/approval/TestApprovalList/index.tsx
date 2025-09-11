@@ -18,8 +18,6 @@ import useI18n from '@/lib/hooks/useI18n';
 import { goToItemDetailPage } from '@/lib/utils/helper';
 import { usePageContext } from '@/pages/approval/hook';
 
-import { StatusProgress } from '../../../components/business/Status';
-
 const { ItemIcon } = components.Components.Common;
 
 import CreatePermission from '@/components/business/Contianer/CreatePermission';
@@ -140,7 +138,7 @@ const TestPlanList: React.FC<any> = ({ setApprovalEntry }) => {
       key: 'title',
       fixed: true,
       isSystem: true,
-      title: '评审名称',
+      title: t('page.approval.columns.approvalTitle'),
       extraProps: {
         onClick: record => setSelectedTestApproval(record),
       },
@@ -167,46 +165,6 @@ const TestPlanList: React.FC<any> = ({ setApprovalEntry }) => {
         );
       },
     },
-    // {
-    //   key: 'caseStatus',
-    //   title: t('components.business.testPlanList.caseStatus'),
-    //   width: 240,
-    //   render(_, rowData) {
-    //     const passCount = rowData.caseStatus?.PASSED ?? 0;
-    //     const total =
-    //       Object.values(rowData.caseStatus ?? {})?.reduce((prev: number, cur: number) => {
-    //         prev = prev + cur;
-    //         return prev;
-    //       }, 0) || 1;
-    //     const rate = passCount ? passCount / (total as number) : 0;
-
-    //     return (
-    //       <div className={cx('table-rate')}>
-    //         <StatusProgress className={cx('status')} hasSummary status={rowData.caseStatus} />
-    //         <span className={cx('rate')}>{`${Math.floor(rate * 100)}%`}</span>
-    //       </div>
-    //     );
-    //   },
-    // },
-    // {
-    //   key: 'caseCount',
-    //   title: t('components.business.testPlanList.planCaseCount'),
-    //   align: 'right',
-    //   width: 100,
-    //   render(_, rowData) {
-    //     return <span>{rowData?.caseCount}</span>;
-    //   },
-    // },
-    // {
-    //   key: 'action',
-    //   title: '',
-    //   isSystem: true,
-    //   fixed: 'right' as any,
-    //   width: 40,
-    //   render(_) {
-    //     return <span></span>;
-    //   },
-    // },
   ];
 
   const handleCreate = async () => {
@@ -247,12 +205,12 @@ const TestPlanList: React.FC<any> = ({ setApprovalEntry }) => {
                 setApprovalEntry(null);
               }}
             />
-            <span>测试用例评审</span>
+            <span>{t('page.approval.title')}</span>
           </div>
           <div className={cx('header-right')}>
             <CreatePermission type={TestType.Approval}>
               <Button type="primary" onClick={() => handleCreate()}>
-                新建测试评审
+                {t('page.approval.create')}
               </Button>
             </CreatePermission>
           </div>
@@ -279,12 +237,10 @@ const TestPlanList: React.FC<any> = ({ setApprovalEntry }) => {
         defaultColumnKey={[
           'status',
           'caseCount',
-          // 'assignee',
           'createdAt',
           'createdBy',
-          // 'caseStatus',
         ]}
-        privateColumnKey={['caseCount']}
+        // privateColumnKey={['caseCount']}
         rowKey="objectId"
         columns={columns}
         name={`${workspaceKey}_TestApprovalTable`}

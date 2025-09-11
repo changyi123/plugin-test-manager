@@ -5,7 +5,8 @@
     "TestPlan": "测试计划",
     "testExecution": "测试执行任务",
     "testRun": "测试执行",
-    "testDefect": "缺陷"
+    "testDefect": "缺陷",
+    "testApproval": "测试评审"
   },
   "testRunAuth": {
     "cannotAssignedTestCase": "无法执行指派给他人的测试用例",
@@ -75,6 +76,7 @@
     "testCaseSet": "测试用例集",
     "testPlan": "测试计划",
     "testExecution": "测试执行任务",
+    "testApproval": "测试评审",
     "testRun": "测试执行",
     "testDefect": "缺陷",
     "testRepository": "测试用例库",
@@ -436,8 +438,11 @@
         "restrictiveConditionsPlaceholder": "请输入限制条件"
       },
       "approvalConfig": {
-        "title": "审批配置",
-        "description": "审批配置"
+        "title": "评审配置",
+        "description": "评审配置",
+        "actionDisabledItemStatuses": "用例评审增删操作限制",
+        "itemApprovalStatus": "评审事项通过状态",
+        "caseApprovalStatus": "用例事项通过状态"
       },
       "testCaseRemoveDuplicates": {
         "title": "测试用例去重",
@@ -869,6 +874,20 @@
         },
         "success": "导入成功",
         "redirectRepositoryPage": "跳转用例库页面"
+      }
+    },
+    "approval": {
+      "title": "测试用例评审",
+      "create": "新建用例评审",
+      "view": "查看用例评审",
+      "approval": "评审",
+      "columns": {
+        "approvalTitle": "评审名称"
+      },
+      "action": {
+        "approval": "审批",
+        "addCase": "添加用例",
+        "addingCase": "用例添加中"
       }
     }
   },
