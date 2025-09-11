@@ -173,11 +173,24 @@ export async function createExecutionRecord(data: {
     skippedCount: data.skippedCount || 0,
   };
 
-  console.log('[database.createExecutionRecord] 准备写入storage的数据:', recordData);
+  console.log('[database.createExecutionRecord] 准备写入storage的数据:', JSON.stringify(recordData, null, 2));
 
   try {
     const result = await storage.entity('AutomationExecutionRecord').add(recordData);
-    console.log('[database.createExecutionRecord] storage.add返回结果:', result);
+    console.log('[database.createExecutionRecord] ========= storage.add完整返回结果 =========');
+    console.log(JSON.stringify(result, null, 2));
+    console.log('[database.createExecutionRecord] ========= 返回结果解析 =========');
+    console.log('[database.createExecutionRecord] result类型:', typeof result);
+    console.log('[database.createExecutionRecord] result是否为null:', result === null);
+    console.log('[database.createExecutionRecord] result是否为undefined:', result === undefined);
+    if (result && typeof result === 'object') {
+      console.log('[database.createExecutionRecord] result的所有key:', Object.keys(result));
+      console.log('[database.createExecutionRecord] result.objectId:', (result as any).objectId);
+      console.log('[database.createExecutionRecord] result.id:', (result as any).id);
+      console.log('[database.createExecutionRecord] result.executionId:', (result as any).executionId);
+      console.log('[database.createExecutionRecord] result.buildId:', (result as any).buildId);
+    }
+    console.log('[database.createExecutionRecord] ==========================================');
     return result;
   } catch (error) {
     console.error('[database.createExecutionRecord] storage.add失败:', error);
@@ -203,28 +216,85 @@ export async function updateExecutionRecord(
     testCaseMapping?: string;
   },
 ) {
+  console.log('[database.updateExecutionRecord] ========= 开始更新执行记录 =========');
+  console.log('[database.updateExecutionRecord] executionId:', executionId);
+  console.log('[database.updateExecutionRecord] updateData完整内容:');
+  console.log(JSON.stringify(updateData, null, 2));
+  
   const execution = await getExecutionByExecutionId(executionId);
+  
   if (!execution) {
+    console.error(`[database.updateExecutionRecord] 未找到执行记录: ${executionId}`);
     throw new Error(`Execution record not found: ${executionId}`);
   }
-
-  return await storage.entity('AutomationExecutionRecord').set(execution.objectId, updateData);
+  
+  console.log('[database.updateExecutionRecord] 找到执行记录，objectId:', execution.objectId);
+  console.log('[database.updateExecutionRecord] 当前记录的buildId:', execution.buildId);
+  console.log('[database.updateExecutionRecord] 准备更新buildId为:', updateData.buildId);
+  
+  const result = await storage.entity('AutomationExecutionRecord').set(execution.objectId, updateData);
+  console.log('[database.updateExecutionRecord] ========= storage.set完整返回结果 =========');
+  console.log(JSON.stringify(result, null, 2));
+  console.log('[database.updateExecutionRecord] ========= 返回结果分析 =========');
+  console.log('[database.updateExecutionRecord] result类型:', typeof result);
+  if (result && typeof result === 'object') {
+    console.log('[database.updateExecutionRecord] result的所有key:', Object.keys(result));
+  }
+  console.log('[database.updateExecutionRecord] ==========================================');
+  
+  return result;
 }
 
 export async function getExecutionByExecutionId(executionId: string) {
-  return await storage
+  console.log('[database.getExecutionByExecutionId] ========= 开始查询 =========');
+  console.log('[database.getExecutionByExecutionId] 查询executionId:', executionId);
+  
+  const result = await storage
     .entity('AutomationExecutionRecord')
     .query()
     .equalTo('executionId', executionId)
     .first();
+  
+  console.log('[database.getExecutionByExecutionId] ========= 查询完整结果 =========');
+  console.log(JSON.stringify(result, null, 2));
+  console.log('[database.getExecutionByExecutionId] ========= 结果分析 =========');
+  console.log('[database.getExecutionByExecutionId] 是否找到记录:', result ? '是' : '否');
+  if (result) {
+    console.log('[database.getExecutionByExecutionId] result类型:', typeof result);
+    console.log('[database.getExecutionByExecutionId] result的所有key:', Object.keys(result));
+    console.log('[database.getExecutionByExecutionId] objectId:', result.objectId);
+    console.log('[database.getExecutionByExecutionId] buildId:', result.buildId);
+    console.log('[database.getExecutionByExecutionId] executionId:', result.executionId);
+  }
+  console.log('[database.getExecutionByExecutionId] ==========================================');
+  
+  return result;
 }
 
 export async function getExecutionByBuildId(buildId: string) {
-  return await storage
+  console.log('[database.getExecutionByBuildId] ========= 开始通过buildId查询 =========');
+  console.log('[database.getExecutionByBuildId] 查询buildId:', buildId);
+  
+  const result = await storage
     .entity('AutomationExecutionRecord')
     .query()
     .equalTo('buildId', buildId)
     .first();
+  
+  console.log('[database.getExecutionByBuildId] ========= 查询完整结果 =========');
+  console.log(JSON.stringify(result, null, 2));
+  console.log('[database.getExecutionByBuildId] ========= 结果分析 =========');
+  console.log('[database.getExecutionByBuildId] 是否找到记录:', result ? '是' : '否');
+  if (result) {
+    console.log('[database.getExecutionByBuildId] result类型:', typeof result);
+    console.log('[database.getExecutionByBuildId] result的所有key:', Object.keys(result));
+    console.log('[database.getExecutionByBuildId] objectId:', result.objectId);
+    console.log('[database.getExecutionByBuildId] buildId:', result.buildId);
+    console.log('[database.getExecutionByBuildId] executionId:', result.executionId);
+  }
+  console.log('[database.getExecutionByBuildId] ==========================================');
+  
+  return result;
 }
 
 // 获取测试用例映射关系

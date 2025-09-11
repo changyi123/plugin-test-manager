@@ -228,20 +228,19 @@ const FolderTree: React.FC<FolderTreeProps> = ({
       const value = e.target.value;
       setSearchValue(value);
       handleSearchDebounced(value);
-    },
-    [handleSearchDebounced],
-  );
 
-  // 清除搜索
-  const handleClearSearch = useCallback(() => {
-    setSearchValue('');
-    setIsSearching(false);
-    // 恢复默认展开状态
-    if (treeNodeData?.length) {
-      const node = treeNodeData[0];
-      setExpandedKeys([node.key]);
-    }
-  }, [treeNodeData]);
+      // 如果值为空（清除操作），立即处理
+      if (!value) {
+        setIsSearching(false);
+        // 恢复默认展开状态
+        if (treeNodeData?.length) {
+          const node = treeNodeData[0];
+          setExpandedKeys([node.key]);
+        }
+      }
+    },
+    [handleSearchDebounced, treeNodeData],
+  );
 
   // 高亮搜索文本
   const highlightText = useCallback(
@@ -1050,7 +1049,6 @@ const FolderTree: React.FC<FolderTreeProps> = ({
           onChange={handleSearchChange}
           onSearch={value => handleSearchDebounced(value)}
           allowClear
-          onClear={handleClearSearch}
         />
       </div>
       <div className={cx('toolkit-bar')}>{ToolKitButtons.map(Button => Button)}</div>

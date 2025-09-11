@@ -202,6 +202,21 @@ export async function callPipeWebHook(
       console.log(
         `[Pipe] 处理仓库组: ${gitCloneUrl}, 分支: ${gitBranch}, 用例数量: ${groupTestCases.length}`,
       );
+      console.log('[Pipe] Git参数详情:');
+      console.log(`[Pipe]   - gitCloneUrl: "${gitCloneUrl}"`);
+      console.log(`[Pipe]   - gitBranch: "${gitBranch}"`);
+      console.log(`[Pipe]   - gitPath: "${gitPath}"`);
+      console.log('[Pipe] 第一个测试用例的Git信息:', {
+        gitCloneUrl: groupTestCases[0]?.gitCloneUrl,
+        gitBranch: groupTestCases[0]?.gitBranch,
+        gitPath: groupTestCases[0]?.gitPath,
+      });
+      
+      // 检查所有测试用例的gitPath是否一致
+      const allGitPaths = groupTestCases.map(tc => tc.gitPath).filter(Boolean);
+      const uniqueGitPaths = Array.from(new Set(allGitPaths));
+      console.log(`[Pipe] 该组测试用例的gitPath情况: 共${allGitPaths.length}个有效值, ${uniqueGitPaths.length}个唯一值`);
+      console.log('[Pipe] 唯一gitPath值:', uniqueGitPaths);
 
       // 分批处理（每批CASE_LIST不超过10000字符）
       const batches = batchTestCases(groupTestCases);
@@ -231,6 +246,13 @@ export async function callPipeWebHook(
           token: pipeConfig.token,
         };
 
+        console.log('[Pipe] 最终Pipe请求参数检查:');
+        console.log(`[Pipe]   - GIT_CODE_CLONE_URL: "${requestData.allParams.GIT_CODE_CLONE_URL}"`);
+        console.log(`[Pipe]   - GIT_CODE_BRANCH: "${requestData.allParams.GIT_CODE_BRANCH}"`);
+        console.log(`[Pipe]   - GIT_CODE_PATH: "${requestData.allParams.GIT_CODE_PATH}"`);
+        console.log(`[Pipe]   - CASE_LIST: "${requestData.allParams.CASE_LIST}"`);
+        console.log(`[Pipe]   - JDK_VERSION: "${requestData.allParams.JDK_VERSION}"`);
+        console.log(`[Pipe]   - MAVEN_VERSION: "${requestData.allParams.MAVEN_VERSION}"`);
         console.log('[Pipe] 发送请求数据:', JSON.stringify(requestData, null, 2));
 
         const response = await axios({
@@ -247,11 +269,7 @@ export async function callPipeWebHook(
         console.log(`[Pipe] 批次 ${i + 1} 响应头:`, response.headers);
 
         // 构建返回结果 - 根据Pipe接口文档，buildId从data.data.pipelineBuildId获取
-        const buildId =
-          response.data?.data?.pipelineBuildId ||
-          response.data?.buildId ||
-          response.data?.data?.buildId ||
-          `batch_${Date.now()}_${i}`;
+        const buildId = response.data?.pipelineBuildId;
         const pipeJumpUrl =
           response.data?.pipeJumpUrl ||
           `${pipeConfig.baseUrl.replace('http://pipe-uat', 'https://pipe')}/builds/${buildId}`;

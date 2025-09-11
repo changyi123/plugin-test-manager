@@ -301,19 +301,32 @@ export class AutomationExecutionHandler {
         workspaceKey: this.params.workspaceKey || 'default',
       };
 
-      console.log('[executeAutomation][createExecutionRecord] 准备创建记录，数据:', recordData);
+      console.log('[executeAutomation][createExecutionRecord] 准备创建记录，数据:');
+      console.log(JSON.stringify(recordData, null, 2));
+      
       const record = await createExecutionRecord(recordData);
-      console.log('[executeAutomation][createExecutionRecord] storage.entity返回值:', record);
+      
+      console.log('[executeAutomation][createExecutionRecord] ========= createExecutionRecord返回值 =========');
+      console.log(JSON.stringify(record, null, 2));
+      console.log('[executeAutomation][createExecutionRecord] ========= 返回值分析 =========');
+      console.log('[executeAutomation][createExecutionRecord] 返回值类型:', typeof record);
+      if (record && typeof record === 'object') {
+        console.log('[executeAutomation][createExecutionRecord] record的所有key:', Object.keys(record));
+        console.log('[executeAutomation][createExecutionRecord] record.objectId:', (record as any).objectId);
+        console.log('[executeAutomation][createExecutionRecord] record.id:', (record as any).id);
+      }
 
       // storage.entity().add() 通常返回的是新记录的 id 字符串或对象
       const recordId =
         typeof record === 'string'
           ? record
           : (record as any).objectId || (record as any).id || String(record);
-      console.log(
-        '[executeAutomation][createExecutionRecord] 执行记录创建成功，recordId:',
-        recordId,
-      );
+      
+      console.log('[executeAutomation][createExecutionRecord] 解析出的recordId:', recordId);
+      console.log('[executeAutomation][createExecutionRecord] recordId类型:', typeof recordId);
+      console.log('[executeAutomation][createExecutionRecord] this.executionId(用于后续查询):', this.executionId);
+      console.log('[executeAutomation][createExecutionRecord] ==========================================');
+      
       return String(recordId);
     } catch (error) {
       console.error('[executeAutomation]创建执行记录失败:', error);
@@ -424,7 +437,6 @@ export class AutomationExecutionHandler {
       console.log('[callPipeWebHook] 步骤2: 构建测试用例映射关系...');
       const testCaseMapping = this.buildTestCaseMapping(testCaseInfos);
       console.log(`[callPipeWebHook] 构建映射关系完成，映射数量: ${Object.keys(testCaseMapping).length}`);
-      
       // 输出映射关系的key示例
       const mappingKeys = Object.keys(testCaseMapping).slice(0, 5);
       console.log('[callPipeWebHook] 映射关系key示例（前5个）:', mappingKeys);
@@ -572,7 +584,8 @@ export class AutomationExecutionHandler {
 
       const { data: caseData } = await iqlRequest(caseQueryParams);
       const testCases = caseData.list || [];
-      console.log(`[getTestCaseInfosByExecutionIds] 查询结果: 找到${testCases.length}个测试用例详细信息`);
+      
+      console.log(`[getTestCaseInfosByExecutionIds] 查询结果: 找到${testCases.length}个测试用例详细信息：${JSON.stringify(testCases)}`);
       
       if (testCases.length === 0) {
         console.error('[getTestCaseInfosByExecutionIds] 错误: 没有找到任何测试用例详细信息！');
@@ -664,24 +677,36 @@ export class AutomationExecutionHandler {
    * 更新执行记录的Pipe信息
    */
   private async updateExecutionRecordWithPipeInfo(recordId: string, pipeInfo: any): Promise<void> {
-    console.log('[executeAutomation]更新执行记录的Pipe信息...');
+    console.log('[executeAutomation] === 开始更新执行记录的Pipe信息 ===');
+    console.log('[executeAutomation] recordId (从createExecutionRecord返回):', recordId);
+    console.log('[executeAutomation] recordId类型:', typeof recordId);
+    console.log('[executeAutomation] this.executionId:', this.executionId);
+    console.log('[executeAutomation] pipeInfo:', JSON.stringify(pipeInfo));
+    console.log('[executeAutomation] pipeInfo.buildId:', pipeInfo.buildId);
 
     try {
       // 更新执行记录的Pipe信息（映射关系已经在创建时保存）
       const updateData = {
-        buildId: pipeInfo.buildId,
+        buildId: String(pipeInfo.buildId), // 确保buildId是字符串
         pipeJumpUrl: pipeInfo.pipeJumpUrl,
         status: TestExecutionAutomationStatus.RUNNING,
         completeTime: new Date(), // 使用completeTime替代startTime
       };
+      
+      console.log('[executeAutomation] 准备更新的数据:', JSON.stringify(updateData));
 
-      await updateExecutionRecord(recordId, updateData);
+      // 注意：updateExecutionRecord需要的是executionId，而不是objectId
+      // 使用this.executionId而不是recordId
+      await updateExecutionRecord(this.executionId, updateData);
 
-      console.log('[executeAutomation]执行记录更新成功');
+      console.log('[executeAutomation] 执行记录更新成功！');
+      console.log('[executeAutomation] buildId已保存:', pipeInfo.buildId);
     } catch (error) {
-      console.error('[executeAutomation]更新执行记录失败:', error);
+      console.error('[executeAutomation] 更新执行记录失败，错误详情:', error);
+      console.error('[executeAutomation] 错误消息:', error?.message);
+      console.error('[executeAutomation] 错误堆栈:', error?.stack);
       // 这里不抛出错误，因为Pipe已经调用成功了
-      console.warn('[executeAutomation]执行记录更新失败，但Pipe调用已成功');
+      console.warn('[executeAutomation] 执行记录更新失败，但Pipe调用已成功');
     }
   }
 
