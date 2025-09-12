@@ -5,7 +5,8 @@
     "TestPlan": "План тестирования",
     "testExecution": "Задача по выполнению теста",
     "testRun": "?->Выполнение теста",
-    "testDefect": "?->Неисправный"
+    "testDefect": "?->Неисправный",
+    "testApproval": "Рецензия на тест"
   },
   "testRunAuth": {
     "cannotAssignedTestCase": "Невозможно выполнить назначенные другим тест-кейсы",
@@ -84,6 +85,7 @@
     "testCaseStatus": "Статус выполнения теста",
     "allRepository": "?->Библиотека всех вариантов использования",
     "testReport": "Отчет о тестировании",
+    "testApproval": "Рецензия на тест",
     "exportReportFail": "Не удалось экспортировать отчет о тестировании",
     "pleaseSelectType": "Выберите тип",
     "tableTotal": ["?->Всего", "Данные"],
@@ -428,8 +430,11 @@
         "restrictiveConditionsPlaceholder": "Введите ограничивающие условия"
       },
       "approvalConfig": {
-        "title": "审批配置",
-        "description": "审批配置"
+        "title": "Конфигурация утверждения",
+        "description": "Настройка конфигурации утверждения",
+        "actionDisabledItemStatuses": "Операции с утверждением отключены для следующих статусов",
+        "itemApprovalStatus": "Статус утверждения",
+        "caseApprovalStatus": "Статус утверждения"
       },
       "testCaseRemoveDuplicates": {
         "title": "Дедупликация тест-кейса",
@@ -910,6 +915,20 @@
         },
         "success": "Успешно импортирован",
         "redirectRepositoryPage": "Перенаправить на страницу репозитория"
+      }
+    },
+    "approval": {
+      "title": "Тест-кейс утверждение",
+      "create": "Создать утверждение",
+      "view": "Просмотр утверждения",
+      "approval": "Утверждение",
+      "columns": {
+        "approvalTitle": "Название утверждения"
+      },
+      "action": {
+        "approval": "Утвердить",
+        "addCase": "Добавить тест-кейс",
+        "addingCase": "Добавление тест-кейса в процессе"
       }
     }
   },

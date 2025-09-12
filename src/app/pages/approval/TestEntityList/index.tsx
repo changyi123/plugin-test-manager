@@ -2,83 +2,47 @@
 import { DeleteOutlined, FlagOutlined, UserOutlined } from '@ant-design/icons';
 import { useListener } from '@projectproxima/proxima-sdk-js';
 import createProximaSdk from '@projectproxima/proxima-sdk-js';
-import { useMemoizedFn, useRequest } from 'ahooks';
-import { Button, message, notification, Tooltip } from 'antd';
-import { SystemField, TestFiledKeyMapping, TestLinkType, TestType } from 'common/constant';
-import dayjs from 'dayjs';
-import { isEmpty, isEqual, keyBy, omit, pick, uniq } from 'lodash';
-import React, { useCallback, useEffect, useRef, useState } from 'react';
+import { useRequest } from 'ahooks';
+import { message, notification } from 'antd';
+import { SystemField, TestFiledKeyMapping, TestType } from 'common/constant';
+import { isEmpty, uniq } from 'lodash';
+import React, { useCallback, useEffect, useState } from 'react';
 
 import {
-  deleteRunWithProcess,
   removeCaseFromPlanWithProcess,
   updateItemsWithProcess,
 } from '@/components/business/BatchResult/hooks';
 import RenderRepository from '@/components/business/RenderRepository';
 import { StatusBadge } from '@/components/business/Status';
-import TestBatchUpdateExeModal, {
-  TestBatchUpateModalActionRef,
-} from '@/components/business/TestBatchUpdateExeModal';
-import TestRunModal, {
-  ActionType as TestRunModalActionType,
-  VERSION,
-} from '@/components/business/TestRunModal';
-import { useItemLinkTypeConfig } from '@/components/business/TestRunModal/hooks';
 import UserCell from '@/components/business/UserCell';
 import { BusinessTable } from '@/components/common/BusinessTable';
 import { SystemFieldKeys } from '@/components/common/BusinessTable/hook';
 import { useStepAfterUpdateItemList } from '@/components/common/BusinessTable/hook';
 import type { BusinessTableActionType } from '@/components/common/BusinessTable/type';
-import Field from '@/components/common/Field';
 import {
-  addTestDefect,
-  batchUpdateCase,
-  getCasesByStatus,
-  getLinkedTestEntityByQuery,
-  getTestCaseStats,
   getTestEntityByQuery,
-  getUpdateParams,
   handleSelector,
-  updateTestEntity,
-  updateTestStatus,
 } from '@/lib/api/item';
-import { openBaseLineViewItemModal } from '@/lib/api/sdk';
 import { useCurrentUser } from '@/lib/api/user';
 import { getCurrentUserSetting, saveUserSetting } from '@/lib/api/userSetting';
-import { getAppEnv } from '@/lib/appEnv';
 import { featureFlags, SupportFeatureFlags } from '@/lib/appEnv';
-import {
-  CASESNAPSHOT_TYPE,
-  TestCaseStatusModel,
-  TestRunDesigneeModel,
-  TestRunExecutorModel,
-} from '@/lib/constants';
 import { useBaseAction, useTestConfig } from '@/lib/hooks/useContext';
 import useI18n from '@/lib/hooks/useI18n';
 import { useUserCellUserDataProp } from '@/lib/hooks/useProxima';
-import { useCanExecuteTestRunIdSequence, useTestRunActionAuth } from '@/lib/hooks/useTest';
-import { checkRunStatus } from '@/lib/utils/checkRunStatus';
-import fetch from '@/lib/utils/fetch';
-import { getDefectDefautFieldConfig } from '@/lib/utils/getDefectDefautFieldConfig';
 import { actionConfirm, openItemViewScreen } from '@/lib/utils/helper';
 import {
-  getTestCaseStatusModelValue,
-  handleCustomerSelector,
   mergeIQL,
   selectorToIql,
-  withWorkspace,
 } from '@/lib/utils/iql';
 import { getRepositoryQuery } from '@/lib/utils/tree';
 import TableCellTestDetailForm from '@/modules/beforeCreateOrUpdateModal/TableCellTestDetailForm';
-import TableCellTestDetailFormReadOnly from '@/modules/beforeCreateOrUpdateModal/TableCellTestDetailFormReadOnly';
 
 import { usePageContext } from '../hook';
-import { getTestRunSelector } from '../PlanPageLayout/helps';
 import {
-  useGetFilterExecutionLinkCaseRunIds,
-  useGetFilterPlanLinkCaseIds,
+  useGetFilterApprovalLinkCaseIds,
 } from '../PlanPageLayout/hooks';
 import cx from './index.less';
+import { FormFieldKey } from '@/pages/config/ApprovalConfig';
 
 interface TestEntityListProps {
   loading: boolean;
@@ -120,7 +84,7 @@ const TestEntityList: React.FC<TestEntityListProps> = ({
     selectors,
     selectedTestApproval,
     registerRefreshMethod,
-    planLinkCaseIds: scopedTestCaseIds,
+    approvalLinkCaseIds: scopedTestCaseIds,
     tableSelectionToggleEvent,
     mutateTestTableList,
   } = usePageContext();
@@ -131,17 +95,13 @@ const TestEntityList: React.FC<TestEntityListProps> = ({
   const { testCaseFieldKeys, globalTestConfig, createItemUseModal } =
     useBaseAction();
 
-  const DISABLED_STATUSES = window.QiankunProps?.context?.env?.TEST_APPROVAL_DISABLED_STATUS;
+  const DISABLED_STATUSES = globalTestConfig?.approvalConfig?.[FormFieldKey.actionDisabledItemStatuses]; // || window.QiankunProps?.context?.env?.TEST_APPROVAL_DISABLED_STATUS;
 
   console.log('selectedTestApproval', selectedTestApproval, config, globalTestConfig);
 
   const actionRef = React.useRef<BusinessTableActionType>();
-  const testRunModalActionRef = React.useRef<TestRunModalActionType>();
-  const testBatchUpateModalActionRef = React.useRef<TestBatchUpateModalActionRef>(); // 批量更新执行用例
   const userData = useUserCellUserDataProp(workspaceKey);
-  const { canExecuteTestRun, canAssignTestRun } = useTestRunActionAuth({ workspaceKey });
   const { data: currentUser } = useCurrentUser();
-  const { getCanExecuteTestRunIdSequence } = useCanExecuteTestRunIdSequence({ workspaceKey });
 
   const [tableLoading, setTableLoading] = useState(false);
   const [hasRowSelected, setHasRowSelected] = useState(false);
@@ -189,9 +149,9 @@ const TestEntityList: React.FC<TestEntityListProps> = ({
   );
 
   // 获取筛选后的测试计划关联的测试用例 ID
-  const { data: allPlanRowKeys } = useGetFilterPlanLinkCaseIds({
+  const { data: allApprovalRowKeys } = useGetFilterApprovalLinkCaseIds({
     workspaceKey,
-    type: 'TestPlan',
+    type: 'TestApproval',
     id: scopedTestCaseIds,
     selectNode,
     selectors,
@@ -212,90 +172,22 @@ const TestEntityList: React.FC<TestEntityListProps> = ({
         const { list, total } = await getTestEntityByQuery({
           query,
           fields: uniq(
-            ['id', SystemField.ItemType].concat(
+            ['id', SystemField.ItemType, SystemField.Status].concat(
               SystemFieldKeys,
               testCaseFieldKeys,
               tableFields.map(i => i.key).filter(i => i !== 'action'),
             ),
           ),
-          selector: mergeIQL(
-            selectorToIql(handleSelector(selectors)),
-            `测试评审 = '${selectedTestApproval?.objectId}'`,
-          ),
-          // notConcatField: true,
+          selector: mergeIQL(selectorToIql(handleSelector(selectors)), `测试评审 = '${selectedTestApproval?.objectId}'`),
           ...queryParams,
         });
-        // const res = await fetch.post('/parse/api/search', {
-        //   iql: `'key' in ${JSON.stringify(
-        //     _keys,
-        //   )} and 'baseLineSources' in ['BaseLineItemVersion'] order by createdAt desc`,
-        //   size: 9999,
-        //   includeHiddenItem: true,
-        // });
         return {
-          list: list,
-          total: total,
+          list: list.map(i => ({
+            ...i,
+            status: i.workflowStatus,
+          })) ?? [],
+          total,
         };
-        // if (
-        //   !selectNode?.key ||
-        //   !workspaceKey ||
-        //   activeType === 'TestExecution' ||
-        //   !testCaseFieldKeys
-        // ) {
-        //   return {
-        //     list: [],
-        //     total: 0,
-        //   };
-        // }
-        // // 处理测试用例最新状态筛选
-        // const query: Record<string, any> = {};
-        // const { selector, runStatusSelector } = handleCustomerSelector(selectors);
-
-        // if (runStatusSelector[TestCaseStatusModel]?.value?.length) {
-        //   const params = getTestCaseStatusModelValue(runStatusSelector);
-        //   const { data: ids } = await getCasesByStatus({
-        //     planId: selectedTestApproval.objectId,
-        //     ...params,
-        //   });
-        //   query.id = ids;
-        // }
-
-        // // 查询测试用例
-        // query.repository = getRepositoryQuery(selectNode, showType)?.repository;
-
-        // const { list: testDetails, total } = await getLinkedTestEntityByQuery({
-        //   query: {
-        //     workspaceKey: workspaceKey,
-        //     type: TestType.Case,
-        //     ...query,
-        //   },
-        //   ...queryParams,
-        //   linkType: TestLinkType.CaseLinkPlan,
-        //   sourceIds: [selectedTestApproval.objectId],
-        //   destinationType: TestType.Case,
-        //   fields: [].concat(SystemFieldKeys, testCaseFieldKeys ?? []),
-        //   selector,
-        // });
-
-        // // 查询统计数据
-        // const stats = await getTestCaseStats({
-        //   planId: selectedTestApproval.objectId,
-        //   select: ['runCount', 'caseLatestStatus'],
-        //   caseIds: testDetails.map(d => d.id),
-        // });
-
-        // const list = testDetails.map(detail => ({
-        //   ...detail,
-        //   selectedTestApprovalId: selectedTestApproval.objectId,
-        //   ...(stats?.[detail.objectId] ?? {}),
-        //   status: detail.workflowStatus,
-        //   caseLatestExecutor: detail.caseExecutor?.[selectedTestApproval.objectId],
-        // }));
-
-        // return {
-        //   list: list,
-        //   total: total,
-        // };
       },
       [
         selectNode,
@@ -317,7 +209,7 @@ const TestEntityList: React.FC<TestEntityListProps> = ({
 
   useEffect(() => {
     const [systemSelectors] = selectors ?? [];
-    if (!isEmpty(systemSelectors) && activeType !== 'TestPlan') {
+    if (!isEmpty(systemSelectors) && activeType !== 'TestApproval') {
       // scopedTestDetailRefresh();
       const isEmptyValue = Object.values(systemSelectors)
         .map(d => d?.value)
@@ -417,7 +309,7 @@ const TestEntityList: React.FC<TestEntityListProps> = ({
       },
     ];
 
-    console.log('QiankunProps.env', window.QiankunProps.context.env);
+    console.log('QiankunProps.env', window.QiankunProps.context.env, DISABLED_STATUSES, (selectedTestApproval as any)?.status?.objectId, !(DISABLED_STATUSES && DISABLED_STATUSES.includes((selectedTestApproval as any)?.status?.objectId)));
     if (!(DISABLED_STATUSES && DISABLED_STATUSES.includes((selectedTestApproval as any)?.status?.objectId))) {
       allColumns.push({
         key: 'action',
@@ -541,14 +433,7 @@ const TestEntityList: React.FC<TestEntityListProps> = ({
         <DeleteOutlined /> {t('common.remove')}
       </span>,
     ];
-  }, [
-    userData,
-    hasRowSelected,
-    t,
-    workspaceKey,
-    addAndDeleteRefresh,
-    selectedTestApproval?.objectId,
-  ]);
+  }, [userData, hasRowSelected, t, workspaceKey, addAndDeleteRefresh, selectedTestApproval?.objectId]);
 
   tableSelectionToggleEvent.useSubscription(visible => {
     actionRef.current.toggleSelection(visible);
@@ -584,14 +469,13 @@ const TestEntityList: React.FC<TestEntityListProps> = ({
         }}
         useColumnSetting
         defaultColumnKey={[
-          'caseLatestStatus',
-          'runCount',
+          'status',
           'key',
           'repositoryGroup',
           'createdBy',
           'createdAt',
         ]}
-        privateColumnKey={['repositoryGroup', 'caseLatestStatus', 'runCount']}
+        privateColumnKey={['repositoryGroup', 'status']}
         rowKey="objectId"
         columns={allTestColumns}
         name={`${workspaceKey}_AllTestEntity`}
@@ -599,7 +483,7 @@ const TestEntityList: React.FC<TestEntityListProps> = ({
         loading={loading}
         getDataSource={testApprovalTableDataGetter}
         onHasRowSelected={setHasRowSelected}
-        allSelectableRowKeys={allPlanRowKeys}
+        allSelectableRowKeys={allApprovalRowKeys}
         selectionActionNodes={selectionActionNodes}
         onSelectionCancel={() => tableSelectionToggleEvent.emit(false)}
         handleFilterField={handleFilterField}
