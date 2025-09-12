@@ -3,7 +3,6 @@ import { useListener } from '@projectproxima/proxima-sdk-js';
 import { useUpdateEffect } from 'ahooks';
 import { Button, Dropdown, MenuProps, notification, Select } from 'antd';
 import React, { useCallback, useMemo, useRef } from 'react';
-import { useLocation } from 'react-router-dom';
 
 import CreatePermission from '@/components/business/Contianer/CreatePermission';
 import TestCaseFilterGroup from '@/components/business/TestCaseFilterGroup';
@@ -43,39 +42,32 @@ const GroupModeSelector = (props: { mode: GroupedMode; onChange: (mode: GroupedM
 /** 评审入口 */
 const ApprovalEntryDropdown = ({ setApprovalEntry, createTestApproval }) => {
   const { t } = useI18n();
-  const location = useLocation();
-  console.log('location', location);
   const items: MenuProps['items'] = [
     {
-      key: '1',
+      key: t('page.approval.view'),
       label: (
-        <a
-          onClick={() => {
-            setApprovalEntry(ApprovalEntry.View);
-          }}
-        >
-          查看用例评审
+        <a onClick={() => { setApprovalEntry(ApprovalEntry.View) }}>
+          {t('page.approval.view')}
         </a>
       ),
     },
     {
-      key: '2',
+      key: t('page.approval.create'),
       label: (
-        <a
-          onClick={() => {
-            console.log('click createTestApproval');
-            createTestApproval();
-            // setApprovalEntry(ApprovalEntry.Create)
-          }}
-        >
-          新建用例评审
+        <a onClick={() => { createTestApproval() }}>
+          {t('page.approval.create')}
         </a>
       ),
     },
   ];
+
+  if (!window.QiankunProps.context?.env?.ENABLE_TEST_APPROVAL) {
+    return null;
+  }
+
   return (
     <Dropdown menu={{ items }}>
-      <Button>评审</Button>
+      <Button>{t('page.approval.approval')}</Button>
     </Dropdown>
   );
 };

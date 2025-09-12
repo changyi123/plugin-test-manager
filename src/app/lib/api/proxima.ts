@@ -508,3 +508,13 @@ export const search = async (iql, fields = [], size = InfinityLimit, throwError 
     return throwError ? Promise.reject(e) : [];
   }
 };
+
+export const getAllStatus = async () => {
+  try {
+    const res = await fetch.$get('/parse/api/status');
+    return res.results;
+  } catch (e) {
+    console.error('getAllStatus fail: ', e.message);
+    return [];
+  }
+};

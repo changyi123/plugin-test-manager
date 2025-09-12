@@ -1,5 +1,3 @@
-import React from 'react';
-
 import { logPluginVersion } from '@/lib/utils/helper';
 
 import PageProvider from './PageProvider';
@@ -7,10 +5,10 @@ import PlanPageLayout from './PlanPageLayout';
 
 logPluginVersion();
 
-const ApprovalPage = ({ setApprovalEntry }) => {
+const ApprovalPage = ({ setApprovalEntry, selectedApproval }) => {
   return (
     <PageProvider>
-      <PlanPageLayout setApprovalEntry={setApprovalEntry} />
+      <PlanPageLayout selectedApproval={selectedApproval} setApprovalEntry={setApprovalEntry} />
     </PageProvider>
   );
 };
