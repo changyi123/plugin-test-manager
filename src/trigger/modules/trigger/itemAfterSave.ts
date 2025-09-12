@@ -1,4 +1,3 @@
-import { requestCoreApi } from '@giteeteam/apps-team-api';
 import { uniq } from 'lodash';
 
 import {
@@ -9,6 +8,8 @@ import {
 } from '../../../common/constant';
 import { batchUpdateItemsValues } from '../../lib/batchRequest';
 import { iqlRequest } from '../../lib/iqlRequest';
+import { getParseQuery, requestCoreApi } from '@giteeteam/apps-team-api';
+import { dataFetcher } from '../../lib/initialization';
 
 function getLinkItem(i) {
   if (!Array.isArray(i.values.r_test_manager_linkItems)) return null;
@@ -60,8 +61,22 @@ export const itemAfterSave = async () => {
 // 审批事项关联，批量扭转用例状态
 export const itemAfterSaveForApproval = async () => {
   const { item, originalItem, env } = global as any;
-  const approvalItemTypeKey = env.APPROVAL_ITEM_TYPE_KEY || 'test_manager_approval';
-  const itemTargatStatusId = env.ITEM_TARGAT_STATUS_ID || 'bbk6FgJG9D';
+  const globalConfig = await dataFetcher.getGlobalTestConfig();
+  const approvalConfig = globalConfig.extra?.approvalConfig;
+  
+  console.log('itemAfterSaveForApproval approvalConfig', globalConfig, approvalConfig, item, JSON.stringify(item));
+
+  const workspaceTestConfig = await getParseQuery(true, 'TestConfig').equalTo('workspaceKey', item.workspace?.key)
+    .select(['itemTypeMap'])
+    .first({ useMasterKey: true })
+    .then(o => o.toJSON());
+  console.log('itemAfterSaveForApproval itemTypeMap', workspaceTestConfig);
+
+  if (!approvalConfig || !workspaceTestConfig?.itemTypeMap?.['TestApproval']) {
+    return;
+  }
+  const approvalItemTypeKey = workspaceTestConfig?.itemTypeMap?.['TestApproval'] || env.APPROVAL_ITEM_TYPE_KEY;
+  const itemTargatStatusId = approvalConfig.itemApprovalStatus || env.APPROVAL_ITEM_TARGET_STATUS_ID;
   console.info('itemAfterSaveForApproval', item, JSON.stringify(item));
   console.info('itemAfterSaveForApproval env', env);
 
@@ -109,15 +124,18 @@ export const itemAfterSaveForApproval = async () => {
     `/parse/api/workflows/item/${firstCase.objectId}`,
   );
 
-  console.info(
-    'itemWorkflowRes',
-    itemWorkflowRes,
-    (itemWorkflowRes as any)?.transitions,
-    JSON.stringify(itemWorkflowRes),
-  );
+  console.info('itemWorkflowRes', itemWorkflowRes, (itemWorkflowRes as any)?.transitions, JSON.stringify(itemWorkflowRes));
+  
+  const caseTargatStatusId = approvalConfig.caseApprovalStatus || env.CASE_TARGAT_STATUS_ID;
+  console.log('caseTargatStatusId', caseTargatStatusId);
 
-  const caseTargetStatusName = env.CASE_TARGET_STATUS_NAME || '进行中';
-  const caseTargatStatusId = env.CASE_TARGAT_STATUS_ID || 'bbk6FgJG9D';
+  const caseTargetStatus = await getParseQuery(false, 'Status').select(['name'])
+      .equalTo('objectId', caseTargatStatusId)
+      .first({ useMasterKey: true })
+      .then(status => status.toJSON());
+  console.log('caseTargatStatusIdName', caseTargetStatus);
+
+  const caseTargetStatusName = caseTargetStatus.name || env.CASE_TARGET_STATUS_NAME;
 
   const targetTransitions = ((itemWorkflowRes as any).transitions || []).filter(
     item => item.targetId === caseTargatStatusId,

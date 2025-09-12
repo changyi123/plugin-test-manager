@@ -26,7 +26,7 @@ type PageContextType = {
   setSearchParams: (data: SearchSelectors) => void;
   searchValue: string;
   workspaceKey: string;
-  planLinkCaseIds?: string[];
+  approvalLinkCaseIds?: string[];
   executionLinkRunIds?: string[];
   runLinkCaseIds?: string[];
   refresh: (key?: string) => void;
@@ -40,7 +40,7 @@ type PageContextType = {
   setSelectedTestApproval: (testPlan: TestApprovalEntity | null) => void;
   setSelectedTestExecution: (testPlan: TestExecutionEntity | null) => void;
   registerRefreshMethod: (method: Record<string, () => void>) => void;
-  setPlanLinkCaseIds: (val?: string[]) => void;
+  setApprovalLinkCaseIds: (val?: string[]) => void;
   setExecutionLinkRunIds: (val?: string[]) => void;
   setRunLinkCaseIds: (val?: string[]) => void;
   setApprovalId: (val?: string) => void;
@@ -71,10 +71,10 @@ export const PageContext = React.createContext<PageContextType>({
   tableSelectionToggleEvent: null,
   selectedTestApproval: {} as TestApprovalEntity,
   selectedTestExecution: {} as TestExecutionEntity,
-  planLinkCaseIds: null,
+  approvalLinkCaseIds: null,
   executionLinkRunIds: null,
   runLinkCaseIds: null,
-  setPlanLinkCaseIds: noop,
+  setApprovalLinkCaseIds: noop,
   setExecutionLinkRunIds: noop,
   setRunLinkCaseIds: noop,
   setApprovalId: noop,
@@ -100,7 +100,7 @@ const PageProvider: React.FC<any> = ({ children }) => {
   const workspaceKey = context?.env?.WORKSPACE_KEY ?? getDevConfig().workspaceKey;
   const [selectedTestApproval, setSelectedTestApproval] = useState(null);
   const [selectedTestExecution, setSelectedTestExecution] = useState(null);
-  const [planLinkCaseIds, setPlanLinkCaseIds] = useState<string[]>(null);
+  const [approvalLinkCaseIds, setApprovalLinkCaseIds] = useState<string[]>(null);
   const [executionLinkRunIds, setExecutionLinkRunIds] = useState<string[]>(null);
   const [runLinkCaseIds, setRunLinkCaseIds] = useState<string[]>(null);
   const [runLinkSnapshotIds, setRunLinkSnapshotIds] = useState<string[]>(null);
@@ -155,10 +155,10 @@ const PageProvider: React.FC<any> = ({ children }) => {
             mutateStatusEvent,
             registerRefreshMethod,
             tableSelectionToggleEvent,
-            planLinkCaseIds,
+            approvalLinkCaseIds,
             executionLinkRunIds,
             runLinkCaseIds,
-            setPlanLinkCaseIds,
+            setApprovalLinkCaseIds,
             setExecutionLinkRunIds,
             setRunLinkCaseIds,
             setApprovalId,
