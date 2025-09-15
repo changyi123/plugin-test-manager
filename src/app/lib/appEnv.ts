@@ -181,6 +181,10 @@ const SupportAppEnv = {
     defaultValue: false,
     transformer: value => value,
   },
+  HIDDEN_TABLE_FIELD_CONFIG: {
+    defaultValue: false,
+    transformer: value => value,
+  },
 } as const;
 
 /**

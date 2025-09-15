@@ -98,7 +98,7 @@ const ConfigPages = [
     component: ExecuteTestRunAction,
     description: 'executeTestRunAction',
   },
-  {
+  !getAppEnv('HIDDEN_TABLE_FIELD_CONFIG') && {
     key: 'TableFields',
     title: 'tableFields',
     component: TableFields,
