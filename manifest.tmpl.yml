@@ -74,6 +74,9 @@ modules:
       function: api-query-case-run-record-function
     - key: api-query-run-records
       function: api-query-run-records-function
+    # 查询测试计划相关数据
+    - key: api-query-plan-related-data
+      function: api-query-plan-related-data-function
     # 批量操作（删除，更新，创建测试执行）
     - key: api-batch-delete
       function: api-batch-delete-function
@@ -358,6 +361,8 @@ modules:
       handler: api.queryCaseRunRecords
     - key: api-query-run-records-function
       handler: api.queryRunRecords
+    - key: api-query-plan-related-data-function
+      handler: api.queryPlanRelatedData
     - key: auditLog-action-catogory-install-function
       handler: trigger.installAuditLog
 

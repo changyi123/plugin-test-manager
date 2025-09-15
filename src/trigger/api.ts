@@ -5,6 +5,8 @@ export {
   queryRunRecords,
 } from './modules/api/query';
 
+export { runScript as queryPlanRelatedData } from './queryPlanRelatedData';
+
 export {
   batchDelete,
   batchDeleteV2,
