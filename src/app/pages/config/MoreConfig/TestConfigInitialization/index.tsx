@@ -1,6 +1,6 @@
 import { useMutation } from '@tanstack/react-query';
 import { useMemoizedFn } from 'ahooks';
-import { Button, Form, message, Radio, Switch } from 'antd';
+import { Button, Form, message, Radio, Switch, Tooltip } from 'antd';
 import React from 'react';
 import { useTranslation } from 'react-i18next';
 
@@ -13,6 +13,7 @@ import { BuiltinItemTypeMapping, CASESNAPSHOT_TYPE, caseSnapshotOpt } from '@/li
 import { useDataContext } from '../../hooks';
 import TestTypeMappingSelector from './formControl/TestTypeMappingSelector';
 import cx from './style.less';
+import { InfoCircleOutlined } from '@ant-design/icons';
 
 let builtinItemTypes = null;
 
@@ -77,7 +78,11 @@ const TestConfigInitialization = () => {
   return (
     <Form form={form} onFinish={handleSubmit} className={cx('container')}>
       <Form.Item
-        label={<div>{scopeT('swicloneItemWithTestPlanCasetchLabel')}</div>}
+        label={<div>
+          {scopeT('cloneItemWithTestPlanCase')}
+          <Tooltip title={scopeT('cloneItemWithTestPlanCaseTip')}>
+            <InfoCircleOutlined className={cx('tip-info')}/>
+          </Tooltip></div>}
         name={FormFieldKey.enableCloneItemWithPlanCase}
         valuePropName="checked"
       >

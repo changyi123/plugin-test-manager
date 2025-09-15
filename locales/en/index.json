@@ -417,6 +417,7 @@
         "description": "Enabling configuration initialization will modify the association mapping of the built-in matter types in the test management to the built-in matter types.",
         "switchLabel": "Enable Configuration Initialization",
         "cloneItemWithTestPlanCase": "Copy the test plan while planning the original use cases",
+        "cloneItemWithTestPlanCaseTip": "When copying a test plan, the test tasks under it will be copied, and the original test cases will be planned into the corresponding test plan and test tasks",
         "switchSnapshotLabel": "Automatically take snapshots when planning cases for executions",
         "builtInItemTypeHasBeenModified": "Built-in matter types have been modified.",
         "messageSuccess": "Test management configuration initialization successful.",

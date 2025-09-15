@@ -431,6 +431,7 @@
         "description": "开启自动类型关联会将测试管理内置的事项类型关联配置修改为内置的事项类型",
         "switchLabel": "开启自动类型关联",
         "cloneItemWithTestPlanCase": "复制测试计划同时规划原用例",
+        "cloneItemWithTestPlanCaseTip": "测试计划复制时将复制其下测试任务，并把原用例规划到对应测试计划和测试任务中",
         "switchSnapshotLabel": "用例快照类型",
         "builtInItemTypeHasBeenModified": "内置事项类型已被修改",
         "messageSuccess": "测试管理初始化配置修改成功",

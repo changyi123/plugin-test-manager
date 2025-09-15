@@ -16,6 +16,7 @@ import type { CaseSnapshot } from '@/lib/types/Test';
 
 import { useCurrentTestConfig, useDataContext } from '../hooks';
 import cx from './index.less';
+import { updateGlobalConfig } from '@/lib/api/common';
 
 const SearchPopoverSelect = components.Components.Common.SearchPopoverSelect;
 
@@ -26,10 +27,6 @@ const DefaultTestRunAction = {
   canOnlyExecuteMineCase: false,
   // 未分配的测试用例无法执行
   canOnlyExecuteAssignedCase: false,
-  // 测试任务下批量更新状态数量限制
-  canActionTestTaskLimit: false,
-  // 限制数量
-  actionTestTaskLimitQuantity: '',
   // 当前空间可以规划的测试用例状态名单类型：黑 | 白
   listType: 'black',
   // 当前空间可以规划的测试用例状态名单
@@ -37,6 +34,13 @@ const DefaultTestRunAction = {
   // 当前空间可以规划测试用例的默认范围
   iql: '',
 };
+
+const DefaultGlobalRunAction = {
+  // 测试任务下批量更新状态数量限制
+  canActionTestTaskLimit: false,
+  // 限制数量
+  actionTestTaskLimitQuantity: null,
+}
 
 const DefaultCaseSnapshot = {
   type: CASESNAPSHOT_TYPE.NO_BUILDVERSION_SELVERSION,
@@ -127,16 +131,21 @@ const getUsefulUserInfo = user => {
 
 const ExecuteTestRunAction = () => {
   const { t } = useI18n();
-  const { workspace } = useDataContext();
+  const { globalConfig, refreshGlobalConfig, workspace } = useDataContext();
 
   const testConfig = useCurrentTestConfig(workspace?.key);
   const [testRunAction, setTestRunAction] = React.useState(DefaultTestRunAction);
+  const [globalRunAction, setGlobalRunAction] = useState(DefaultGlobalRunAction);
   const [caseSnapshot, setCaseSnapshot] = useState<CaseSnapshot>(DefaultCaseSnapshot);
 
   React.useEffect(() => {
     setTestRunAction(testConfig?.get('testRunAction') ?? DefaultTestRunAction);
     setCaseSnapshot(testConfig?.get('caseSnapshot') ?? DefaultCaseSnapshot);
   }, [testConfig]);
+
+  React.useEffect(() => {
+    setGlobalRunAction(globalConfig?.extra ?? DefaultTestRunAction);
+  }, [globalConfig]);
 
   const verifyIQL = async iql => {
     try {
@@ -155,12 +164,6 @@ const ExecuteTestRunAction = () => {
           return;
         }
       }
-      if (testRunAction?.canActionTestTaskLimit) {
-        if (!testRunAction.actionTestTaskLimitQuantity) {
-          message.info(t('page.config.executeTestRunAction.pleaseEnterCaseNumber'));
-          return;
-        }
-      }
       await testConfig.save({
         caseSnapshot,
         testRunAction,
@@ -168,6 +171,21 @@ const ExecuteTestRunAction = () => {
       message.success(t('common.saveSuccess'));
     }
   };
+
+  const updateLimitCase = async (key, value: any) => {
+    let values = { [key]: value };
+    if (key == 'canActionTestTaskLimit' && value === true) {
+      if (!globalRunAction.actionTestTaskLimitQuantity) {
+        message.info(t('page.config.executeTestRunAction.pleaseEnterCaseNumber'));
+        values = { [key]: !value };
+        return;
+      }
+    }
+    await updateGlobalConfig({
+      extra: Object.assign({}, values),
+    });
+    await refreshGlobalConfig();
+  }
 
   const buildConfigChange = key => {
     const dataProcessStrategies = {
@@ -181,8 +199,6 @@ const ExecuteTestRunAction = () => {
       listType: e => e.target.value,
       statusList: val => val.map(v => pick(v, ['statusId', 'name', 'isStartStatus'])),
       iql: e => e.target.value,
-      canActionTestTaskLimit: val => val,
-      actionTestTaskLimitQuantity: val => val,
     };
 
     const handleConfigChange = data => {
@@ -228,17 +244,6 @@ const ExecuteTestRunAction = () => {
 
   return (
     <div className={cx('container')}>
-      <h3>{t('page.config.executeTestRunAction.testCaseStatusLimist')}</h3>
-      <div className={cx('section')}>
-      <span className={cx('section-label')}>
-        {t('page.config.executeTestRunAction.worksapceTestCaseStatusLimistNumber')}：
-      </span>
-      <InputNumber className={cx('section-inputNumber')} value={testRunAction?.actionTestTaskLimitQuantity} min={1} max={100} onChange={buildConfigChange('actionTestTaskLimitQuantity')} />
-      <Switch
-        checked={testRunAction?.canActionTestTaskLimit}
-        onChange={buildConfigChange('canActionTestTaskLimit')}
-      />
-      </div>
       <div className={cx('section')}>
         <h3>{t('page.config.executeTestRunAction.caseToPlan')}</h3>
         <SearchPopoverSelect
@@ -348,6 +353,17 @@ const ExecuteTestRunAction = () => {
       <Button type="primary" className={cx('action')} onClick={handleSave}>
         {t('common.save')}
       </Button>
+      <h3 className={cx('limit-title')}>{t('page.config.executeTestRunAction.testCaseStatusLimist')}<span className={cx('global-config')}>全局配置</span></h3>
+      <div className={cx('section', 'last-section')}>
+      <span className={cx('section-label')}>
+        {t('page.config.executeTestRunAction.worksapceTestCaseStatusLimistNumber')}：
+      </span>
+      <InputNumber className={cx('section-inputNumber')} value={globalRunAction?.actionTestTaskLimitQuantity} min={1} onChange={(value) => updateLimitCase('actionTestTaskLimitQuantity', value)} />
+      <Switch
+        checked={globalRunAction?.canActionTestTaskLimit}
+        onChange={(value) => updateLimitCase('canActionTestTaskLimit', value)}
+      />
+      </div>
     </div>
   );
 };

@@ -70,7 +70,6 @@ import {
 import { getRepositoryQuery } from '@/lib/utils/tree';
 import TableCellTestDetailForm from '@/modules/beforeCreateOrUpdateModal/TableCellTestDetailForm';
 import TableCellTestDetailFormReadOnly from '@/modules/beforeCreateOrUpdateModal/TableCellTestDetailFormReadOnly';
-import { useCurrentTestConfig } from '@/pages/config/hooks';
 
 import { usePageContext } from '../hook';
 import { getTestRunSelector } from '../PlanPageLayout/helps';
@@ -152,11 +151,8 @@ const TestEntityList: React.FC<TestEntityListProps> = ({
   const [hasRowSelected, setHasRowSelected] = useState(false);
   const currentRunRef = useRef(null);
   const loading = loadingFromParentElement || tableLoading;
-  const testConfig = useCurrentTestConfig(workspaceKey);
-  const testRunAction = testConfig?.get('testRunAction');
-  const canActionTestTaskLimit = testRunAction?.canActionTestTaskLimit;
-  const actionTestTaskLimitQuantity = testRunAction?.actionTestTaskLimitQuantity;
-
+  const canActionTestTaskLimit = globalTestConfig?.canActionTestTaskLimit;
+  const actionTestTaskLimitQuantity = globalTestConfig?.actionTestTaskLimitQuantity;
   // 批量更新执行用例
   const [batchUpdateLoading, setBatchUpdateLoading] = useState(false);
 
