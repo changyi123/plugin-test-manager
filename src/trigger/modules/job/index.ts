@@ -535,14 +535,9 @@ export const createTestRuns = async (params: ProcessJobParams<BatchCreateTestRun
         const caseSnapshot = await getCaseSnapshotType();
         console.info(`batchCreateTestRunV2 caseSnapshotType: ${caseSnapshot?.type}`);
 
-        if (
-          !caseSnapshot ||
-          caseSnapshot?.type === CASESNAPSHOT_TYPE.NO_AUTOBUILDVERSION_NO_SELVERSION
-        ) {
-          return;
-        } else if (caseSnapshot?.type === CASESNAPSHOT_TYPE.AUTO_BUILDVERSION) {
+        if (caseSnapshot?.type === CASESNAPSHOT_TYPE.AUTO_BUILDVERSION) {
           await createCaseSnapshot(needPlanCases);
-        } else {
+        } else if (caseSnapshot?.type === CASESNAPSHOT_TYPE.NO_BUILDVERSION_SELVERSION) {
           await attachSnapshotToRun(needPlanCases);
         }
 
