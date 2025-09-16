@@ -66,7 +66,7 @@ const TestPlanList: React.FC<any> = ({ setApprovalEntry }) => {
           type: TestType.Approval,
         },
         fields: uniq(
-          ['id', SystemField.ItemType].concat(
+          ['id', SystemField.ItemType, 'reviewMember'].concat(
             SystemFieldKeys,
             tableFields.map(i => i.key).filter(i => i !== 'action'),
           ),
@@ -236,9 +236,10 @@ const TestPlanList: React.FC<any> = ({ setApprovalEntry }) => {
         useColumnSetting
         defaultColumnKey={[
           'status',
-          'caseCount',
           'createdAt',
           'createdBy',
+          'reviewMember',
+          // 'caseCount',
         ]}
         // privateColumnKey={['caseCount']}
         rowKey="objectId"

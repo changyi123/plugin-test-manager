@@ -104,6 +104,10 @@ export const itemAfterSaveForApproval = async () => {
 
   // 查询关联的测试用例
   const {data: { list: cases = [] }} = await iqlRequest({
+    query: {
+      workspaceKey: item.workspace?.key,
+      type: TestType.Case,
+    },
     fields: ['id', 'name', 'status'],
     pagination: { limit: InfinityLimit },
     selector: `测试评审 = '${item.objectId}'`,

@@ -40,7 +40,7 @@ const PlanPageLayout: React.FC<any> = ({ selectedApproval, setApprovalEntry }) =
   const { data: approvalLinkCaseIds, refreshAsync: approvalLinkCaseIdRefresh } = useGetApprovalLinkCaseIds({
     workspaceKey,
     type: 'TestApproval',
-    testApprovalId: selectedApproval?.objectId,
+    testApprovalId: selectedApproval?.objectId || selectedTestApproval?.objectId,
   });
 
   useUpdateEffect(() => {
