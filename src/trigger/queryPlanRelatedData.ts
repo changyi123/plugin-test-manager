@@ -47,6 +47,9 @@ const runScript = async () => {
     };
   }
 
+  // 确保类型正确性
+  const params: QueryPlanRelatedDataParams = body as QueryPlanRelatedDataParams;
+  
   const { 
     versionKeys,
     requirementKeys, 
@@ -54,7 +57,7 @@ const runScript = async () => {
     includeExecutions = true, 
     includeRuns = true, 
     includeDefects = true 
-  } = body;
+  } = params;
 
   // 参数验证 - 至少需要提供一种查询方式
   if ((!versionKeys || versionKeys.length === 0) && 
