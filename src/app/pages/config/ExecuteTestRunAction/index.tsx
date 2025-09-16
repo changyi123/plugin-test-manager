@@ -358,7 +358,7 @@ const ExecuteTestRunAction = () => {
       <span className={cx('section-label')}>
         {t('page.config.executeTestRunAction.worksapceTestCaseStatusLimistNumber')}：
       </span>
-      <InputNumber className={cx('section-inputNumber')} value={globalRunAction?.actionTestTaskLimitQuantity} min={1} onChange={(value) => updateLimitCase('actionTestTaskLimitQuantity', value)} />
+      <InputNumber className={cx('section-inputNumber')} value={globalRunAction?.actionTestTaskLimitQuantity} min={1} precision={0} onChange={(value) => updateLimitCase('actionTestTaskLimitQuantity', value)} />
       <Switch
         checked={globalRunAction?.canActionTestTaskLimit}
         onChange={(value) => updateLimitCase('canActionTestTaskLimit', value)}
