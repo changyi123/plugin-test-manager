@@ -338,7 +338,7 @@ const Test = () => {
           return record.relRuns?.runCount ?? 0;
         },
       },
-      columnBuilder(BuiltinColumns.getLatestStatus(t), record => {
+      columnBuilder(BuiltinColumns.getLatestStatus(t), (record: any) => {
         return {
           status: record.relRuns?.caseLatestStatus,
           readonly: true,

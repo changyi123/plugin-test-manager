@@ -1,4 +1,4 @@
-import { ApprovalEntry } from "..";
+import { ApprovalEntry } from '..';
 
 export type ViewComponentProps = {
   selectedNode: any;

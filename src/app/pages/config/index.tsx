@@ -8,6 +8,7 @@ import { withPageGuard } from '@/lib/guards/page';
 import useI18n from '@/lib/hooks/useI18n';
 import DefectManageConfig from '@/pages/config/MoreConfig/DefectManageConfig';
 
+import ApprovalConfig from './ApprovalConfig';
 import DataProvider from './DataProvider';
 import DefectMapping from './DefectMapping';
 import ExecuteTestRunAction from './ExecuteTestRunAction';
@@ -19,7 +20,6 @@ import FieldSettings from './MoreConfig/FieldSettings';
 import GeneralSettings from './MoreConfig/GeneralSettings';
 import IsolatedSystem from './MoreConfig/IsolatedSystem';
 import TestConfigInitialization from './MoreConfig/TestConfigInitialization';
-import ApprovalConfig from './ApprovalConfig';
 import WordTemplate from './MoreConfig/WordTemplate';
 import TableFields from './TableFields';
 import TestCaseRemoveDuplicates from './TestCaseRemoveDuplicates';
@@ -105,13 +105,13 @@ const ConfigPages = [
     component: TableFields,
     description: 'tableFields',
   },
-  // {
-  //   key: 'ApprovalConfig',
-  //   title: 'approvalConfig',
-  //   component: ApprovalConfig,
-  //   description: 'approvalConfig',
-  //   isGlobalConfig: true,
-  // },
+  {
+    key: 'ApprovalConfig',
+    title: 'approvalConfig',
+    component: ApprovalConfig,
+    description: 'approvalConfig',
+    isGlobalConfig: true,
+  },
   {
     key: 'TestConfigInitialization',
     title: 'testConfigInitialization',

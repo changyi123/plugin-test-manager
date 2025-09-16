@@ -5,6 +5,8 @@ export {
   queryRunRecords,
 } from './modules/api/query';
 
+export { runScript as queryPlanRelatedData } from './queryPlanRelatedData';
+
 export {
   batchDelete,
   batchDeleteV2,
@@ -48,6 +50,8 @@ export { weichaiFileEncrypt } from './modules/extension/weichai';
 
 export { zgcTestReportInfo, zgcTestReportSlotData } from './modules/extension/zgc';
 
+export { automationWebhook } from './modules/automation/webhook';
+
 export { dssTestReportInfo } from './modules/extension/dashangsuo';
 
 export { initTestConfig } from './modules/api/config';
@@ -57,3 +61,6 @@ export { linkTestExecuteToTestPlan } from './modules/batch/execution';
 export { batchUpdateRunVersion, updateRunVersion } from './modules/batch/updateRunVersion';
 
 export { checkFilterGroupName } from './modules/filterGroup';
+
+export { executeAutomation } from './modules/automation/automationExecutionHandler';
+export { pipeAutomationCallback } from './modules/automation/pipeCallback';

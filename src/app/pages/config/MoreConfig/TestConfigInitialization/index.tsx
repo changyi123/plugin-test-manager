@@ -68,7 +68,7 @@ const TestConfigInitialization = () => {
 
       // 更新全局配置
       await updateGlobalConfig({
-        extra: Object.assign({}, values),
+        extra: { ...globalConfig.extra, ...values },
       });
       await refreshGlobalConfig();
       message.success(scopeT('messageSuccess'));

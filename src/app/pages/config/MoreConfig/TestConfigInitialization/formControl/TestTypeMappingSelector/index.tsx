@@ -24,6 +24,10 @@ const TestTypes = [
     type: TestType.Execution,
     title: 'testExecution',
   },
+  {
+    type: TestType.Approval,
+    title: 'testApproval',
+  },
   featureFlags('ENABLE_TEST_CASE_SET') && {
     type: TestType.CaseSet,
     title: 'testCaseSet',

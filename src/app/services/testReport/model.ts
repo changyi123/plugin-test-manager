@@ -1,7 +1,7 @@
 import parallelLimit from 'async/parallelLimit';
 import dayjs from 'dayjs';
 import { t } from 'i18next';
-import _, { cloneDeep, last, omit, uniq, uniqBy, forEach, round, toString } from 'lodash';
+import _, { cloneDeep, forEach, last, omit, round, toString, uniq, uniqBy } from 'lodash';
 
 import { getTestConfigByWorkspaceKeys } from '@/lib/api/common';
 import {
@@ -39,11 +39,11 @@ import {
   ReportTemplateChartGroupKey,
   SupportDataSourceChartViewReg,
 } from '@/lib/testReport';
+import { CaseSnapshot } from '@/lib/types/Test';
 import fetch from '@/lib/utils/fetch';
 import { getPluginWebTriggerBaseUrl, getSessionToken } from '@/lib/utils/helper';
 
 import { Chart, ChartGroup, Workspace } from '../models';
-import { CaseSnapshot } from '@/lib/types/Test';
 
 // 自定义数据源源码最大并发数量
 const parallelRequestTriggerLimit = 4;

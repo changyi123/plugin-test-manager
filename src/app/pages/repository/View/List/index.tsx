@@ -1,9 +1,8 @@
 import { useSDK } from '@giteeteam/plugin-sdk';
 import { useListener } from '@projectproxima/proxima-sdk-js';
 import { useUpdateEffect } from 'ahooks';
-import { Button, notification, Select, Dropdown, MenuProps } from 'antd';
+import { Button, Dropdown, MenuProps, notification, Select } from 'antd';
 import React, { useCallback, useMemo, useRef } from 'react';
-import { useLocation } from 'react-router-dom';
 
 import CreatePermission from '@/components/business/Contianer/CreatePermission';
 import TestCaseFilterGroup from '@/components/business/TestCaseFilterGroup';
@@ -18,6 +17,7 @@ import { useBaseAction, useTestConfig } from '@/lib/hooks/useContext';
 import useI18n from '@/lib/hooks/useI18n';
 import { logPluginVersion } from '@/lib/utils/helper';
 import { getRepositoryQuery } from '@/lib/utils/tree';
+import { ApprovalEntry } from '@/pages/repository';
 
 import { UNGROUPED_FOLDER_KEY } from '../../constant';
 import RepoDropDown from '../../RepoDropDown';
@@ -25,7 +25,6 @@ import { reverseTreeNodes } from '../../util';
 import { ViewComponentProps } from '../type';
 import cx from './index.less';
 import Table, { ActionType } from './Table';
-import { ApprovalEntry } from '@/pages/repository';
 
 type GroupedMode = 'all' | 'current';
 
@@ -43,35 +42,32 @@ const GroupModeSelector = (props: { mode: GroupedMode; onChange: (mode: GroupedM
 /** 评审入口 */
 const ApprovalEntryDropdown = ({ setApprovalEntry, createTestApproval }) => {
   const { t } = useI18n();
-  const location = useLocation();
-  console.log('location', location);
   const items: MenuProps['items'] = [
-  {
-    key: '1',
-    label: (
-      <a onClick={() => {
-        setApprovalEntry(ApprovalEntry.View)
-      }}>
-        查看用例评审
-      </a>
-    ),
-  },
-  {
-    key: '2',
-    label: (
-      <a onClick={() => {
-        console.log('click createTestApproval')
-        createTestApproval();
-        // setApprovalEntry(ApprovalEntry.Create)
-      }}>
-        新建用例评审
-      </a>
-    ),
-  },
-];
+    {
+      key: t('page.approval.view'),
+      label: (
+        <a onClick={() => { setApprovalEntry(ApprovalEntry.View) }}>
+          {t('page.approval.view')}
+        </a>
+      ),
+    },
+    {
+      key: t('page.approval.create'),
+      label: (
+        <a onClick={() => { createTestApproval() }}>
+          {t('page.approval.create')}
+        </a>
+      ),
+    },
+  ];
+
+  if (!window.QiankunProps.context?.env?.ENABLE_TEST_APPROVAL) {
+    return null;
+  }
+
   return (
     <Dropdown menu={{ items }}>
-      <Button>评审</Button>
+      <Button>{t('page.approval.approval')}</Button>
     </Dropdown>
   );
 };
@@ -291,7 +287,10 @@ const ListView: React.FC<ViewComponentProps> = ({
         </div>
 
         <div className={cx('actions')}>
-          <ApprovalEntryDropdown setApprovalEntry={setApprovalEntry} createTestApproval={createTestApproval} />
+          <ApprovalEntryDropdown
+            setApprovalEntry={setApprovalEntry}
+            createTestApproval={createTestApproval}
+          />
           <GroupModeSelector mode={groupedMode} onChange={mode => setGroupedMode(mode)} />
           <Button onClick={() => toggleSelection()}>
             {tableSelectionVisible ? t('common.cancelAction') : t('common.batchAction')}

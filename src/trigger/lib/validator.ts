@@ -12,7 +12,7 @@ export const throwMissingFieldError = key => {
 };
 /** 需要校验的字段 */
 const ValidateFields = ['detail', 'runDetail', ...TestFiledKeyKeys] as (
-  | typeof TestFiledKeyKeys[0]
+  | (typeof TestFiledKeyKeys)[0]
   | 'detail'
   | 'runDetail'
 )[];
@@ -20,7 +20,7 @@ const ValidateFields = ['detail', 'runDetail', ...TestFiledKeyKeys] as (
 /** 校验测试字段 */
 export const testEntityFieldTypeValidator = data => {
   Object.entries((data ?? {}) as Record<string, any>).forEach(([key, value]) => {
-    const fieldKey = key as typeof ValidateFields[0];
+    const fieldKey = key as (typeof ValidateFields)[0];
     // 测试自定义字段校验
     if (ValidateFields.includes(fieldKey)) {
       if (fieldKey === 'linkItems') {

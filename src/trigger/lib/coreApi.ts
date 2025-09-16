@@ -126,3 +126,12 @@ export const queryBatchResult = withCoreApiRequest([
   'GET',
   (batchId: string) => `/parse/api/items/batch/result/${batchId}`,
 ]);
+
+// 单个创建事项
+export const forgeCreateItem = withCoreApiRequest(['POST', '/parse/api/v2/items']);
+
+// 单个编辑事项
+export const forgeUpdateItem = withCoreApiRequest([
+  'PUT',
+  (itemId: string) => `/parse/api/v2/items/${itemId}?detail=true`,
+]);
