@@ -43,7 +43,7 @@ const DefaultGlobalRunAction = {
 }
 
 const DefaultCaseSnapshot = {
-  type: CASESNAPSHOT_TYPE.NO_BUILDVERSION_SELVERSION,
+  type: CASESNAPSHOT_TYPE.NO_AUTOBUILDVERSION_NO_SELVERSION,
   enableCaseExeUpdate: true,
   restrictiveConditions: '', // 更改用例版本的iql限制条件
 };
@@ -318,23 +318,24 @@ const ExecuteTestRunAction = () => {
           />
         </div>
       )}
-      {[CASESNAPSHOT_TYPE.NO_BUILDVERSION_SELVERSION].includes(caseSnapshot?.type) && (
-        <div className={cx('section')}>
-          <h3>{t('page.config.testConfigInitialization.enableCaseExeUpdate')}</h3>
-          <Switch
-            checked={!!caseSnapshot?.enableCaseExeUpdate}
-            onChange={v => {
-              setCaseSnapshot(prev => ({
-                ...prev,
-                enableCaseExeUpdate: v,
-                restrictiveConditions: v ? prev.restrictiveConditions : '', // 关闭时清空
-              }));
-            }}
-          />
-        </div>
-      )}
+      {getAppEnv('ENABLED_CASE_SNAPSHOT') &&
+        [CASESNAPSHOT_TYPE.NO_BUILDVERSION_SELVERSION].includes(caseSnapshot?.type) && (
+          <div className={cx('section')}>
+            <h3>{t('page.config.testConfigInitialization.enableCaseExeUpdate')}</h3>
+            <Switch
+              checked={!!caseSnapshot?.enableCaseExeUpdate}
+              onChange={v => {
+                setCaseSnapshot(prev => ({
+                  ...prev,
+                  enableCaseExeUpdate: v,
+                  restrictiveConditions: v ? prev.restrictiveConditions : '', // 关闭时清空
+                }));
+              }}
+            />
+          </div>
+        )}
 
-      {caseSnapshot?.enableCaseExeUpdate && (
+      {getAppEnv('ENABLED_CASE_SNAPSHOT') && caseSnapshot?.enableCaseExeUpdate && (
         <div className={cx('section')}>
           <h3>{t('page.config.testConfigInitialization.restrictiveConditions')}</h3>
           <Input
