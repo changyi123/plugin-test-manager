@@ -104,16 +104,12 @@ export const itemAfterSaveForApproval = async () => {
 
   // 查询关联的测试用例
   const {data: { list: cases = [] }} = await iqlRequest({
-    query: {
-      workspaceKey: item.workspace?.key,
-      type: TestType.Case,
-    },
-    fields: ['id', 'name', 'status'],
+    fields: ['id', 'name', 'status', 'r_test_manager_type'],
     pagination: { limit: InfinityLimit },
-    selector: `测试评审 = '${item.objectId}'`,
+    selector: `测试评审 = '${item.objectId}' and test_manager_type = '${TestType.Case}'`,
   });
 
-  console.info('itemAfterSaveForApproval request done', cases, JSON.stringify(cases));
+  console.info('itemAfterSaveForApproval request done', JSON.stringify(cases));
 
   const firstCase = cases?.[0];
 
