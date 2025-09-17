@@ -247,7 +247,6 @@ const TestEntityList: React.FC<TestEntityListProps> = ({
           notification.success({
             message: `${testDetails.length} ${t('page.plan.testEntityList.removeCaseMessage')}`,
           });
-          proxima.execute('refreshSelectedNode');
         },
         handleFail: error => {
           message.error(error.message);
@@ -354,86 +353,86 @@ const TestEntityList: React.FC<TestEntityListProps> = ({
   }, [removeTestRelation, t]);
 
   // 全部用例批量操作
-  const selectionActionNodes = React.useMemo(() => {
-    const handleDelete = () => {
-      if (hasRowSelected) {
-        actionConfirm(
-          {
-            title: t('common.tip'),
-            okText: t('common.okText'),
-            cancelText: t('common.cancel'),
-            content: (
-              <>
-                <span>{t('page.plan.testEntityList.removeCaseTips2')}</span>
-              </>
-            ),
-          },
-          async () => {
-            // @TODO update V2 remove case from plan
-            setTableLoading(true);
-            await removeCaseFromPlanWithProcess({
-              caseIds: actionRef.current.selectedRowKeys ?? [],
-              planId: selectedTestApproval?.objectId,
-              handleSuccess: () => {
-                setTimeout(() => {
-                  addAndDeleteRefresh();
-                  actionRef.current?.refresh();
-                }, 500);
-                proxima.execute('refreshSelectedNode');
-              },
-              handleFail: error => {
-                setTableLoading(false);
-                message.error(error.message);
-              },
-            });
-          },
-        );
-      }
-    };
+  // const selectionActionNodes = React.useMemo(() => {
+  //   const handleDelete = () => {
+  //     if (hasRowSelected) {
+  //       actionConfirm(
+  //         {
+  //           title: t('common.tip'),
+  //           okText: t('common.okText'),
+  //           cancelText: t('common.cancel'),
+  //           content: (
+  //             <>
+  //               <span>{t('page.plan.testEntityList.removeCaseTips2')}</span>
+  //             </>
+  //           ),
+  //         },
+  //         async () => {
+  //           // @TODO update V2 remove case from plan
+  //           setTableLoading(true);
+  //           await removeCaseFromPlanWithProcess({
+  //             caseIds: actionRef.current.selectedRowKeys ?? [],
+  //             planId: selectedTestApproval?.objectId,
+  //             handleSuccess: () => {
+  //               setTimeout(() => {
+  //                 addAndDeleteRefresh();
+  //                 actionRef.current?.refresh();
+  //               }, 500);
+  //               proxima.execute('refreshSelectedNode');
+  //             },
+  //             handleFail: error => {
+  //               setTableLoading(false);
+  //               message.error(error.message);
+  //             },
+  //           });
+  //         },
+  //       );
+  //     }
+  //   };
 
-    // 更新负责人
-    const handleAssigneeChange = async assignee => {
-      const testIds = actionRef.current.selectedRowKeys;
-      setTableLoading(true);
-      await updateItemsWithProcess({
-        items: testIds,
-        fields: {
-          values: { assignee },
-        },
-        handleSuccess: () => {
-          actionRef.current.refresh();
+  //   // 更新负责人
+  //   const handleAssigneeChange = async assignee => {
+  //     const testIds = actionRef.current.selectedRowKeys;
+  //     setTableLoading(true);
+  //     await updateItemsWithProcess({
+  //       items: testIds,
+  //       fields: {
+  //         values: { assignee },
+  //       },
+  //       handleSuccess: () => {
+  //         actionRef.current.refresh();
 
-          notification.success({
-            message: `${testIds.length} ${t('page.plan.testEntityList.updateAssigneeTips')}`,
-          });
-        },
-        handleFail: error => {
-          message.error(error.message);
-          actionRef.current.refresh();
-        },
-      });
-    };
+  //         notification.success({
+  //           message: `${testIds.length} ${t('page.plan.testEntityList.updateAssigneeTips')}`,
+  //         });
+  //       },
+  //       handleFail: error => {
+  //         message.error(error.message);
+  //         actionRef.current.refresh();
+  //       },
+  //     });
+  //   };
 
-    return [
-      <UserCell
-        value={[]}
-        key="assignee"
-        mode="multiple"
-        userData={userData}
-        readonly={!hasRowSelected}
-        onChange={handleAssigneeChange}
-        emptyChild={
-          <span className={cx('user-field')}>
-            <UserOutlined /> {t('page.plan.testEntityList.assigneeSetting')}
-          </span>
-        }
-      />,
+  //   return [
+  //     <UserCell
+  //       value={[]}
+  //       key="assignee"
+  //       mode="multiple"
+  //       userData={userData}
+  //       readonly={!hasRowSelected}
+  //       onChange={handleAssigneeChange}
+  //       emptyChild={
+  //         <span className={cx('user-field')}>
+  //           <UserOutlined /> {t('page.plan.testEntityList.assigneeSetting')}
+  //         </span>
+  //       }
+  //     />,
 
-      <span className={cx('danger')} key="delete" onClick={() => hasRowSelected && handleDelete()}>
-        <DeleteOutlined /> {t('common.remove')}
-      </span>,
-    ];
-  }, [userData, hasRowSelected, t, workspaceKey, addAndDeleteRefresh, selectedTestApproval?.objectId]);
+  //     <span className={cx('danger')} key="delete" onClick={() => hasRowSelected && handleDelete()}>
+  //       <DeleteOutlined /> {t('common.remove')}
+  //     </span>,
+  //   ];
+  // }, [userData, hasRowSelected, t, workspaceKey, addAndDeleteRefresh, selectedTestApproval?.objectId]);
 
   tableSelectionToggleEvent.useSubscription(visible => {
     actionRef.current.toggleSelection(visible);
@@ -484,7 +483,7 @@ const TestEntityList: React.FC<TestEntityListProps> = ({
         getDataSource={testApprovalTableDataGetter}
         onHasRowSelected={setHasRowSelected}
         allSelectableRowKeys={allApprovalRowKeys}
-        selectionActionNodes={selectionActionNodes}
+        // selectionActionNodes={selectionActionNodes}
         onSelectionCancel={() => tableSelectionToggleEvent.emit(false)}
         handleFilterField={handleFilterField}
         enableCacheEpandedRowKeys={enableCacheEpandedRowKeys}
