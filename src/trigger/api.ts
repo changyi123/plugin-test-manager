@@ -64,3 +64,12 @@ export { checkFilterGroupName } from './modules/filterGroup';
 
 export { executeAutomation } from './modules/automation/automationExecutionHandler';
 export { pipeAutomationCallback } from './modules/automation/pipeCallback';
+
+export {
+  queryWebhookQueue,
+  queryExecutionRecords,
+  queryPipeCallbackQueue,
+  retryWebhookQueueItem,
+  retryExecutionRecord,
+  getQueueStats,
+} from './modules/api/queueMonitor';

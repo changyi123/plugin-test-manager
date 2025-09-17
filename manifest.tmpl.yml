@@ -2,7 +2,7 @@ app:
   key: test_manager
   uuid: bf73e61c-e15a-4461-a1f7-f940c2009332
   name: test_manager
-  version: "4.38.550"
+  version: "4.38.564"
 modules:
   scheduledTrigger:
     - key: automation-queue-processor
@@ -63,6 +63,19 @@ modules:
     # Pipe自动化执行回调接口
     - key: pipeAutomationCallback
       function: pipe-automation-callback-function
+    # 队列监控API
+    - key: api-queue-stats
+      function: api-queue-stats-function
+    - key: api-queue-webhook-list
+      function: api-queue-webhook-list-function
+    - key: api-queue-execution-list
+      function: api-queue-execution-list-function
+    - key: api-queue-callback-list
+      function: api-queue-callback-list-function
+    - key: api-queue-webhook-retry
+      function: api-queue-webhook-retry-function
+    - key: api-queue-execution-retry
+      function: api-queue-execution-retry-function
       # 查询实体数据
     - key: api-query-test-entity
       function: api-query-test-entity-function
@@ -349,6 +362,25 @@ modules:
     - key: pipe-callback-queue-processor-function
       handler: job.processPipeCallbackQueue
       timeout: 120000
+    # 队列监控API函数
+    - key: api-queue-stats-function
+      handler: api.getQueueStats
+      timeout: 30000
+    - key: api-queue-webhook-list-function
+      handler: api.queryWebhookQueue
+      timeout: 30000
+    - key: api-queue-execution-list-function
+      handler: api.queryExecutionRecords
+      timeout: 30000
+    - key: api-queue-callback-list-function
+      handler: api.queryPipeCallbackQueue
+      timeout: 30000
+    - key: api-queue-webhook-retry-function
+      handler: api.retryWebhookQueueItem
+      timeout: 30000
+    - key: api-queue-execution-retry-function
+      handler: api.retryExecutionRecord
+      timeout: 30000
       # api backend Query
     - key: api-query-test-entity-function
       handler: query.queryTestEntity

@@ -9,6 +9,7 @@ import useI18n from '@/lib/hooks/useI18n';
 import DefectManageConfig from '@/pages/config/MoreConfig/DefectManageConfig';
 
 import ApprovalConfig from './ApprovalConfig';
+import AutomationQueueMonitor from './MoreConfig/AutomationQueueMonitor';
 import DataProvider from './DataProvider';
 import DefectMapping from './DefectMapping';
 import ExecuteTestRunAction from './ExecuteTestRunAction';
@@ -62,6 +63,13 @@ const MoreConfigPages = [
     title: 'defectManageConfig',
     component: DefectManageConfig,
     description: 'defectManageConfig',
+    isGlobalConfig: true,
+  },
+  {
+    key: 'AutomationQueueMonitor',
+    title: 'automationQueueMonitor',
+    component: AutomationQueueMonitor,
+    description: 'automationQueueMonitor',
     isGlobalConfig: true,
   },
 ];
