@@ -235,12 +235,7 @@ const TestPlanList: React.FC<any> = ({ setApprovalEntry }) => {
           testType: TestType.Case,
         }}
         useColumnSetting
-        defaultColumnKey={[
-          'status',
-          'caseCount',
-          'createdAt',
-          'createdBy',
-        ]}
+        defaultColumnKey={['status', 'caseCount', 'createdAt', 'createdBy']}
         // privateColumnKey={['caseCount']}
         rowKey="objectId"
         columns={columns}

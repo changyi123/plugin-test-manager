@@ -2,6 +2,7 @@ import { axios } from '@giteeteam/apps-team-api';
 
 import { getCodePlatformConfig } from './config';
 import { findBestPathMapping } from './pathMapping';
+import { logFileProcessing, updateCurrentFileProgress } from './queueStatistics';
 
 /**
  * 获取commit的diff
@@ -30,10 +31,12 @@ export async function getCommitDiff(projectId: string, commitId: string) {
 /**
  * 使用闭环逻辑处理文件变更决策（支持配置文件协调处理）
  */
-export function processFilesWithClosedLoop(
+export async function processFilesWithClosedLoop(
   diffData: any[],
   config: any,
   historyMappings: Map<string, any>,
+  queueId?: string,
+  commitId?: string,
 ) {
   if (!config?.mappings) {
     console.log('[AutoSync] 配置文件无mappings，跳过所有文件');
@@ -47,15 +50,39 @@ export function processFilesWithClosedLoop(
 
   if (hasConfigChange) {
     console.log('[AutoSync] 检测到配置文件变更，进入协调处理模式');
-    return processWithConfigCoordination(diffData, config, historyMappings);
+    return processWithConfigCoordination(diffData, config, historyMappings, queueId, commitId);
   } else {
     // 无配置文件变更，正常处理每个文件
     const fileDecisions = [];
 
-    for (const file of diffData) {
+    for (let i = 0; i < diffData.length; i++) {
+      const file = diffData[i];
+      const startTime = Date.now();
+
+      // 更新当前处理文件进度
+      if (queueId) {
+        await updateCurrentFileProgress(
+          queueId,
+          file.new_path || file.old_path || 'unknown',
+          i + 1,
+          diffData.length,
+        );
+      }
+
       const decision = processFileWithClosedLoop(file, config, historyMappings);
       if (decision.decision !== 'ignore') {
         fileDecisions.push(decision);
+      }
+
+      // 记录文件处理日志
+      if (queueId && commitId) {
+        await logFileProcessing(
+          queueId,
+          commitId,
+          file.new_path || file.old_path || 'unknown',
+          decision.decision !== 'ignore',
+          Date.now() - startTime,
+        );
       }
     }
 
@@ -72,10 +99,12 @@ export function processFilesWithClosedLoop(
 /**
  * 协调处理模式：当配置文件变更时的智能处理
  */
-function processWithConfigCoordination(
+async function processWithConfigCoordination(
   diffData: any[],
   config: any,
   historyMappings: Map<string, any>,
+  queueId?: string,
+  commitId?: string,
 ) {
   // Step 1: 分离配置文件和测试文件
   const configFile = diffData.find(f => (f.new_path || f.old_path) === 'automation-test-map.json');

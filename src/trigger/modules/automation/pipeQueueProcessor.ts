@@ -1,15 +1,15 @@
 import { storage } from '@giteeteam/apps-api';
 import { axios, requestCoreApi } from '@giteeteam/apps-team-api';
 
+import { batchUpdateItemsV2 } from '../../lib/coreApi';
 import {
   getPendingPipeCallbacks,
-  updatePipeCallbackStatus,
+  getTestCaseMappingByBuildId,
   incrementPipeCallbackRetryCount,
   markPipeCallbackFailed,
-  getTestCaseMappingByBuildId,
   updateExecutionRecord,
+  updatePipeCallbackStatus,
 } from './database';
-import { batchUpdateItemsV2 } from '../../lib/coreApi';
 
 // Excel解析服务配置
 function getExcelParseConfig() {
@@ -71,9 +71,7 @@ interface PipeCallbackData {
 /**
  * 提交Excel解析任务
  */
-async function submitExcelParseTask(
-  excelUrl: string,
-): Promise<{ taskId: string; status: string }> {
+async function submitExcelParseTask(excelUrl: string): Promise<{ taskId: string; status: string }> {
   const config = getExcelParseConfig();
 
   console.log(`[PipeQueueProcessor] 提交Excel解析任务, URL: ${excelUrl}`);
@@ -108,11 +106,13 @@ async function submitExcelParseTask(
     console.error('[PipeQueueProcessor] 提交Excel解析任务失败:', error);
     console.error('[PipeQueueProcessor] 错误详情:', {
       message: error.message,
-      response: error.response ? {
-        status: error.response.status,
-        statusText: error.response.statusText,
-        data: error.response.data,
-      } : '无响应数据',
+      response: error.response
+        ? {
+            status: error.response.status,
+            statusText: error.response.statusText,
+            data: error.response.data,
+          }
+        : '无响应数据',
     });
     throw new Error(`提交Excel解析任务失败: ${error.message}`);
   }
@@ -157,7 +157,7 @@ async function findExecutionTaskId(testExecutionId: string): Promise<string | nu
       isShowDetails: true,
       size: 1,
     };
-    
+
     console.log(`[PipeQueueProcessor] 查询参数:`, JSON.stringify(searchParams, null, 2));
 
     const response = await requestCoreApi('POST', '/parse/api/search', searchParams);
@@ -166,39 +166,45 @@ async function findExecutionTaskId(testExecutionId: string): Promise<string | nu
 
     const items = (response as any)?.payload?.items || [];
     console.log(`[PipeQueueProcessor] 查询到 ${items.length} 个结果`);
-    
+
     if (items.length === 0) {
       console.log(`[PipeQueueProcessor] 未找到测试执行: ${testExecutionId}`);
       console.log(`[PipeQueueProcessor] 尝试不使用displayContext再查询一次`);
-      
+
       // 尝试不使用displayContext的查询
       const fallbackResponse = await requestCoreApi('POST', '/parse/api/search', {
         iql: `id = '${testExecutionId}'`,
         isShowDetails: true,
         size: 1,
       });
-      
-      console.log(`[PipeQueueProcessor] fallback查询响应:`, JSON.stringify(fallbackResponse, null, 2));
-      
+
+      console.log(
+        `[PipeQueueProcessor] fallback查询响应:`,
+        JSON.stringify(fallbackResponse, null, 2),
+      );
+
       const fallbackItems = (fallbackResponse as any)?.payload?.items || [];
       if (fallbackItems.length === 0) {
         console.log(`[PipeQueueProcessor] fallback查询也未找到结果`);
         return null;
       }
-      
+
       console.log(`[PipeQueueProcessor] fallback查询找到 ${fallbackItems.length} 个结果`);
       items.push(...fallbackItems);
     }
 
     const testExecution = items[0];
     console.log(`[PipeQueueProcessor] 测试执行详情:`, JSON.stringify(testExecution, null, 2));
-    
+
     const linkItems = testExecution.values?.r_test_manager_linkItems;
     console.log(`[PipeQueueProcessor] r_test_manager_linkItems:`, linkItems);
 
     if (!linkItems || !Array.isArray(linkItems) || linkItems.length === 0) {
       console.log(`[PipeQueueProcessor] 测试执行没有关联的执行任务: ${testExecutionId}`);
-      console.log(`[PipeQueueProcessor] 测试执行的所有字段:`, Object.keys(testExecution.values || {}));
+      console.log(
+        `[PipeQueueProcessor] 测试执行的所有字段:`,
+        Object.keys(testExecution.values || {}),
+      );
       return null;
     }
 
@@ -339,7 +345,7 @@ async function updateTestExecutionStatus(
         testManagerStatus = 'FAILED';
         break;
       case 'BLOCKED':
-        testManagerStatus = 'BLOCKED'; // 阻塞状态，表示流水线执行有问题或映射关系缺失
+        testManagerStatus = 'BLOCK'; // 阻塞状态，表示流水线执行有问题或映射关系缺失
         break;
       default:
         testManagerStatus = 'FAILED'; // 默认为失败
@@ -356,11 +362,15 @@ async function updateTestExecutionStatus(
       asynchronous: false,
     };
 
-    console.log(`[PipeQueueProcessor] 准备更新测试执行状态: ${testExecutionId} -> ${testManagerStatus}`);
+    console.log(
+      `[PipeQueueProcessor] 准备更新测试执行状态: ${testExecutionId} -> ${testManagerStatus}`,
+    );
     
     const updateResult = await batchUpdateItemsV2(updateParams);
-    
-    console.log(`[PipeQueueProcessor] 测试执行状态更新成功: ${testExecutionId} -> ${testManagerStatus}`);
+
+    console.log(
+      `[PipeQueueProcessor] 测试执行状态更新成功: ${testExecutionId} -> ${testManagerStatus}`,
+    );
     console.log(`[PipeQueueProcessor] 更新结果:`, updateResult);
   } catch (error) {
     console.error(`[PipeQueueProcessor] 更新测试执行状态失败: ${testExecutionId}`, error);
@@ -371,10 +381,7 @@ async function updateTestExecutionStatus(
 /**
  * 处理文件上传到执行任务
  */
-async function processFileUploads(
-  callbackData: PipeCallbackData,
-  buildId: string,
-): Promise<void> {
+async function processFileUploads(callbackData: PipeCallbackData, buildId: string): Promise<void> {
   console.log('[PipeQueueProcessor] 开始处理文件上传');
 
   const tenant = getTenantKey();
@@ -393,13 +400,14 @@ async function processFileUploads(
     return;
   }
 
-  console.log('[PipeQueueProcessor] 测试用例映射关系详情:', JSON.stringify(testCaseMapping, null, 2));
+  console.log(
+    '[PipeQueueProcessor] 测试用例映射关系详情:',
+    JSON.stringify(testCaseMapping, null, 2),
+  );
 
   // 获取所有的测试执行ID（去重）
   const testExecutionIds = Array.from(
-    new Set(
-      Object.values(testCaseMapping).map((data: any) => data.testExecutionId),
-    ),
+    new Set(Object.values(testCaseMapping).map((data: any) => data.testExecutionId)),
   );
 
   console.log(`[PipeQueueProcessor] 需要上传文件的测试执行数量: ${testExecutionIds.length}`);
@@ -410,11 +418,15 @@ async function processFileUploads(
     try {
       const executionTaskId = await findExecutionTaskId(testExecutionId);
       if (!executionTaskId) {
-        console.log(`[PipeQueueProcessor] 测试执行 ${testExecutionId} 没有关联的执行任务，跳过文件上传`);
+        console.log(
+          `[PipeQueueProcessor] 测试执行 ${testExecutionId} 没有关联的执行任务，跳过文件上传`,
+        );
         continue;
       }
 
-      console.log(`[PipeQueueProcessor] 为执行任务 ${executionTaskId} 上传 ${fileUrls.length} 个文件`);
+      console.log(
+        `[PipeQueueProcessor] 为执行任务 ${executionTaskId} 上传 ${fileUrls.length} 个文件`,
+      );
 
       // 上传所有文件到这个执行任务
       for (const file of fileUrls) {
@@ -422,7 +434,10 @@ async function processFileUploads(
           await uploadFileToExecutionTask(file.url, executionTaskId, tenant);
           console.log(`[PipeQueueProcessor] 文件上传成功: ${file.name} -> ${executionTaskId}`);
         } catch (error) {
-          console.error(`[PipeQueueProcessor] 文件上传失败: ${file.name} -> ${executionTaskId}`, error);
+          console.error(
+            `[PipeQueueProcessor] 文件上传失败: ${file.name} -> ${executionTaskId}`,
+            error,
+          );
           // 单个文件上传失败不影响其他文件的上传
         }
       }
@@ -476,7 +491,9 @@ async function processExcelParseResult(
 
       if (!testExecutionId) {
         console.log(`[PipeQueueProcessor] 未找到TestID ${testId} 对应的测试执行映射关系`);
-        console.log(`[PipeQueueProcessor] 这可能表示映射关系有问题，需要将相关测试执行设为BLOCKED状态`);
+        console.log(
+          `[PipeQueueProcessor] 这可能表示映射关系有问题，需要将相关测试执行设为BLOCKED状态`,
+        );
         // 注意：这里不能直接跳过，因为我们需要标记测试执行为BLOCKED
         // 但目前我们无法确定具体是哪个测试执行，所以先记录为失败，后面会统一处理
         failedCount++;
@@ -511,18 +528,28 @@ async function processExcelParseResult(
   try {
     console.log('[PipeQueueProcessor] ========= 准备更新执行记录统计信息 =========');
     console.log('[PipeQueueProcessor] buildId:', buildId);
-    console.log('[PipeQueueProcessor] 统计信息: successCount=', successCount, ', failedCount=', failedCount, ', skippedCount=', skippedCount);
-    
+    console.log(
+      '[PipeQueueProcessor] 统计信息: successCount=',
+      successCount,
+      ', failedCount=',
+      failedCount,
+      ', skippedCount=',
+      skippedCount,
+    );
+
     // 先通过buildId查找执行记录
     const { getExecutionByBuildId } = await import('./database');
     const execution = await getExecutionByBuildId(buildId);
-    
+
     console.log('[PipeQueueProcessor] getExecutionByBuildId查询结果:');
     console.log(JSON.stringify(execution, null, 2));
-    
+
     if (execution && execution.executionId) {
-      console.log('[PipeQueueProcessor] 找到执行记录，准备更新，executionId:', execution.executionId);
-      
+      console.log(
+        '[PipeQueueProcessor] 找到执行记录，准备更新，executionId:',
+        execution.executionId,
+      );
+
       await updateExecutionRecord(execution.executionId, {
         status: failedCount > 0 ? 'completed_with_failures' : 'completed',
         completeTime: new Date(),
@@ -530,8 +557,10 @@ async function processExcelParseResult(
         failedCount,
         skippedCount,
       });
-      
-      console.log(`[PipeQueueProcessor] 更新执行记录统计信息成功: buildId=${buildId}, executionId=${execution.executionId}`);
+
+      console.log(
+        `[PipeQueueProcessor] 更新执行记录统计信息成功: buildId=${buildId}, executionId=${execution.executionId}`,
+      );
     } else {
       console.warn(`[PipeQueueProcessor] 未找到buildId ${buildId} 对应的执行记录`);
       console.warn('[PipeQueueProcessor] execution对象:', execution);
@@ -558,7 +587,7 @@ async function handleUnmappedTestExecutions(buildId: string, testRecords: any[])
     // 1. 获取该执行记录对应的所有测试执行ID
     const { getExecutionByBuildId } = await import('./database');
     const execution = await getExecutionByBuildId(buildId);
-    
+
     if (!execution || !execution.testExecutionIds) {
       console.warn('[PipeQueueProcessor] 未找到执行记录或测试执行ID列表为空');
       return;
@@ -572,9 +601,7 @@ async function handleUnmappedTestExecutions(buildId: string, testRecords: any[])
     console.log('[PipeQueueProcessor] 测试用例映射关系数量:', Object.keys(testCaseMapping).length);
 
     // 3. 从Excel结果中提取已找到映射关系的TestID
-    const excelTestIds = testRecords
-      .map(record => record['Test ID'])
-      .filter(testId => testId);
+    const excelTestIds = testRecords.map(record => record['Test ID']).filter(testId => testId);
     console.log('[PipeQueueProcessor] Excel中的TestID列表:', excelTestIds);
 
     // 4. 找出在映射关系中但不在Excel结果中的TestID
@@ -587,20 +614,28 @@ async function handleUnmappedTestExecutions(buildId: string, testRecords: any[])
       try {
         const mappingInfo = testCaseMapping[unmappedTestId];
         if (mappingInfo && mappingInfo.testExecutionId) {
-          console.log(`[PipeQueueProcessor] 将测试执行 ${mappingInfo.testExecutionId} 标记为BLOCKED (TestID: ${unmappedTestId})`);
-          
+          console.log(
+            `[PipeQueueProcessor] 将测试执行 ${mappingInfo.testExecutionId} 标记为BLOCKED (TestID: ${unmappedTestId})`,
+          );
+
           // 使用BLOCKED状态标记测试执行
           await updateTestExecutionStatus(mappingInfo.testExecutionId, 'BLOCKED');
-          
-          console.log(`[PipeQueueProcessor] 成功标记测试执行为BLOCKED: ${mappingInfo.testExecutionId}`);
+
+          console.log(
+            `[PipeQueueProcessor] 成功标记测试执行为BLOCKED: ${mappingInfo.testExecutionId}`,
+          );
         }
       } catch (error) {
-        console.error(`[PipeQueueProcessor] 标记测试执行为BLOCKED失败 (TestID: ${unmappedTestId}):`, error);
+        console.error(
+          `[PipeQueueProcessor] 标记测试执行为BLOCKED失败 (TestID: ${unmappedTestId}):`,
+          error,
+        );
       }
     }
 
-    console.log(`[PipeQueueProcessor] 映射关系缺失处理完成，标记了 ${unmappedTestIds.length} 个测试执行为BLOCKED`);
-
+    console.log(
+      `[PipeQueueProcessor] 映射关系缺失处理完成，标记了 ${unmappedTestIds.length} 个测试执行为BLOCKED`,
+    );
   } catch (error) {
     console.error('[PipeQueueProcessor] 处理映射关系缺失的测试执行失败:', error);
   }
@@ -630,9 +665,64 @@ async function processPipeCallback(queueItem: any): Promise<void> {
     }
 
     // 检查是否有报告文件需要解析
-    if (!callbackData.reportFile) {
-      console.log('[PipeQueueProcessor] 回调数据中没有报告文件，标记为完成');
+    if (!callbackData.reportFile || callbackData.reportFile.trim() === '') {
+      console.log(
+        '[PipeQueueProcessor] ⚠️ 回调数据中没有报告文件或报告文件为空，将所有测试执行标记为阻塞状态',
+      );
+      console.log('[PipeQueueProcessor] reportFile值:', JSON.stringify(callbackData.reportFile));
+
+      try {
+        // 获取该buildId对应的执行记录
+        const { getExecutionByBuildId } = await import('./database');
+        const execution = await getExecutionByBuildId(buildId);
+
+        if (execution && execution.testExecutionIds) {
+          // 解析测试执行ID列表
+          const testExecutionIds = JSON.parse(execution.testExecutionIds);
+          console.log(
+            `[PipeQueueProcessor] 找到 ${testExecutionIds.length} 个测试执行需要标记为阻塞`,
+          );
+
+          // 将所有测试执行标记为阻塞状态
+          for (const testExecutionId of testExecutionIds) {
+            try {
+              await updateTestExecutionStatus(testExecutionId, 'BLOCKED');
+              console.log(
+                `[PipeQueueProcessor] 已将测试执行 ${testExecutionId} 标记为BLOCKED (无报告文件)`,
+              );
+            } catch (error) {
+              console.error(
+                `[PipeQueueProcessor] 标记测试执行 ${testExecutionId} 为BLOCKED失败:`,
+                error,
+              );
+            }
+          }
+
+          // 更新执行记录状态
+          await updateExecutionRecord(execution.executionId, {
+            status: 'completed_with_errors',
+            completeTime: new Date(),
+            errorMessage: 'Pipe回调未提供报告文件，无法获取测试执行结果',
+            totalCount: testExecutionIds.length,
+            successCount: 0,
+            failedCount: 0,
+            skippedCount: 0,
+            blockedCount: testExecutionIds.length, // 全部标记为阻塞
+          });
+
+          console.log(
+            `[PipeQueueProcessor] 执行记录已更新，${testExecutionIds.length} 个测试执行已标记为BLOCKED`,
+          );
+        } else {
+          console.warn('[PipeQueueProcessor] 未找到执行记录或测试执行ID列表');
+        }
+      } catch (error) {
+        console.error('[PipeQueueProcessor] 处理无报告文件的回调失败:', error);
+      }
+
+      // 更新队列状态为完成
       await updatePipeCallbackStatus(queueId, 'completed', new Date());
+      console.log('[PipeQueueProcessor] 队列状态已更新为completed (无报告文件)');
       return;
     }
 

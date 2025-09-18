@@ -159,7 +159,7 @@ export async function callPipeWebHook(
 
     // 构建测试用例映射关系 - 支持TestID和className#methodName两种映射
     const testCaseMapping: Record<string, any> = {};
-    
+
     params.testCases.forEach(testCase => {
       const executionData = {
         testExecutionId: testCase.testExecutionId || testCase.executionId,
@@ -175,17 +175,21 @@ export async function callPipeWebHook(
       // 1. 通过TestID映射（主要映射方式，Excel中会用到）
       if (testCase.testId) {
         testCaseMapping[testCase.testId] = executionData;
-        console.log(`[Pipe] 添加TestID映射: ${testCase.testId} -> 执行${executionData.testExecutionId}`);
+        console.log(
+          `[Pipe] 添加TestID映射: ${testCase.testId} -> 执行${executionData.testExecutionId}`,
+        );
       }
 
       // 2. 通过className#methodName映射（备用映射方式）
       if (testCase.className && testCase.methodName) {
         const classMethodKey = `${testCase.className}#${testCase.methodName}`;
         testCaseMapping[classMethodKey] = executionData;
-        console.log(`[Pipe] 添加类方法映射: ${classMethodKey} -> 执行${executionData.testExecutionId}`);
+        console.log(
+          `[Pipe] 添加类方法映射: ${classMethodKey} -> 执行${executionData.testExecutionId}`,
+        );
       }
     });
-    
+
     console.log('[Pipe] 构建映射关系完成，共', Object.keys(testCaseMapping).length, '个映射条目');
 
     // 按仓库和分支分组
@@ -211,11 +215,13 @@ export async function callPipeWebHook(
         gitBranch: groupTestCases[0]?.gitBranch,
         gitPath: groupTestCases[0]?.gitPath,
       });
-      
+
       // 检查所有测试用例的gitPath是否一致
       const allGitPaths = groupTestCases.map(tc => tc.gitPath).filter(Boolean);
       const uniqueGitPaths = Array.from(new Set(allGitPaths));
-      console.log(`[Pipe] 该组测试用例的gitPath情况: 共${allGitPaths.length}个有效值, ${uniqueGitPaths.length}个唯一值`);
+      console.log(
+        `[Pipe] 该组测试用例的gitPath情况: 共${allGitPaths.length}个有效值, ${uniqueGitPaths.length}个唯一值`,
+      );
       console.log('[Pipe] 唯一gitPath值:', uniqueGitPaths);
 
       // 分批处理（每批CASE_LIST不超过10000字符）
@@ -264,7 +270,10 @@ export async function callPipeWebHook(
           },
         });
 
-        console.log(`[Pipe] 批次 ${i + 1}/${batches.length} 完整响应数据:`, JSON.stringify(response.data, null, 2));
+        console.log(
+          `[Pipe] 批次 ${i + 1}/${batches.length} 完整响应数据:`,
+          JSON.stringify(response.data, null, 2),
+        );
         console.log(`[Pipe] 批次 ${i + 1} 响应状态码:`, response.status);
         console.log(`[Pipe] 批次 ${i + 1} 响应头:`, response.headers);
 

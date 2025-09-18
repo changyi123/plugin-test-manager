@@ -1,3 +1,4 @@
+import { getParseQuery, requestCoreApi } from '@giteeteam/apps-team-api';
 import { uniq } from 'lodash';
 
 import {
@@ -7,9 +8,8 @@ import {
   TestType,
 } from '../../../common/constant';
 import { batchUpdateItemsValues } from '../../lib/batchRequest';
-import { iqlRequest } from '../../lib/iqlRequest';
-import { getParseQuery, requestCoreApi } from '@giteeteam/apps-team-api';
 import { dataFetcher } from '../../lib/initialization';
+import { iqlRequest } from '../../lib/iqlRequest';
 
 function getLinkItem(i) {
   if (!Array.isArray(i.values.r_test_manager_linkItems)) return null;
@@ -63,20 +63,29 @@ export const itemAfterSaveForApproval = async () => {
   const { item, originalItem, env } = global as any;
   const globalConfig = await dataFetcher.getGlobalTestConfig();
   const approvalConfig = globalConfig.extra?.approvalConfig;
-  
-  console.log('itemAfterSaveForApproval approvalConfig', globalConfig, approvalConfig, item, JSON.stringify(item));
 
-  const workspaceTestConfig = await getParseQuery(true, 'TestConfig').equalTo('workspaceKey', item.workspace?.key)
+  console.log(
+    'itemAfterSaveForApproval approvalConfig',
+    globalConfig,
+    approvalConfig,
+    item,
+    JSON.stringify(item),
+  );
+
+  const workspaceTestConfig = await getParseQuery(true, 'TestConfig')
+    .equalTo('workspaceKey', item.workspace?.key)
     .select(['itemTypeMap'])
     .first({ useMasterKey: true })
     .then(o => o.toJSON());
   console.log('itemAfterSaveForApproval itemTypeMap', workspaceTestConfig);
 
-  if (!approvalConfig || !workspaceTestConfig?.itemTypeMap?.['TestApproval']) {
+  if (!approvalConfig || !workspaceTestConfig?.itemTypeMap?.TestApproval) {
     return;
   }
-  const approvalItemTypeKey = workspaceTestConfig?.itemTypeMap?.['TestApproval'] || env.APPROVAL_ITEM_TYPE_KEY;
-  const itemTargatStatusId = approvalConfig.itemApprovalStatus || env.APPROVAL_ITEM_TARGET_STATUS_ID;
+  const approvalItemTypeKey =
+    workspaceTestConfig?.itemTypeMap?.TestApproval || env.APPROVAL_ITEM_TYPE_KEY;
+  const itemTargatStatusId =
+    approvalConfig.itemApprovalStatus || env.APPROVAL_ITEM_TARGET_STATUS_ID;
   console.info('itemAfterSaveForApproval', item, JSON.stringify(item));
   console.info('itemAfterSaveForApproval env', env);
 
@@ -124,15 +133,21 @@ export const itemAfterSaveForApproval = async () => {
     `/parse/api/workflows/item/${firstCase.objectId}`,
   );
 
-  console.info('itemWorkflowRes', itemWorkflowRes, (itemWorkflowRes as any)?.transitions, JSON.stringify(itemWorkflowRes));
-  
+  console.info(
+    'itemWorkflowRes',
+    itemWorkflowRes,
+    (itemWorkflowRes as any)?.transitions,
+    JSON.stringify(itemWorkflowRes),
+  );
+
   const caseTargatStatusId = approvalConfig.caseApprovalStatus || env.CASE_TARGAT_STATUS_ID;
   console.log('caseTargatStatusId', caseTargatStatusId);
 
-  const caseTargetStatus = await getParseQuery(false, 'Status').select(['name'])
-      .equalTo('objectId', caseTargatStatusId)
-      .first({ useMasterKey: true })
-      .then(status => status.toJSON());
+  const caseTargetStatus = await getParseQuery(false, 'Status')
+    .select(['name'])
+    .equalTo('objectId', caseTargatStatusId)
+    .first({ useMasterKey: true })
+    .then(status => status.toJSON());
   console.log('caseTargatStatusIdName', caseTargetStatus);
 
   const caseTargetStatusName = caseTargetStatus.name || env.CASE_TARGET_STATUS_NAME;

@@ -72,4 +72,6 @@ export {
   retryWebhookQueueItem,
   retryExecutionRecord,
   getQueueStats,
+  getQueueDetails,
+  getQueueFileStats,
 } from './modules/api/queueMonitor';

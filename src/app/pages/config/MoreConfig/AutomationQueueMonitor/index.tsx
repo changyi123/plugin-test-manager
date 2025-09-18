@@ -1,18 +1,20 @@
-import React, { useState } from 'react';
-import { Tabs, Card, Row, Col, Statistic, message } from 'antd';
 import { useQuery } from '@tanstack/react-query';
-import useI18n from '@/lib/hooks/useI18n';
-import WebhookQueue from './WebhookQueue';
-import ExecutionMonitor from './ExecutionMonitor';
+import { Card, Col, message, Row, Statistic, Tabs } from 'antd';
+import React, { useState } from 'react';
+
 import { getQueueStats } from '@/lib/automation/api';
+import useI18n from '@/lib/hooks/useI18n';
+
+import ExecutionMonitor from './ExecutionMonitor';
 import cx from './index.less';
+import WebhookQueue from './WebhookQueue';
 
 const { TabPane } = Tabs;
 
 const AutomationQueueMonitor: React.FC = () => {
   const { t } = useI18n();
   const [activeTab, setActiveTab] = useState('webhook');
-  
+
   // 查询队列统计信息
   const { data: stats } = useQuery({
     queryKey: ['queueStats'],
@@ -22,7 +24,7 @@ const AutomationQueueMonitor: React.FC = () => {
       console.error('获取队列统计失败:', error);
     },
   });
-  
+
   return (
     <div className={cx('automation-queue-monitor')}>
       {/* 统计卡片 */}

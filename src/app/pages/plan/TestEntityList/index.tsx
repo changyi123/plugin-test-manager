@@ -1279,7 +1279,10 @@ const TestEntityList: React.FC<TestEntityListProps> = ({
       // 可执行的测试执行 id
       let canExecuteTestRunIds = await getCanExecuteTestRunIdSequence(testRunIds);
       let isOver = false;
-      if (canActionTestTaskLimit && Number(canExecuteTestRunIds?.length) > Number(actionTestTaskLimitQuantity)) {
+      if (
+        canActionTestTaskLimit &&
+        Number(canExecuteTestRunIds?.length) > Number(actionTestTaskLimitQuantity)
+      ) {
         canExecuteTestRunIds = canExecuteTestRunIds.slice(0, actionTestTaskLimitQuantity);
         isOver = true;
       }
@@ -1301,7 +1304,9 @@ const TestEntityList: React.FC<TestEntityListProps> = ({
         handleSuccess: () => {
           if (isOver) {
             notification.success({
-              message: t('page.plan.testEntityList.updateRunStateAndLimitTips', { number: actionTestTaskLimitQuantity }),
+              message: t('page.plan.testEntityList.updateRunStateAndLimitTips', {
+                number: actionTestTaskLimitQuantity,
+              }),
             });
           } else {
             notification.success({

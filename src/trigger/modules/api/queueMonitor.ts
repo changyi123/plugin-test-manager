@@ -4,7 +4,11 @@
 import { storage } from '@giteeteam/apps-api';
 
 import { buildPaginationResponse, buildResponse } from '../../lib/apiUtil';
-import { AutomationWebhookQueue, AutomationExecutionRecord, PipeCallbackQueue } from '../automation/types';
+import {
+  AutomationExecutionRecord,
+  AutomationWebhookQueue,
+  PipeCallbackQueue,
+} from '../automation/types';
 
 // 查询参数接口
 export interface QueueQueryParams {
@@ -20,7 +24,7 @@ export interface QueueQueryParams {
 export async function queryWebhookQueue(params: QueueQueryParams = {}) {
   try {
     const { limit = 20, skip = 0, status, workspaceKey } = params;
-    
+
     // 构建查询条件
     const where: any = {};
     if (status) {
@@ -32,7 +36,7 @@ export async function queryWebhookQueue(params: QueueQueryParams = {}) {
 
     // 查询数据
     let query = storage.entity('AutomationWebhookQueue').query();
-    
+
     // 添加查询条件
     if (where.status) {
       query = query.equalTo('status', where.status);
@@ -40,12 +44,8 @@ export async function queryWebhookQueue(params: QueueQueryParams = {}) {
     if (where.workspaceKey) {
       query = query.equalTo('workspaceKey', where.workspaceKey);
     }
-    
-    const result = await query
-      .descending('createdAt')
-      .skip(skip)
-      .limit(limit)
-      .find();
+
+    const result = await query.descending('createdAt').skip(skip).limit(limit).find();
 
     // 查询总数
     let countQuery = storage.entity('AutomationWebhookQueue').query();
@@ -78,7 +78,7 @@ export async function queryWebhookQueue(params: QueueQueryParams = {}) {
 export async function queryExecutionRecords(params: QueueQueryParams = {}) {
   try {
     const { limit = 20, skip = 0, status, workspaceKey } = params;
-    
+
     // 构建查询条件
     const where: any = {};
     if (status) {
@@ -90,7 +90,7 @@ export async function queryExecutionRecords(params: QueueQueryParams = {}) {
 
     // 查询数据
     let query = storage.entity('AutomationExecutionRecord').query();
-    
+
     // 添加查询条件
     if (where.status) {
       query = query.equalTo('status', where.status);
@@ -98,12 +98,8 @@ export async function queryExecutionRecords(params: QueueQueryParams = {}) {
     if (where.workspaceKey) {
       query = query.equalTo('workspaceKey', where.workspaceKey);
     }
-    
-    const result = await query
-      .descending('triggerTime')
-      .skip(skip)
-      .limit(limit)
-      .find();
+
+    const result = await query.descending('triggerTime').skip(skip).limit(limit).find();
 
     // 查询总数
     let countQuery = storage.entity('AutomationExecutionRecord').query();
@@ -136,7 +132,7 @@ export async function queryExecutionRecords(params: QueueQueryParams = {}) {
 export async function queryPipeCallbackQueue(params: QueueQueryParams = {}) {
   try {
     const { limit = 20, skip = 0, status } = params;
-    
+
     // 构建查询条件
     const where: any = {};
     if (status) {
@@ -145,17 +141,13 @@ export async function queryPipeCallbackQueue(params: QueueQueryParams = {}) {
 
     // 查询数据
     let query = storage.entity('PipeCallbackQueue').query();
-    
+
     // 添加查询条件
     if (where.status) {
       query = query.equalTo('status', where.status);
     }
-    
-    const result = await query
-      .descending('createdAt')
-      .skip(skip)
-      .limit(limit)
-      .find();
+
+    const result = await query.descending('createdAt').skip(skip).limit(limit).find();
 
     // 查询总数
     let countQuery = storage.entity('PipeCallbackQueue').query();
@@ -185,9 +177,13 @@ export async function queryPipeCallbackQueue(params: QueueQueryParams = {}) {
 export async function retryWebhookQueueItem(params: { queueId: string; forceReset?: boolean }) {
   try {
     const { queueId, forceReset = false } = params;
-    
+
     // 查询当前队列项
-    const queueItem = await storage.entity('AutomationWebhookQueue').get(queueId);
+    const queueItem = await storage
+      .entity('AutomationWebhookQueue')
+      .query()
+      .equalTo('objectId', queueId)
+      .first();
     if (!queueItem) {
       return buildResponse({
         success: false,
@@ -195,10 +191,12 @@ export async function retryWebhookQueueItem(params: { queueId: string; forceRese
       });
     }
 
-    console.log(`[QueueMonitor] 重试队列项: ${queueId}, 当前状态: ${queueItem.status}, 强制重置: ${forceReset}`);
+    console.log(
+      `[QueueMonitor] 重试队列项: ${queueId}, 当前状态: ${queueItem.status}, 强制重置: ${forceReset}`,
+    );
 
     let updateData: any;
-    
+
     if (forceReset) {
       // 强制重置：清零重试次数，重置为pending状态
       updateData = {
@@ -213,14 +211,14 @@ export async function retryWebhookQueueItem(params: { queueId: string; forceRese
     } else {
       // 正常重试：增加重试次数
       const newRetryCount = (queueItem.retryCount || 0) + 1;
-      
+
       if (newRetryCount >= 3) {
         return buildResponse({
           success: false,
           error: '已达最大重试次数，请使用强制重置',
         });
       }
-      
+
       updateData = {
         status: 'pending',
         retryCount: newRetryCount,
@@ -253,9 +251,13 @@ export async function retryWebhookQueueItem(params: { queueId: string; forceRese
 export async function retryExecutionRecord(params: { executionId: string }) {
   try {
     const { executionId } = params;
-    
+
     // 查询当前执行记录
-    const record = await storage.entity('AutomationExecutionRecord').get(executionId);
+    const record = await storage
+      .entity('AutomationExecutionRecord')
+      .query()
+      .equalTo('objectId', executionId)
+      .first();
     if (!record) {
       return buildResponse({
         success: false,
@@ -342,7 +344,8 @@ export async function getQueueStats() {
         processing: pipeCallbackProcessing,
         completed: pipeCallbackCompleted,
         failed: pipeCallbackFailed,
-        total: pipeCallbackPending + pipeCallbackProcessing + pipeCallbackCompleted + pipeCallbackFailed,
+        total:
+          pipeCallbackPending + pipeCallbackProcessing + pipeCallbackCompleted + pipeCallbackFailed,
       },
     };
 
@@ -352,6 +355,260 @@ export async function getQueueStats() {
     });
   } catch (error) {
     console.error('[QueueMonitor] 获取队列统计失败:', error);
+    return buildResponse({
+      success: false,
+      error: error.message,
+    });
+  }
+}
+
+/**
+ * 获取队列详细统计信息
+ */
+export async function getQueueDetails(params: any) {
+  try {
+    console.log('[QueueMonitor] getQueueDetails 收到原始params:', JSON.stringify(params, null, 2));
+
+    // 尝试从不同层级获取queueId
+    let queueId = params.queueId;
+    if (!queueId && params.payload) {
+      queueId = params.payload.queueId;
+    }
+    if (!queueId && typeof params.payload === 'string') {
+      try {
+        const parsed = JSON.parse(params.payload);
+        queueId = parsed.queueId;
+      } catch (e) {
+        console.error('[QueueMonitor] 解析payload失败:', e);
+      }
+    }
+
+    console.log('[QueueMonitor] getQueueDetails 开始，queueId:', queueId);
+
+    // 1. 查询队列基本信息
+    const queueInfo = await storage
+      .entity('AutomationWebhookQueue')
+      .query()
+      .equalTo('objectId', queueId)
+      .first();
+    if (!queueInfo) {
+      return buildResponse({
+        success: false,
+        error: '队列记录不存在',
+      });
+    }
+
+    // 尝试查询统计表，如果失败则使用默认值
+    let processingStats = null;
+    let fileProcessingLogs = [];
+    let caseGenerationLogs = [];
+
+    // 2. 尝试查询处理统计信息
+    try {
+      processingStats = await storage
+        .entity('QueueProcessingStatistics')
+        .query()
+        .equalTo('queueId', queueId)
+        .first();
+    } catch (error) {
+      console.error('[QueueMonitor] QueueProcessingStatistics 查询失败:', error);
+      // 继续执行，使用 null 作为默认值
+    }
+
+    // 2.5. 查询操作统计信息
+    let operationStats = null;
+    try {
+      operationStats = await storage
+        .entity('OperationStatistics')
+        .query()
+        .equalTo('queueId', queueId)
+        .first();
+    } catch (error) {
+      console.error('[QueueMonitor] OperationStatistics 查询失败:', error);
+    }
+
+    // 3. 尝试查询文件处理日志
+    try {
+      fileProcessingLogs =
+        (await storage
+          .entity('FileProcessingLog')
+          .query()
+          .equalTo('queueId', queueId)
+          .ascending('timestamp')
+          .find()) || [];
+    } catch (error) {
+      console.error('[QueueMonitor] FileProcessingLog 查询失败:', error);
+      fileProcessingLogs = [];
+    }
+
+    // 4. 尝试查询用例生成日志
+    try {
+      caseGenerationLogs =
+        (await storage
+          .entity('CaseGenerationLog')
+          .query()
+          .equalTo('queueId', queueId)
+          .ascending('timestamp')
+          .find()) || [];
+    } catch (error) {
+      console.error('[QueueMonitor] CaseGenerationLog 查询失败:', error);
+      caseGenerationLogs = [];
+    }
+
+    // 5. 计算汇总统计
+    const summary = {
+      totalFiles: Array.isArray(fileProcessingLogs) ? fileProcessingLogs.length : 0,
+      processedFiles: Array.isArray(fileProcessingLogs) ? fileProcessingLogs.length : 0,
+      shouldProcessFiles: Array.isArray(fileProcessingLogs)
+        ? fileProcessingLogs.filter(log => log.shouldProcess).length
+        : 0,
+      // 使用新的操作统计数据，如果没有则回退到旧的方式
+      totalOperations:
+        operationStats?.totalOperations ||
+        (Array.isArray(caseGenerationLogs)
+          ? caseGenerationLogs.reduce((sum, log) => sum + (log.operationsGenerated || 0), 0)
+          : 0),
+      identifiedTestCases: operationStats?.uniqueTestCases || 0,
+      // 兼容旧字段
+      identifiedCases:
+        operationStats?.uniqueTestCases ||
+        (Array.isArray(caseGenerationLogs)
+          ? caseGenerationLogs.reduce((sum, log) => sum + (log.operationsGenerated || 0), 0)
+          : 0),
+      successfulCases: processingStats?.successfulCases || 0,
+      failedCases: processingStats?.failedCases || 0,
+    };
+
+    const result = {
+      queueInfo,
+      processingStats: processingStats
+        ? {
+            totalFiles: processingStats.totalFiles || 0,
+            processedFiles: processingStats.processedFiles || 0,
+            identifiedCases: processingStats.identifiedCases || 0,
+            pendingOperations: processingStats.pendingOperations || 0,
+            completedOperations: processingStats.completedOperations || 0,
+            successfulCases: processingStats.successfulCases || 0,
+            failedCases: processingStats.failedCases || 0,
+            skippedCases: processingStats.skippedCases || 0,
+            currentCommit: processingStats.currentCommit,
+            currentFile: processingStats.currentFile,
+            currentStep: processingStats.currentStep,
+            lastUpdateTime: processingStats.lastUpdateTime,
+          }
+        : null,
+      operationStats: operationStats
+        ? {
+            createOperations: operationStats.createOperations || 0,
+            updateOperations: operationStats.updateOperations || 0,
+            deleteOperations: operationStats.deleteOperations || 0,
+            queryOperations: operationStats.queryOperations || 0,
+            totalOperations: operationStats.totalOperations || 0,
+            uniqueTestCases: operationStats.uniqueTestCases || 0,
+            timestamp: operationStats.timestamp,
+          }
+        : null,
+      fileProcessingLogs: Array.isArray(fileProcessingLogs)
+        ? fileProcessingLogs.map(log => ({
+            commitId: log.commitId,
+            fileName: log.fileName,
+            shouldProcess: log.shouldProcess,
+            operationsGenerated: log.operationsGenerated,
+            processingTime: log.processingTime,
+            timestamp: log.timestamp,
+            errorMessage: log.errorMessage,
+          }))
+        : [],
+      caseGenerationLogs: Array.isArray(caseGenerationLogs)
+        ? caseGenerationLogs.map(log => ({
+            fileName: log.fileName,
+            operationsGenerated: log.operationsGenerated,
+            operationTypes: log.operationTypes,
+            timestamp: log.timestamp,
+          }))
+        : [],
+      summary,
+    };
+
+    return buildResponse({
+      success: true,
+      data: result,
+    });
+  } catch (error) {
+    console.error('[QueueMonitor] 获取队列详情失败:', error);
+    return buildResponse({
+      success: false,
+      error: error.message,
+    });
+  }
+}
+
+/**
+ * 获取文件处理统计
+ */
+export async function getQueueFileStats(params: any) {
+  try {
+    // 尝试从不同层级获取queueId
+    let queueId = params.queueId;
+    if (!queueId && params.payload) {
+      queueId = params.payload.queueId;
+    }
+    if (!queueId && typeof params.payload === 'string') {
+      try {
+        const parsed = JSON.parse(params.payload);
+        queueId = parsed.queueId;
+      } catch (e) {
+        console.error('[QueueMonitor] getQueueFileStats 解析payload失败:', e);
+      }
+    }
+
+    // 查询文件处理日志
+    const fileProcessingLogs = await storage
+      .entity('FileProcessingLog')
+      .query()
+      .equalTo('queueId', queueId)
+      .ascending('timestamp')
+      .find();
+
+    // 查询用例生成日志，用于匹配操作数量
+    const caseGenerationLogs = await storage
+      .entity('CaseGenerationLog')
+      .query()
+      .equalTo('queueId', queueId)
+      .ascending('timestamp')
+      .find();
+
+    // 建立文件名到用例生成数量的映射
+    const caseGenerationMap = new Map();
+    (caseGenerationLogs || []).forEach(log => {
+      caseGenerationMap.set(log.fileName, log.operationsGenerated || 0);
+    });
+
+    // 构建文件统计
+    const files = (fileProcessingLogs || []).map(log => {
+      const operationsGenerated = caseGenerationMap.get(log.fileName) || 0;
+
+      let status: 'success' | 'failed' | 'skipped' = 'skipped';
+      if (log.shouldProcess) {
+        status = log.errorMessage ? 'failed' : 'success';
+      }
+
+      return {
+        fileName: log.fileName,
+        shouldProcess: log.shouldProcess,
+        operationsGenerated,
+        processingTime: log.processingTime || 0,
+        status,
+        errorMessage: log.errorMessage,
+      };
+    });
+
+    return buildResponse({
+      success: true,
+      data: { files },
+    });
+  } catch (error) {
+    console.error('[QueueMonitor] 获取文件处理统计失败:', error);
     return buildResponse({
       success: false,
       error: error.message,

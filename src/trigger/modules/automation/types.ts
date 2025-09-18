@@ -18,6 +18,22 @@ export interface AutomationWebhookQueue {
   errorMessage?: string; // 错误信息
   createdAt?: Date; // 创建时间
   updatedAt?: Date; // 更新时间
+
+  // 新增统计字段
+  totalFiles?: number; // 总文件数
+  processedFiles?: number; // 已处理文件数
+  identifiedCases?: number; // 已识别的用例数量
+  pendingOperations?: number; // 待执行的操作数量
+  completedOperations?: number; // 已完成的操作数量
+  successfulCases?: number; // 成功创建的用例数
+  failedCases?: number; // 失败的用例数
+  skippedCases?: number; // 跳过的用例数
+
+  // 当前处理状态
+  currentCommit?: string; // 当前处理的commit（前8位）
+  currentFile?: string; // 当前处理的文件名
+  currentStep?: string; // 当前步骤标识
+  lastUpdateTime?: Date; // 最后更新时间
 }
 
 // 自动化执行状态枚举
@@ -102,6 +118,67 @@ export interface ExcelParseResult {
   };
   createdAt: string;
   updatedAt: string;
+}
+
+// 文件处理日志接口
+export interface FileProcessingLog {
+  objectId?: string;
+  queueId: string; // 关联队列ID
+  commitId: string; // commit ID
+  fileName: string; // 文件名
+  shouldProcess: boolean; // 是否需要处理
+  operationsGenerated?: number; // 生成的操作数量
+  processingTime?: number; // 处理耗时(ms)
+  timestamp: Date; // 处理时间
+  errorMessage?: string; // 错误信息（如果有）
+}
+
+// 用例生成日志接口
+export interface CaseGenerationLog {
+  objectId?: string;
+  queueId: string; // 关联队列ID
+  fileName: string; // 文件名
+  operationsGenerated: number; // 此文件生成的操作数
+  operationTypes: string; // 操作类型JSON：["create", "update"]
+  timestamp: Date; // 生成时间
+}
+
+// 处理步骤枚举
+export enum ProcessStep {
+  START = 'start', // 开始处理
+  ANALYZING_DIFF = 'analyzing_diff', // 分析diff
+  PROCESSING_FILE = 'processing_file', // 处理文件
+  GENERATING_OPERATIONS = 'generating_operations', // 生成操作
+  EXECUTING_OPERATIONS = 'executing_operations', // 执行操作
+  COMPLETED = 'completed', // 处理完成
+  FAILED = 'failed', // 处理失败
+}
+
+// 用例失败日志接口
+export interface CaseFailureLog {
+  objectId?: string;
+  queueId: string; // 关联队列ID
+  caseId?: string; // 用例ID
+  caseName?: string; // 用例名称
+  itemKey?: string; // 事项key
+  failureReason: string; // 失败原因
+  failureTime: Date; // 失败时间
+  operationType: string; // 操作类型(CREATE/UPDATE等)
+  filePath: string; // 文件路径
+  errorCode?: string; // 错误代码分类
+}
+
+// 操作统计接口
+export interface OperationStatistics {
+  objectId?: string;
+  queueId: string; // 关联队列ID
+  createOperations: number; // CREATE操作数
+  updateOperations: number; // UPDATE操作数
+  deleteOperations: number; // DELETE操作数
+  queryOperations: number; // QUERY操作数
+  totalOperations: number; // 总操作数
+  uniqueTestCases: number; // 去重后的用例数
+  timestamp: Date; // 统计时间
 }
 
 // 自定义字段常量

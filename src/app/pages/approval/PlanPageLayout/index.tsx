@@ -1,5 +1,6 @@
 import { useUpdateEffect } from 'ahooks';
 import React, { useCallback, useEffect, useRef, useState } from 'react';
+
 import PageLayout from '@/components/common/PageLayout';
 import BasicPageLayout from '@/components/common/PageLayout/Basic';
 import { useTestConfig } from '@/lib/hooks/useContext';
@@ -8,10 +9,7 @@ import TestApprovalList from '@/pages/approval/TestApprovalList';
 
 import { usePageContext } from '../hook';
 import Header from './Header';
-import {
-  useGetApprovalLinkCaseIds,
-  useTreeParams,
-} from './hooks';
+import { useGetApprovalLinkCaseIds, useTreeParams } from './hooks';
 import cx from './index.less';
 import Left from './Left';
 import Right from './Right';
@@ -37,11 +35,12 @@ const PlanPageLayout: React.FC<any> = ({ selectedApproval, setApprovalEntry }) =
   const [showType, setShowType] = useState('all');
 
   // 获取关联的全部测试用例 id
-  const { data: approvalLinkCaseIds, refreshAsync: approvalLinkCaseIdRefresh } = useGetApprovalLinkCaseIds({
-    workspaceKey,
-    type: 'TestApproval',
-    testApprovalId: selectedApproval?.objectId,
-  });
+  const { data: approvalLinkCaseIds, refreshAsync: approvalLinkCaseIdRefresh } =
+    useGetApprovalLinkCaseIds({
+      workspaceKey,
+      type: 'TestApproval',
+      testApprovalId: selectedApproval?.objectId,
+    });
 
   useUpdateEffect(() => {
     setApprovalLinkCaseIds(approvalLinkCaseIds);
@@ -81,10 +80,7 @@ const PlanPageLayout: React.FC<any> = ({ selectedApproval, setApprovalEntry }) =
         <>
           <PageLayout>
             <PageLayout.Header>
-              <Header
-                activeType={activeType}
-                setActiveType={setActiveType}
-              />
+              <Header activeType={activeType} setActiveType={setActiveType} />
             </PageLayout.Header>
             <PageLayout.Left>
               <Left

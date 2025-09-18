@@ -21,39 +21,40 @@ export interface PipeCallbackParams {
  */
 function extractCallbackDataFromParams(params: any): PipeCallbackParams {
   console.log(`[PipeCallback] extractCallbackDataFromParams 开始提取数据`);
-  
+
   // 尝试直接从params中提取字段
   const directExtract: PipeCallbackParams = {
-    buildId: params.buildId || params['buildId'],
-    status: params.status || params['status'] || 'completed',
-    pipeJmpUrl: params.pipeJmpUrl || params['pipeJmpUrl'],
-    pipeLogFile: params.pipeLogFile || params['pipeLogFile'],
-    reportFile: params.reportFile || params['reportFile'],
-    reportLogFile: params.reportLogFile || params['reportLogFile'],
-    startTime: params.startTime || params['startTime'],
-    endTime: params.endTime || params['endTime'],
-    logFile: params.logFile || params['logFile'],
-    jumpUrl: params.jumpUrl || params['jumpUrl'],
+    buildId: params.buildId || params.buildId,
+    status: params.status || params.status || 'completed',
+    pipeJmpUrl: params.pipeJmpUrl || params.pipeJmpUrl,
+    pipeLogFile: params.pipeLogFile || params.pipeLogFile,
+    reportFile: params.reportFile || params.reportFile,
+    reportLogFile: params.reportLogFile || params.reportLogFile,
+    startTime: params.startTime || params.startTime,
+    endTime: params.endTime || params.endTime,
+    logFile: params.logFile || params.logFile,
+    jumpUrl: params.jumpUrl || params.jumpUrl,
   };
-  
+
   // 如果直接提取成功
   if (directExtract.buildId) {
     console.log('[PipeCallback] 直接提取成功');
     return directExtract;
   }
-  
+
   // 尝试从params.payload中提取（如果存在）
   if (params.payload) {
     const payload = params.payload;
-    
+
     // 如果payload是对象，遍历所有key尝试解析
     if (typeof payload === 'object') {
       // 特殊处理：当JSON数据作为key传递时（form-urlencoded格式导致）
       // 尝试合并所有看起来像JSON片段的key
-      const jsonKeys = Object.keys(payload).filter(key => 
-        key.includes('"buildId"') || key.includes('"status"') || key.includes('"pipeJmpUrl"')
+      const jsonKeys = Object.keys(payload).filter(
+        key =>
+          key.includes('"buildId"') || key.includes('"status"') || key.includes('"pipeJmpUrl"'),
       );
-      
+
       if (jsonKeys.length > 0) {
         // 尝试重建完整的JSON字符串
         // 由于form-urlencoded会将JSON分割，我们需要重新组合
@@ -66,17 +67,17 @@ function extractCallbackDataFromParams(params: any): PipeCallbackParams {
             fullJsonStr += '=' + value;
           }
         }
-        
+
         console.log('[PipeCallback] 尝试重建JSON字符串，长度:', fullJsonStr.length);
         console.log('[PipeCallback] 重建的JSON前200字符:', fullJsonStr.substring(0, 200));
-        
+
         // 尝试提取JSON对象（即使字符串不完整）
         try {
           // 尝试找到JSON的开始和可能的结束
           const jsonStart = fullJsonStr.indexOf('{');
           if (jsonStart >= 0) {
             let jsonStr = fullJsonStr.substring(jsonStart);
-            
+
             // 尝试修复截断的JSON
             // 计算需要的闭合括号数量
             let openBraces = 0;
@@ -85,13 +86,13 @@ function extractCallbackDataFromParams(params: any): PipeCallbackParams {
               if (char === '{') openBraces++;
               if (char === '}') closeBraces++;
             }
-            
+
             // 补充缺失的闭合括号
             while (closeBraces < openBraces) {
               jsonStr += '}';
               closeBraces++;
             }
-            
+
             // 尝试解析修复后的JSON
             const parsed = JSON.parse(jsonStr);
             if (parsed.buildId) {
@@ -112,7 +113,7 @@ function extractCallbackDataFromParams(params: any): PipeCallbackParams {
           }
         } catch (e) {
           console.error('[PipeCallback] 解析重建的JSON失败:', e);
-          
+
           // 尝试使用正则表达式提取关键字段
           try {
             const buildIdMatch = fullJsonStr.match(/"buildId"\s*:\s*(\d+)/);
@@ -121,7 +122,7 @@ function extractCallbackDataFromParams(params: any): PipeCallbackParams {
             const reportFileMatch = fullJsonStr.match(/"reportFile"\s*:\s*"([^"]+)"/);
             const pipeLogFileMatch = fullJsonStr.match(/"pipeLogFile"\s*:\s*"([^"]+)"/);
             const reportLogFileMatch = fullJsonStr.match(/"reportLogFile"\s*:\s*"([^"]+)"/);
-            
+
             if (buildIdMatch) {
               console.log('[PipeCallback] 使用正则表达式提取成功');
               return {
@@ -138,14 +139,14 @@ function extractCallbackDataFromParams(params: any): PipeCallbackParams {
           }
         }
       }
-      
+
       // 原有的逻辑：遍历所有key尝试解析
       for (const key of Object.keys(payload)) {
         // 跳过已知的非数据字段
         if (key === 'env' || key === 'headers' || key === 'language' || key === 'extraParams') {
           continue;
         }
-        
+
         // 如果value看起来像回调数据
         const value = payload[key];
         if (value && typeof value === 'object' && value.buildId) {
@@ -155,7 +156,7 @@ function extractCallbackDataFromParams(params: any): PipeCallbackParams {
       }
     }
   }
-  
+
   console.warn('[PipeCallback] 无法提取有效的回调数据，返回默认值');
   // 返回一个带有错误标记的默认值
   return {
@@ -178,7 +179,7 @@ export const pipeAutomationCallback = async (params: any): Promise<any> => {
   try {
     // 尝试多种方式解析回调数据
     let callbackData: PipeCallbackParams;
-    
+
     // 方式1: 如果params.payload是字符串，尝试解析
     if (typeof params.payload === 'string') {
       console.log('[PipeCallback] payload是字符串，尝试JSON解析');
@@ -189,20 +190,22 @@ export const pipeAutomationCallback = async (params: any): Promise<any> => {
         // 如果解析失败，可能是form-urlencoded格式，尝试从params中提取
         callbackData = extractCallbackDataFromParams(params);
       }
-    } 
+    }
     // 方式2: 如果params.payload是对象，检查是否包含实际数据
     else if (typeof params.payload === 'object' && params.payload !== null) {
       console.log('[PipeCallback] payload是对象，检查结构');
-      
+
       // 检查Content-Type，判断是否是错误的form-urlencoded格式
       const contentType = params.payload.headers?.['content-type'] || '';
       const isFormEncoded = contentType.includes('application/x-www-form-urlencoded');
-      
+
       if (isFormEncoded) {
-        console.warn('[PipeCallback] ⚠️ 检测到错误的Content-Type: application/x-www-form-urlencoded');
+        console.warn(
+          '[PipeCallback] ⚠️ 检测到错误的Content-Type: application/x-www-form-urlencoded',
+        );
         console.warn('[PipeCallback] ⚠️ Pipe平台应该使用 application/json 格式发送数据');
       }
-      
+
       // 首先检查payload中是否直接包含buildId等回调数据字段
       if (params.payload.buildId) {
         console.log('[PipeCallback] payload直接包含回调数据');
@@ -248,7 +251,7 @@ export const pipeAutomationCallback = async (params: any): Promise<any> => {
       console.log('[PipeCallback] 从params中直接提取数据');
       callbackData = extractCallbackDataFromParams(params);
     }
-    
+
     console.log('[PipeCallback] 解析后的回调数据:', JSON.stringify(callbackData, null, 2));
     console.log('[PipeCallback] 回调数据关键字段检查:');
     console.log('[PipeCallback] - buildId:', callbackData?.buildId);

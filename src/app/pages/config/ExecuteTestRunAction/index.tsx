@@ -4,6 +4,7 @@ import { pick } from 'lodash';
 import { components } from 'proxima-sdk';
 import React, { useState } from 'react';
 
+import { updateGlobalConfig } from '@/lib/api/common';
 import {
   getStatusByWorkspaceAndItemType,
   getWorkspaceRoleMembers,
@@ -16,7 +17,6 @@ import type { CaseSnapshot } from '@/lib/types/Test';
 
 import { useCurrentTestConfig, useDataContext } from '../hooks';
 import cx from './index.less';
-import { updateGlobalConfig } from '@/lib/api/common';
 
 const SearchPopoverSelect = components.Components.Common.SearchPopoverSelect;
 
@@ -40,7 +40,7 @@ const DefaultGlobalRunAction = {
   canActionTestTaskLimit: false,
   // 限制数量
   actionTestTaskLimitQuantity: null,
-}
+};
 
 const DefaultCaseSnapshot = {
   type: CASESNAPSHOT_TYPE.NO_BUILDVERSION_SELVERSION,
@@ -185,7 +185,7 @@ const ExecuteTestRunAction = () => {
       extra: Object.assign({}, values),
     });
     await refreshGlobalConfig();
-  }
+  };
 
   const buildConfigChange = key => {
     const dataProcessStrategies = {
@@ -353,16 +353,24 @@ const ExecuteTestRunAction = () => {
       <Button type="primary" className={cx('action')} onClick={handleSave}>
         {t('common.save')}
       </Button>
-      <h3 className={cx('limit-title')}>{t('page.config.executeTestRunAction.testCaseStatusLimist')}<span className={cx('global-config')}>全局配置</span></h3>
+      <h3 className={cx('limit-title')}>
+        {t('page.config.executeTestRunAction.testCaseStatusLimist')}
+        <span className={cx('global-config')}>全局配置</span>
+      </h3>
       <div className={cx('section', 'last-section')}>
-      <span className={cx('section-label')}>
-        {t('page.config.executeTestRunAction.worksapceTestCaseStatusLimistNumber')}：
-      </span>
-      <InputNumber className={cx('section-inputNumber')} value={globalRunAction?.actionTestTaskLimitQuantity} min={1} onChange={(value) => updateLimitCase('actionTestTaskLimitQuantity', value)} />
-      <Switch
-        checked={globalRunAction?.canActionTestTaskLimit}
-        onChange={(value) => updateLimitCase('canActionTestTaskLimit', value)}
-      />
+        <span className={cx('section-label')}>
+          {t('page.config.executeTestRunAction.worksapceTestCaseStatusLimistNumber')}：
+        </span>
+        <InputNumber
+          className={cx('section-inputNumber')}
+          value={globalRunAction?.actionTestTaskLimitQuantity}
+          min={1}
+          onChange={value => updateLimitCase('actionTestTaskLimitQuantity', value)}
+        />
+        <Switch
+          checked={globalRunAction?.canActionTestTaskLimit}
+          onChange={value => updateLimitCase('canActionTestTaskLimit', value)}
+        />
       </div>
     </div>
   );

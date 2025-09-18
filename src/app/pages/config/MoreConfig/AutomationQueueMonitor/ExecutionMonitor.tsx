@@ -1,10 +1,15 @@
-import React, { useState } from 'react';
-import { Table, Button, Select, message, Tag, Space, Tooltip, Tabs } from 'antd';
+import { LinkOutlined, RedoOutlined, ReloadOutlined } from '@ant-design/icons';
 import { useQuery } from '@tanstack/react-query';
-import { ReloadOutlined, RedoOutlined, LinkOutlined } from '@ant-design/icons';
-import useI18n from '@/lib/hooks/useI18n';
-import { queryExecutionRecords, queryPipeCallbackQueue, retryExecutionRecord } from '@/lib/automation/api';
+import { Button, message, Select, Space, Table, Tabs, Tag, Tooltip } from 'antd';
+import React, { useState } from 'react';
+
+import {
+  queryExecutionRecords,
+  queryPipeCallbackQueue,
+  retryExecutionRecord,
+} from '@/lib/automation/api';
 import { AutomationExecutionRecord, PipeCallbackQueue } from '@/lib/automation/types';
+import useI18n from '@/lib/hooks/useI18n';
 
 const { Option } = Select;
 const { TabPane } = Tabs;
@@ -20,16 +25,21 @@ const ExecutionRecordsTab: React.FC = () => {
   });
 
   // 查询执行记录数据
-  const { data: recordsData, isLoading, refetch } = useQuery({
+  const {
+    data: recordsData,
+    isLoading,
+    refetch,
+  } = useQuery({
     queryKey: ['executionRecords', statusFilter, pagination.current, pagination.pageSize],
-    queryFn: () => queryExecutionRecords({
-      status: statusFilter || undefined,
-      skip: (pagination.current - 1) * pagination.pageSize,
-      limit: pagination.pageSize,
-    }),
+    queryFn: () =>
+      queryExecutionRecords({
+        status: statusFilter || undefined,
+        skip: (pagination.current - 1) * pagination.pageSize,
+        limit: pagination.pageSize,
+      }),
     keepPreviousData: true,
     refetchInterval: 60000, // 60秒自动刷新
-    onSuccess: (result) => {
+    onSuccess: result => {
       setPagination(prev => ({
         ...prev,
         total: result.total,
@@ -88,11 +98,14 @@ const ExecutionRecordsTab: React.FC = () => {
       ellipsis: {
         showTitle: false,
       },
-      render: (text: string) => text ? (
-        <Tooltip title={text}>
-          <span>{text}</span>
-        </Tooltip>
-      ) : '-',
+      render: (text: string) =>
+        text ? (
+          <Tooltip title={text}>
+            <span>{text}</span>
+          </Tooltip>
+        ) : (
+          '-'
+        ),
     },
     {
       title: '状态',
@@ -138,7 +151,7 @@ const ExecutionRecordsTab: React.FC = () => {
       dataIndex: 'completeTime',
       key: 'completeTime',
       width: 160,
-      render: (date: string) => date ? new Date(date).toLocaleString() : '-',
+      render: (date: string) => (date ? new Date(date).toLocaleString() : '-'),
     },
     {
       title: '触发用户',
@@ -150,7 +163,7 @@ const ExecutionRecordsTab: React.FC = () => {
       title: '流水线',
       key: 'pipeline',
       width: 100,
-      render: (_, record: AutomationExecutionRecord) => (
+      render: (_, record: AutomationExecutionRecord) =>
         record.pipeJumpUrl ? (
           <Button
             type="link"
@@ -161,8 +174,9 @@ const ExecutionRecordsTab: React.FC = () => {
           >
             查看
           </Button>
-        ) : '-'
-      ),
+        ) : (
+          '-'
+        ),
     },
     {
       title: '错误信息',
@@ -172,11 +186,14 @@ const ExecutionRecordsTab: React.FC = () => {
       ellipsis: {
         showTitle: false,
       },
-      render: (text: string) => text ? (
-        <Tooltip title={text}>
-          <span style={{ color: 'red' }}>{text}</span>
-        </Tooltip>
-      ) : '-',
+      render: (text: string) =>
+        text ? (
+          <Tooltip title={text}>
+            <span style={{ color: 'red' }}>{text}</span>
+          </Tooltip>
+        ) : (
+          '-'
+        ),
     },
     {
       title: '操作',
@@ -201,7 +218,14 @@ const ExecutionRecordsTab: React.FC = () => {
 
   return (
     <>
-      <div style={{ marginBottom: 16, display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+      <div
+        style={{
+          marginBottom: 16,
+          display: 'flex',
+          justifyContent: 'space-between',
+          alignItems: 'center',
+        }}
+      >
         <Space>
           <Select
             placeholder="选择状态"
@@ -218,11 +242,7 @@ const ExecutionRecordsTab: React.FC = () => {
             <Option value="failed">失败</Option>
           </Select>
         </Space>
-        <Button 
-          icon={<ReloadOutlined />} 
-          onClick={() => refetch()}
-          loading={isLoading}
-        >
+        <Button icon={<ReloadOutlined />} onClick={() => refetch()} loading={isLoading}>
           刷新
         </Button>
       </div>
@@ -239,7 +259,7 @@ const ExecutionRecordsTab: React.FC = () => {
           total: pagination.total,
           showSizeChanger: true,
           showQuickJumper: true,
-          showTotal: (total) => `共 ${total} 条`,
+          showTotal: total => `共 ${total} 条`,
           onChange: (page, size) => {
             setPagination(prev => ({
               ...prev,
@@ -263,16 +283,21 @@ const PipeCallbackTab: React.FC = () => {
   });
 
   // 查询Pipe回调队列数据
-  const { data: callbackData, isLoading, refetch } = useQuery({
+  const {
+    data: callbackData,
+    isLoading,
+    refetch,
+  } = useQuery({
     queryKey: ['pipeCallbackQueue', statusFilter, pagination.current, pagination.pageSize],
-    queryFn: () => queryPipeCallbackQueue({
-      status: statusFilter || undefined,
-      skip: (pagination.current - 1) * pagination.pageSize,
-      limit: pagination.pageSize,
-    }),
+    queryFn: () =>
+      queryPipeCallbackQueue({
+        status: statusFilter || undefined,
+        skip: (pagination.current - 1) * pagination.pageSize,
+        limit: pagination.pageSize,
+      }),
     keepPreviousData: true,
     refetchInterval: 60000, // 60秒自动刷新
-    onSuccess: (result) => {
+    onSuccess: result => {
       setPagination(prev => ({
         ...prev,
         total: result.total,
@@ -351,7 +376,7 @@ const PipeCallbackTab: React.FC = () => {
       dataIndex: 'processedAt',
       key: 'processedAt',
       width: 160,
-      render: (date: string) => date ? new Date(date).toLocaleString() : '-',
+      render: (date: string) => (date ? new Date(date).toLocaleString() : '-'),
     },
     {
       title: '回调数据',
@@ -375,17 +400,27 @@ const PipeCallbackTab: React.FC = () => {
       ellipsis: {
         showTitle: false,
       },
-      render: (text: string) => text ? (
-        <Tooltip title={text}>
-          <span style={{ color: 'red' }}>{text}</span>
-        </Tooltip>
-      ) : '-',
+      render: (text: string) =>
+        text ? (
+          <Tooltip title={text}>
+            <span style={{ color: 'red' }}>{text}</span>
+          </Tooltip>
+        ) : (
+          '-'
+        ),
     },
   ];
 
   return (
     <>
-      <div style={{ marginBottom: 16, display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+      <div
+        style={{
+          marginBottom: 16,
+          display: 'flex',
+          justifyContent: 'space-between',
+          alignItems: 'center',
+        }}
+      >
         <Space>
           <Select
             placeholder="选择状态"
@@ -401,11 +436,7 @@ const PipeCallbackTab: React.FC = () => {
             <Option value="failed">失败</Option>
           </Select>
         </Space>
-        <Button 
-          icon={<ReloadOutlined />} 
-          onClick={() => refetch()}
-          loading={isLoading}
-        >
+        <Button icon={<ReloadOutlined />} onClick={() => refetch()} loading={isLoading}>
           刷新
         </Button>
       </div>
@@ -422,7 +453,7 @@ const PipeCallbackTab: React.FC = () => {
           total: pagination.total,
           showSizeChanger: true,
           showQuickJumper: true,
-          showTotal: (total) => `共 ${total} 条`,
+          showTotal: total => `共 ${total} 条`,
           onChange: (page, size) => {
             setPagination(prev => ({
               ...prev,
@@ -439,7 +470,7 @@ const PipeCallbackTab: React.FC = () => {
 // 主组件
 const ExecutionMonitor: React.FC = () => {
   const { t } = useI18n();
-  
+
   return (
     <div style={{ padding: 24 }}>
       <Tabs defaultActiveKey="execution">

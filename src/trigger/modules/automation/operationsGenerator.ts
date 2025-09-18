@@ -4,6 +4,7 @@ import { getItemCreateRequiredAttrs } from '../../lib/item';
 import { getCommitDiff, getFileContent, scanDirectoryForJavaFiles } from './codeApi';
 import { javaParser } from './parser';
 import { findBestPathMapping } from './pathMapping';
+import { updateCaseGenerationProgress } from './queueStatistics';
 
 /**
  * T5.8: 用例操作生成引擎
@@ -80,6 +81,8 @@ export interface CommitContext {
   gitPath?: string; // payload.project.full_path
   // 测试框架信息
   testingFramework?: string; // 从config.testingFramework获取，如 "JUnit4.0" 或 "TestNG7.1.0"
+  // 统计相关
+  queueId?: string; // 队列ID，用于统计追踪
 }
 
 // 历史用例信息
@@ -154,6 +157,15 @@ export async function processDecisionResults(
 
       operations.push(...fileOperations);
       console.log(`[T5.8] 文件 ${fileDecision.filePath} 生成 ${fileOperations.length} 个用例操作`);
+
+      // 插入用例生成统计
+      if (commitContext.queueId && fileOperations.length > 0) {
+        await updateCaseGenerationProgress(
+          commitContext.queueId,
+          fileDecision.filePath,
+          fileOperations,
+        );
+      }
     } catch (error) {
       console.error(`[T5.8] 处理文件 ${fileDecision.filePath} 失败:`, error);
       // 继续处理其他文件
@@ -806,6 +818,31 @@ async function getAffectedMethodsFromDiff(
 }
 
 /**
+ * 判断一行代码是否被注释
+ */
+function isCommentedLine(line: string): boolean {
+  const trimmedLine = line.trim();
+
+  // 检查单行注释 //
+  if (trimmedLine.startsWith('//')) {
+    return true;
+  }
+
+  // 检查块注释 /* ... */
+  if (trimmedLine.startsWith('/*') || trimmedLine.startsWith('*')) {
+    return true;
+  }
+
+  // 检查行内注释（注释在代码前面）
+  const beforeComment = line.match(/^\s*\/\//);
+  if (beforeComment) {
+    return true;
+  }
+
+  return false;
+}
+
+/**
  * 分析diff中@TestId的增删变化
  */
 async function analyzeTestIdChangesInDiff(
@@ -841,12 +878,24 @@ async function analyzeTestIdChangesInDiff(
           const testId = testIdMatch[1];
 
           if (line.startsWith('+') && !line.startsWith('+++')) {
+            // 检查是否是注释掉的@TestId
+            const lineContent = line.substring(1).trim(); // 去掉 '+' 符号
+            if (isCommentedLine(lineContent)) {
+              console.log(`[T5.8] 忽略注释掉的@TestId: ${testId}`);
+              continue;
+            }
             // 新增的@TestId
             if (!addedTestIds.includes(testId)) {
               addedTestIds.push(testId);
               console.log(`[T5.8] 发现新增@TestId: ${testId}`);
             }
           } else if (line.startsWith('-') && !line.startsWith('---')) {
+            // 检查被删除的行是否原本就是注释
+            const lineContent = line.substring(1).trim(); // 去掉 '-' 符号
+            if (isCommentedLine(lineContent)) {
+              console.log(`[T5.8] 忽略原本就被注释的@TestId: ${testId}`);
+              continue;
+            }
             // 删除的@TestId
             if (!removedTestIds.includes(testId)) {
               removedTestIds.push(testId);
