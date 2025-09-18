@@ -3,7 +3,7 @@ import { iqlSearch } from '../../lib/coreApi';
 import { getItemCreateRequiredAttrs } from '../../lib/item';
 import { getCommitDiff, getFileContent, scanDirectoryForJavaFiles } from './codeApi';
 import { javaParser } from './parser';
-import { findBestPathMapping } from './pathMapping';
+import { findBestPathMapping } from './pathMappingEnhanced';
 import { updateCaseGenerationProgress } from './queueStatistics';
 
 /**
@@ -38,8 +38,12 @@ export interface CaseOperation {
     caseId: string; // 现有用例ID
     testId: string; // 用例唯一标识
     name: string; // 用例名称
+    oldClassName?: string; // 旧类名，用于类名变更场景
     [key: string]: any; // 其他字段
   };
+
+  // 类名变更标记
+  classNameChanged?: boolean;
 
   // 模块迁移信息（MIGRATE需要）
   moduleChange?: {
@@ -64,9 +68,12 @@ export interface FileDecisionResult {
     | 'config_path_rename'
     | 'config_module_change'
     | 'config_mapping_added'
-    | 'config_mapping_removed';
+    | 'config_mapping_removed'
+    | 'config_mapping_removed_smart';
   operations: any[];
   reason: string;
+  deletedModule?: string; // 删除映射时的被删除模块，用于智能分析
+  analysisHint?: string; // 分析提示信息
 }
 
 // 提交上下文信息
@@ -139,11 +146,14 @@ export async function processDecisionResults(
         case 'config_module_change':
         case 'config_mapping_added':
         case 'config_mapping_removed':
+        case 'config_mapping_removed_smart':
+          console.log(`[T5.8] 进入配置协调处理分支: ${fileDecision.decision}`);
           fileOperations = await generateConfigCoordinationOperations(
             fileDecision,
             config,
             commitContext,
           );
+          console.log(`[T5.8] 配置协调处理完成，生成 ${fileOperations.length} 个操作`);
           break;
 
         case 'ignore':
@@ -380,7 +390,13 @@ async function generateOperationBOperations(
     return [];
   }
 
-  // 2. 分析受影响的方法（通过diff）
+  // 2. 获取历史用例信息（用于检测类名变更）
+  const historyCases = await getHistoryCasesForFile(
+    fileDecision.filePath,
+    commitContext.workspaceKey,
+  );
+
+  // 3. 分析受影响的方法（通过diff）
   const affectedMethods = await getAffectedMethodsFromDiff(
     commitContext.repositoryId,
     commitContext.commitId,
@@ -388,12 +404,16 @@ async function generateOperationBOperations(
     currentMethods,
   );
 
-  // 3. 分析diff中的@TestId变化（用于检测新增/删除的测试方法）
-  const { addedTestIds, removedTestIds } = await analyzeTestIdChangesInDiff(
-    commitContext.repositoryId,
-    commitContext.commitId,
-    fileDecision.filePath,
-  );
+  // 4. 分析diff中的@TestId变化和类名变更（优化版本：一次分析获取所有信息）
+  const { addedTestIds, removedTestIds, classNameChanged, oldClassName, newClassName } =
+    await analyzeTestIdChangesInDiff(
+      commitContext.repositoryId,
+      commitContext.commitId,
+      fileDecision.filePath,
+    );
+
+  // 类名变更标记（从diff中直接获取，无需额外查询历史用例）
+  const hasClassNameChanged = classNameChanged;
 
   const operations: CaseOperation[] = [];
 
@@ -403,11 +423,17 @@ async function generateOperationBOperations(
   console.log(
     `[T5.8] diff分析: 新增TestId=${addedTestIds.length}, 删除TestId=${removedTestIds.length}`,
   );
+  if (hasClassNameChanged && oldClassName && newClassName) {
+    console.log(`[T5.8] 类名变更检测: ${oldClassName} -> ${newClassName}`);
+  } else {
+    console.log(`[T5.8] 类名变更检测: 未检测到类名变更`);
+  }
 
   // 4. 处理每个当前方法
   for (const method of currentMethods) {
     const isAffected = affectedMethods.some(m => m.testId === method.testId);
     const isNewlyAdded = addedTestIds.includes(method.testId);
+    const existsInHistory = historyCases.has(method.testId);
 
     if (isNewlyAdded) {
       // diff中新增的@TestId → CREATE
@@ -433,11 +459,21 @@ async function generateOperationBOperations(
           },
         },
       });
-    } else if (isAffected) {
-      // 已存在但受影响的方法 → UPDATE
+    } else if (isAffected || (hasClassNameChanged && existsInHistory)) {
+      // 已存在但受影响的方法 OR 类名变更的已存在方法 → UPDATE
       const caseDesc = await extractCaseDescription(fileContent, method.startLine);
+      const historyCase = historyCases.get(method.testId);
 
-      console.log(`[T5.8] ${method.testId}: 已存在方法受diff影响 -> UPDATE`);
+      const updateReason = [];
+      if (isAffected) updateReason.push('方法受diff影响');
+      if (hasClassNameChanged && existsInHistory) {
+        // 使用diff中解析出的类名信息
+        const displayOldName = oldClassName || historyCase?.className || 'Unknown';
+        const displayNewName = newClassName || className || 'Unknown';
+        updateReason.push(`类名变更(${displayOldName} -> ${displayNewName})`);
+      }
+
+      console.log(`[T5.8] ${method.testId}: ${updateReason.join(' + ')} -> UPDATE`);
 
       operations.push({
         operationType: 'UPDATE',
@@ -457,11 +493,13 @@ async function generateOperationBOperations(
           },
         },
         existingCaseInfo: {
-          caseId: 'TBD', // Will be enriched by caseOperationExecutor
+          caseId: historyCase?.caseId || 'TBD',
           testId: method.testId,
           name: `${className}.${method.methodName}`,
           currentModulePath: modulePath,
+          oldClassName: oldClassName || historyCase?.className, // 优先使用diff中的旧类名
         },
+        classNameChanged: hasClassNameChanged && existsInHistory, // 标记类名是否变更
       });
     }
     // 未受影响且非新增的方法不需要操作
@@ -504,10 +542,6 @@ async function generateOperationAOperations(
   const baseOperations = await generateOperationBOperations(fileDecision, config, commitContext);
 
   // 检查是否有模块路径变更需要MIGRATE操作
-  const historyCases = await getHistoryCasesForFile(
-    fileDecision.filePath,
-    commitContext.workspaceKey,
-  );
   const newModulePath = findBestPathMapping(fileDecision.filePath, config.mappings);
 
   for (const operation of baseOperations) {
@@ -588,6 +622,17 @@ async function generateConfigCoordinationOperations(
 
     case 'config_mapping_removed':
       // 删除映射：删除相关用例
+      return await generateDeleteAllOperations(fileDecision, config, commitContext);
+
+    case 'config_mapping_removed_smart':
+      // 智能删除映射：需要使用删除分析器分析影响
+      console.log(`[T5.8] config_mapping_removed_smart: 开始智能分析删除影响`);
+      console.log(
+        `[T5.8] 删除路径: ${fileDecision.filePath}, 删除模块: ${fileDecision.deletedModule}`,
+      );
+      // TODO: 这里应该使用 mappingDeletionAnalyzer 进行智能分析
+      // 目前先使用简单的删除逻辑，后续需要实现智能分析
+      console.log(`[T5.8] 暂时使用简单删除逻辑，TODO: 实现智能优先级分析`);
       return await generateDeleteAllOperations(fileDecision, config, commitContext);
 
     case 'config_module_change':
@@ -696,7 +741,9 @@ async function getHistoryCasesForFile(
 
   try {
     // 使用IQL查询该文件路径对应的所有用例，添加工作空间和类型过滤条件防止误删
-    let iql = `文件路径 = "${filePath}"`;
+    // 判断是否为目录路径：使用通用的目录判断逻辑
+    const isDirectoryPathFlag = isDirectoryPath(filePath);
+    let iql = isDirectoryPathFlag ? `文件路径 ~ "${filePath}"` : `文件路径 = "${filePath}"`;
 
     // 添加工作空间过滤条件（使用工作空间key）
     if (workspaceKey) {
@@ -843,35 +890,48 @@ function isCommentedLine(line: string): boolean {
 }
 
 /**
- * 分析diff中@TestId的增删变化
+ * 分析diff中@TestId的增删变化和类名变更
  */
 async function analyzeTestIdChangesInDiff(
   repositoryId: string,
   commitId: string,
   filePath: string,
-): Promise<{ addedTestIds: string[]; removedTestIds: string[] }> {
+): Promise<{
+  addedTestIds: string[];
+  removedTestIds: string[];
+  classNameChanged: boolean;
+  oldClassName?: string;
+  newClassName?: string;
+}> {
   const addedTestIds: string[] = [];
   const removedTestIds: string[] = [];
+  let classNameChanged = false;
+  let oldClassName: string | undefined;
+  let newClassName: string | undefined;
 
   try {
     // 获取diff数据
     const diffData = await getCommitDiff(repositoryId, commitId);
     if (!Array.isArray(diffData)) {
       console.warn(`[T5.8] 无效的diff数据格式`);
-      return { addedTestIds, removedTestIds };
+      return { addedTestIds, removedTestIds, classNameChanged };
     }
 
     // 找到目标文件的diff
     const fileDiff = diffData.find(f => f.new_path === filePath || f.old_path === filePath);
     if (!fileDiff || !fileDiff.diff) {
       console.log(`[T5.8] 文件 ${filePath} 无diff内容`);
-      return { addedTestIds, removedTestIds };
+      return { addedTestIds, removedTestIds, classNameChanged };
     }
 
-    // 解析diff中的@TestId变化
+    // 解析diff中的@TestId变化和类名变更
     const diffLines = fileDiff.diff.split('\n');
 
+    // 类名检测的正则表达式：匹配各种访问修饰符的类声明
+    const classPattern = /^\s*(?:public\s+|private\s+|protected\s+|static\s+)*class\s+(\w+)/;
+
     for (const line of diffLines) {
+      // 检测@TestId变化
       if (line.includes('@TestId')) {
         const testIdMatch = /@TestId\s*\(\s*["']([^"']+)["']\s*\)/.exec(line);
         if (testIdMatch) {
@@ -904,14 +964,92 @@ async function analyzeTestIdChangesInDiff(
           }
         }
       }
+
+      // 检测类名变更
+      if (line.includes(' class ') && (line.startsWith('+') || line.startsWith('-'))) {
+        const lineContent = line.substring(1).trim(); // 去掉 '+' 或 '-' 符号
+
+        // 忽略注释行
+        if (isCommentedLine(lineContent)) {
+          continue;
+        }
+
+        const classMatch = lineContent.match(classPattern);
+        if (classMatch) {
+          const className = classMatch[1];
+
+          if (line.startsWith('-') && !line.startsWith('---')) {
+            // 删除的类名（旧类名）
+            oldClassName = className;
+            console.log(`[T5.8] 发现删除的类名: ${className}`);
+          } else if (line.startsWith('+') && !line.startsWith('+++')) {
+            // 新增的类名（新类名）
+            newClassName = className;
+            console.log(`[T5.8] 发现新增的类名: ${className}`);
+          }
+
+          // 如果同时有旧类名和新类名，且不相同，则确认类名发生变更
+          if (oldClassName && newClassName && oldClassName !== newClassName) {
+            classNameChanged = true;
+            console.log(`[T5.8] 检测到类名变更: ${oldClassName} -> ${newClassName}`);
+          }
+        }
+      }
     }
 
-    console.log(`[T5.8] TestId变化分析完成: +${addedTestIds.length} -${removedTestIds.length}`);
+    console.log(
+      `[T5.8] Diff分析完成: TestId变化(+${addedTestIds.length} -${removedTestIds.length}), 类名变更: ${classNameChanged}`,
+    );
+    if (classNameChanged) {
+      console.log(`[T5.8] 类名变更详情: ${oldClassName} -> ${newClassName}`);
+    }
   } catch (error) {
-    console.error(`[T5.8] 分析TestId变化失败: ${filePath}`, error);
+    console.error(`[T5.8] 分析Diff变化失败: ${filePath}`, error);
   }
 
-  return { addedTestIds, removedTestIds };
+  return {
+    addedTestIds,
+    removedTestIds,
+    classNameChanged,
+    oldClassName,
+    newClassName,
+  };
+}
+
+/**
+ * 判断路径是否为目录
+ * 目录路径特征：
+ * 1. 以/结尾（明确的目录标识）
+ * 2. 不包含文件扩展名（没有.xxx的形式）
+ */
+function isDirectoryPath(path: string): boolean {
+  // 明确以/结尾的是目录
+  if (path.endsWith('/')) {
+    return true;
+  }
+
+  // 检查是否包含文件扩展名（最后一个.后面是文件扩展名）
+  const lastDotIndex = path.lastIndexOf('.');
+  const lastSlashIndex = path.lastIndexOf('/');
+
+  // 如果没有.，肯定是目录
+  if (lastDotIndex === -1) {
+    return true;
+  }
+
+  // 如果.在最后一个/之前，说明.是在目录名中，不是文件扩展名
+  if (lastSlashIndex > lastDotIndex) {
+    return true;
+  }
+
+  // 如果.在最后一个/之后，检查扩展名长度是否合理（1-10个字符）
+  const extension = path.substring(lastDotIndex + 1);
+  if (extension.length === 0 || extension.length > 10 || extension.includes('/')) {
+    return true; // 不是有效的文件扩展名，认为是目录
+  }
+
+  // 其他情况认为是文件
+  return false;
 }
 
 /**

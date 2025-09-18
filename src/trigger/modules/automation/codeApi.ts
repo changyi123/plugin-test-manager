@@ -1,7 +1,7 @@
 import { axios } from '@giteeteam/apps-team-api';
 
 import { getCodePlatformConfig } from './config';
-import { findBestPathMapping } from './pathMapping';
+import { findBestPathMapping } from './pathMappingEnhanced';
 import { logFileProcessing, updateCurrentFileProgress } from './queueStatistics';
 
 /**
@@ -164,6 +164,16 @@ async function processWithConfigCoordination(
   }
 
   console.log(`[AutoSync] 协调处理完成，共 ${decisions.length} 个决策`);
+
+  // 输出每个决策的详细信息
+  decisions.forEach((decision, index) => {
+    console.log(`[AutoSync] 决策 ${index + 1}: ${decision.decision} - ${decision.filePath}`);
+    console.log(`[AutoSync] 原因: ${decision.reason}`);
+    if (decision.deletedModule) {
+      console.log(`[AutoSync] 删除模块: ${decision.deletedModule}`);
+    }
+  });
+
   return decisions;
 }
 
@@ -428,18 +438,17 @@ export async function scanDirectoryForJavaFiles(
     const files = response.data || response || [];
     console.log(`[AutoSync] 目录API返回 ${files.length} 个文件/目录`);
 
-    // 过滤出Java测试文件
+    // 过滤出Java文件
     const javaFiles = files
       .filter(
         (item: any) =>
           item.type === 'blob' && // 确保是文件不是目录
           item.path &&
-          item.path.endsWith('.java') &&
-          (item.path.includes('Test') || item.path.includes('test')), // 简单的测试文件判断
+          item.path.endsWith('.java'), // 只要是Java文件即可，不限制命名规范
       )
       .map((item: any) => item.path);
 
-    console.log(`[AutoSync] 找到 ${javaFiles.length} 个Java测试文件:`);
+    console.log(`[AutoSync] 找到 ${javaFiles.length} 个Java文件:`);
     javaFiles.forEach((file: string) => console.log(`[AutoSync] - ${file}`));
 
     return javaFiles;
@@ -486,10 +495,13 @@ export async function getAutomationConfig(projectId: string, branch = 'master') 
 
 /**
  * 解析配置文件的diff，提取变更内容
+ * 修复JSON逗号问题：过滤掉仅因逗号变化导致的误判
  */
 function parseConfigChanges(diff: string): any[] {
   const changes = [];
   if (!diff) return changes;
+
+  console.log(`[ConfigParser] 开始解析配置文件diff`);
 
   // 解析diff中的增加和删除行
   const lines = diff.split('\n');
@@ -497,42 +509,90 @@ function parseConfigChanges(diff: string): any[] {
   const addedMappings = new Map();
 
   for (const line of lines) {
-    if (line.startsWith('-') && line.includes('"src/')) {
-      // 删除的映射
-      const match = /"(.+?)"\s*:\s*"(.+?)"/.exec(line);
+    if (line.startsWith('-')) {
+      // 删除的映射 - 匹配任何以引号开头的路径映射
+      const match = /"(.+?)"\s*:\s*"(.+?)"(,?)/.exec(line);
       if (match) {
-        removedMappings.set(match[1], match[2]);
+        const path = match[1];
+        const module = match[2];
+        const hasComma = match[3] === ',';
+        // 存储标准化的模块值（不含逗号）
+        removedMappings.set(path, module);
+        console.log(
+          `[ConfigParser] 检测到删除映射: ${path} -> ${module}${hasComma ? ' (有逗号)' : ''}`,
+        );
       }
-    } else if (line.startsWith('+') && line.includes('"src/')) {
-      // 新增的映射
-      const match = /"(.+?)"\s*:\s*"(.+?)"/.exec(line);
+    } else if (line.startsWith('+')) {
+      // 新增的映射 - 匹配任何以引号开头的路径映射
+      const match = /"(.+?)"\s*:\s*"(.+?)"(,?)/.exec(line);
       if (match) {
-        addedMappings.set(match[1], match[2]);
+        const path = match[1];
+        const module = match[2];
+        const hasComma = match[3] === ',';
+        // 存储标准化的模块值（不含逗号）
+        addedMappings.set(path, module);
+        console.log(
+          `[ConfigParser] 检测到新增映射: ${path} -> ${module}${hasComma ? ' (有逗号)' : ''}`,
+        );
       }
     }
   }
 
-  // 分析变更类型
-  for (const [oldPath, oldModule] of removedMappings) {
+  console.log(
+    `[ConfigParser] 初步解析: 删除${removedMappings.size}个, 新增${addedMappings.size}个`,
+  );
+
+  // 过滤掉仅因逗号变化的映射
+  const filteredRemovedMappings = new Map();
+  const filteredAddedMappings = new Map(addedMappings);
+
+  for (const [path, module] of removedMappings) {
+    if (addedMappings.has(path) && addedMappings.get(path) === module) {
+      // 同一路径的删除和新增具有相同的模块值，这是逗号变化，过滤掉
+      filteredAddedMappings.delete(path);
+      console.log(`[ConfigParser] 过滤逗号变化（新增/删除最后一行导致）: ${path} -> ${module}`);
+    } else {
+      // 真正的删除
+      filteredRemovedMappings.set(path, module);
+    }
+  }
+
+  console.log(
+    `[ConfigParser] 过滤后: 真正删除${filteredRemovedMappings.size}个, 真正新增${filteredAddedMappings.size}个`,
+  );
+
+  // 分析变更类型 (使用过滤后的映射)
+  for (const [oldPath, oldModule] of filteredRemovedMappings) {
     let changeType = 'mapping_removed';
     let newPath = null;
     let newModule = null;
 
     // 检查是否有对应的新增（可能是路径或模块变更）
-    for (const [addPath, addModule] of addedMappings) {
+    for (const [addPath, addModule] of filteredAddedMappings) {
       if (oldModule === addModule && oldPath !== addPath) {
-        // 路径变更，模块相同
-        changeType = 'path_renamed';
-        newPath = addPath;
-        newModule = addModule;
-        addedMappings.delete(addPath); // 标记为已处理
+        // 检查是否是目录路径修正（添加或移除尾随斜杠）
+        const isTrailingSlashChange = oldPath + '/' === addPath || oldPath === addPath + '/';
+
+        if (isTrailingSlashChange) {
+          // 目录路径修正，语义相同，不需要实际操作
+          changeType = 'path_format_corrected';
+          newPath = addPath;
+          newModule = addModule;
+          console.log(`[ConfigParser] 检测到目录路径格式修正: ${oldPath} -> ${addPath}`);
+        } else {
+          // 真正的路径变更
+          changeType = 'path_renamed';
+          newPath = addPath;
+          newModule = addModule;
+        }
+        filteredAddedMappings.delete(addPath); // 标记为已处理
         break;
       } else if (oldPath === addPath && oldModule !== addModule) {
         // 模块变更，路径相同
         changeType = 'module_changed';
         newPath = addPath;
         newModule = addModule;
-        addedMappings.delete(addPath); // 标记为已处理
+        filteredAddedMappings.delete(addPath); // 标记为已处理
         break;
       }
     }
@@ -546,14 +606,39 @@ function parseConfigChanges(diff: string): any[] {
     });
   }
 
-  // 处理剩余的新增映射
-  for (const [path, module] of addedMappings) {
+  // 处理剩余的新增映射 (使用过滤后的映射)
+  for (const [path, module] of filteredAddedMappings) {
     changes.push({
       type: 'mapping_added',
       oldPath: null,
       newPath: path,
       oldModule: null,
       newModule: module,
+    });
+  }
+
+  console.log(`[ConfigParser] 最终变更统计: 总计${changes.length}个变更`);
+
+  // 输出详细的变更类型统计
+  const changeTypeCounts = {};
+  changes.forEach(change => {
+    changeTypeCounts[change.type] = (changeTypeCounts[change.type] || 0) + 1;
+  });
+
+  console.log(`[ConfigParser] 变更类型分布:`, changeTypeCounts);
+
+  // 输出每个变更的详细信息
+  if (changes.length > 0) {
+    console.log(`[ConfigParser] 变更详情:`);
+    changes.forEach((change, index) => {
+      console.log(
+        `[ConfigParser] ${index + 1}. ${change.type}: ${change.oldPath || 'N/A'} -> ${
+          change.newPath || 'N/A'
+        }`,
+      );
+      console.log(
+        `[ConfigParser]    模块: ${change.oldModule || 'N/A'} -> ${change.newModule || 'N/A'}`,
+      );
     });
   }
 
@@ -635,6 +720,13 @@ function handleConfigOnlyChange(configChange: any, config: any, historyMappings:
       operations: [], // TODO: 在T5.8中实现具体操作
       reason: '配置文件中路径重命名，需要更新所有相关用例的文件路径',
     };
+  } else if (configChange.changeType === 'path_format_corrected') {
+    return {
+      filePath: filePath,
+      decision: 'ignore',
+      operations: [],
+      reason: '配置文件中目录路径格式修正（添加/移除尾随斜杠），语义相同，无需操作',
+    };
   } else if (configChange.changeType === 'module_changed') {
     return {
       filePath: filePath,
@@ -650,11 +742,16 @@ function handleConfigOnlyChange(configChange: any, config: any, historyMappings:
       reason: '配置文件新增映射，需要扫描文件并创建用例',
     };
   } else if (configChange.changeType === 'mapping_removed') {
+    // 删除映射需要智能分析影响
+    // 注意：这里简化处理，实际的影响分析应该在T5.8中使用 mappingDeletionAnalyzer
+    console.log(`[AutoSync] 生成删除映射决策: ${filePath}, 删除模块: ${configChange.oldModule}`);
     return {
       filePath: filePath,
-      decision: 'config_mapping_removed',
-      operations: [], // TODO: 在T5.8中实现具体操作
-      reason: '配置文件删除映射，需要删除相关用例',
+      decision: 'config_mapping_removed_smart',
+      operations: [], // TODO: 在T5.8中使用 mappingDeletionAnalyzer 分析
+      deletedModule: configChange.oldModule,
+      reason: '配置文件删除映射，需要智能分析影响（考虑优先级）',
+      analysisHint: '需要检查是否有其他映射覆盖，决定是删除还是迁移用例',
     };
   }
 

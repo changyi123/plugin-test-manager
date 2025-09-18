@@ -75,3 +75,13 @@ export {
   getQueueDetails,
   getQueueFileStats,
 } from './modules/api/queueMonitor';
+
+export {
+  initializeDirectory,
+  previewDirectoryMapping,
+  validateMappings,
+  getDirectoryMappings,
+  previewFileMapping,
+} from './modules/api/directoryMapping';
+
+export { mappingDeletionAnalyzer } from './modules/automation/mappingDeletionAnalyzer';

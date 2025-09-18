@@ -365,7 +365,7 @@ async function updateTestExecutionStatus(
     console.log(
       `[PipeQueueProcessor] 准备更新测试执行状态: ${testExecutionId} -> ${testManagerStatus}`,
     );
-    
+
     const updateResult = await batchUpdateItemsV2(updateParams);
 
     console.log(
