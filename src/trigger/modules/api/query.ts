@@ -42,7 +42,7 @@ const overwriteIqlParamsWithOnlySelectId = onlySelectId => {
   }
 };
 
-const overwriteIqlParamsWithSelect = select => {
+export const overwriteIqlParamsWithSelect = select => {
   if (Array.isArray(select)) {
     // status字段在测试管理有重写，所以此处做下兼容
     const fields = Array.from(

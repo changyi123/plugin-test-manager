@@ -237,6 +237,11 @@ modules:
         - gei:proxima:item:beforeCreate
       function: item-before-create-trigger-function
       async: false
+    - key: item-after-create-trigger
+      function: item-after-create-function
+      events:
+        - gei:proxima:item:created
+      async: false
     - key: item-before-update-trigger
       events:
         - gei:proxima:item:beforeUpdate
@@ -282,6 +287,8 @@ modules:
       handler: trigger.deleteTestLink
     - key: item-before-create-trigger-function
       handler: trigger.handleBeforeCreate
+    - key: item-after-create-function
+      handler: trigger.handleAfterCreate
     - key: item-before-update-trigger-function
       handler: trigger.handleBeforeUpdate
     - key: item-created-trigger-function
