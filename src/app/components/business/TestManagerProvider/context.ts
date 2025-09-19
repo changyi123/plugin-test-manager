@@ -68,6 +68,7 @@ export type BaseActionContextType = {
   getTestCaseRepositoryPath?: (val?: string) => string;
   getCreatePermission?: (val: string) => boolean;
   testPlanFieldKeys?: string[];
+  testApprovalFieldKeys?: string[];
   testCaseFieldKeys?: string[];
   testCaseSetFieldKeys?: string[];
   testExecutionFieldKeys?: string[];

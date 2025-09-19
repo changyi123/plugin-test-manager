@@ -179,7 +179,7 @@ const TestPlanList: React.FC<any> = ({ setApprovalEntry }) => {
       actionRef.current.refresh();
     }, 500);
     notification.success({
-      message: t('components.business.testPlanList.addPlanSuccess'),
+      message: t('page.approval.addApprovalSuccess'),
     });
   };
 
@@ -232,7 +232,7 @@ const TestPlanList: React.FC<any> = ({ setApprovalEntry }) => {
       <BusinessTable
         titleCellOption={{
           workspaceKey,
-          testType: TestType.Case,
+          testType: TestType.Approval,
         }}
         useColumnSetting
         defaultColumnKey={[
