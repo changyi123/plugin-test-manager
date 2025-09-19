@@ -881,6 +881,7 @@
       "create": "新建用例评审",
       "view": "查看用例评审",
       "approval": "评审",
+      "addApprovalSuccess": "用例评审创建成功",
       "columns": {
         "approvalTitle": "评审名称"
       },

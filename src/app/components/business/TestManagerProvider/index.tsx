@@ -478,6 +478,13 @@ const TestManagerProvider: React.FC<RepositoryDataProviderProps> = ({
     testType: TestType.Case,
     workspaceKey,
   });
+
+  const testApprovalFieldKeys = useScreenFieldKeysFromTestConfig({
+    testConfig,
+    testType: TestType.Approval,
+    workspaceKey,
+  });
+
   const { pathname } = useLocation();
 
   const getTestCaseRepositoryPath = useGetWorkspaceRepository(workspaceKey);
@@ -731,6 +738,7 @@ const TestManagerProvider: React.FC<RepositoryDataProviderProps> = ({
       getCreatePermission,
       getTestCaseRepositoryPath,
       testPlanFieldKeys,
+      testApprovalFieldKeys,
       testCaseSetFieldKeys,
       testCaseFieldKeys,
       testReportFieldKeys,
@@ -748,6 +756,7 @@ const TestManagerProvider: React.FC<RepositoryDataProviderProps> = ({
     testConfig?.itemTypeMap,
     workspace?.objectId,
     testPlanFieldKeys,
+    testApprovalFieldKeys,
     testReportFieldKeys,
     testCaseFieldKeys,
     testExecutionFieldKeys,

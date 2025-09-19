@@ -918,6 +918,7 @@
       "create": "Create approval",
       "view": "View approval",
       "approval": "Approval",
+      "addApprovalSuccess": "Approval created successfully",
       "columns": {
         "approvalTitle": "Approval name"
       },
