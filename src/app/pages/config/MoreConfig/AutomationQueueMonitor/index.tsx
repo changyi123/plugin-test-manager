@@ -3,7 +3,6 @@ import { Card, Col, message, Row, Statistic, Tabs } from 'antd';
 import React, { useState } from 'react';
 
 import { getQueueStats } from '@/lib/automation/api';
-import useI18n from '@/lib/hooks/useI18n';
 
 import ExecutionMonitor from './ExecutionMonitor';
 import cx from './index.less';
@@ -12,7 +11,6 @@ import WebhookQueue from './WebhookQueue';
 const { TabPane } = Tabs;
 
 const AutomationQueueMonitor: React.FC = () => {
-  const { t } = useI18n();
   const [activeTab, setActiveTab] = useState('webhook');
 
   // 查询队列统计信息
@@ -80,10 +78,10 @@ const AutomationQueueMonitor: React.FC = () => {
 
       {/* 队列监控Tab */}
       <Tabs activeKey={activeTab} onChange={setActiveTab}>
-        <TabPane tab={t('automationQueueMonitor.tab.webhook')} key="webhook">
+        <TabPane tab="用例生成队列" key="webhook">
           <WebhookQueue />
         </TabPane>
-        <TabPane tab={t('automationQueueMonitor.tab.execution')} key="execution">
+        <TabPane tab="执行结果队列" key="execution">
           <ExecutionMonitor />
         </TabPane>
       </Tabs>

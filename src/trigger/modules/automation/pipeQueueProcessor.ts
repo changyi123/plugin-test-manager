@@ -386,12 +386,13 @@ async function processFileUploads(callbackData: PipeCallbackData, buildId: strin
 
   const tenant = getTenantKey();
   const fileUrls = [
-    { name: 'pipeJmpUrl', url: callbackData.pipeJmpUrl },
     { name: 'pipeLogFile', url: callbackData.pipeLogFile },
+    { name: 'reportFile', url: callbackData.reportFile },
     { name: 'reportLogFile', url: callbackData.reportLogFile },
-  ].filter(file => file.url); // 过滤掉空的URL
+  ].filter(file => file.url && file.url.trim() !== ''); // 过滤掉空的URL
 
   console.log(`[PipeQueueProcessor] 找到 ${fileUrls.length} 个文件需要上传`);
+  console.log('[PipeQueueProcessor] 文件列表:', fileUrls.map(f => ({ name: f.name, hasUrl: !!f.url })));
 
   // 获取测试用例映射关系
   const testCaseMapping = await getTestCaseMappingByBuildId(buildId);
@@ -428,11 +429,19 @@ async function processFileUploads(callbackData: PipeCallbackData, buildId: strin
         `[PipeQueueProcessor] 为执行任务 ${executionTaskId} 上传 ${fileUrls.length} 个文件`,
       );
 
-      // 上传所有文件到这个执行任务
-      for (const file of fileUrls) {
+      // 串行上传所有文件到这个执行任务，避免并发冲突
+      for (let i = 0; i < fileUrls.length; i++) {
+        const file = fileUrls[i];
         try {
+          console.log(`[PipeQueueProcessor] 开始上传文件 ${i + 1}/${fileUrls.length}: ${file.name} -> ${executionTaskId}`);
           await uploadFileToExecutionTask(file.url, executionTaskId, tenant);
           console.log(`[PipeQueueProcessor] 文件上传成功: ${file.name} -> ${executionTaskId}`);
+          
+          // 添加延迟避免接口并发冲突，最后一个文件不需要等待
+          if (i < fileUrls.length - 1) {
+            console.log(`[PipeQueueProcessor] 等待2秒后上传下一个文件...`);
+            await new Promise(resolve => setTimeout(resolve, 2000)); // 等待2秒
+          }
         } catch (error) {
           console.error(
             `[PipeQueueProcessor] 文件上传失败: ${file.name} -> ${executionTaskId}`,

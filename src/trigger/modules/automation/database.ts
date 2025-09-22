@@ -375,12 +375,24 @@ export async function addToPipeCallbackQueue(data: {
   status: string;
   retryCount?: number;
 }) {
-  const queueData = {
+  const queueData: any = {
     buildId: data.buildId,
     callbackData: data.callbackData,
     status: data.status,
     retryCount: data.retryCount || 0,
   };
+
+  // 尝试从执行记录中获取映射关系数据
+  try {
+    const execution = await getExecutionByBuildId(data.buildId);
+    if (execution) {
+      queueData.testCaseMapping = execution.testCaseMapping || null;
+      queueData.testExecutionIds = execution.testExecutionIds || null;
+    }
+  } catch (error) {
+    console.error('[addToPipeCallbackQueue] 获取执行记录失败:', error);
+    // 不阻塞队列创建，继续执行
+  }
 
   return await storage.entity('PipeCallbackQueue').add(queueData);
 }

@@ -1,6 +1,6 @@
-import { LinkOutlined, RedoOutlined, ReloadOutlined } from '@ant-design/icons';
+import { EyeOutlined, LinkOutlined, RedoOutlined, ReloadOutlined } from '@ant-design/icons';
 import { useQuery } from '@tanstack/react-query';
-import { Button, message, Select, Space, Table, Tabs, Tag, Tooltip } from 'antd';
+import { Button, Descriptions, message, Modal, Select, Space, Table, Tabs, Tag, Tooltip } from 'antd';
 import React, { useState } from 'react';
 
 import {
@@ -281,6 +281,8 @@ const PipeCallbackTab: React.FC = () => {
     pageSize: 20,
     total: 0,
   });
+  const [detailsVisible, setDetailsVisible] = useState(false);
+  const [selectedRecord, setSelectedRecord] = useState<PipeCallbackQueue | null>(null);
 
   // 查询Pipe回调队列数据
   const {
@@ -379,17 +381,48 @@ const PipeCallbackTab: React.FC = () => {
       render: (date: string) => (date ? new Date(date).toLocaleString() : '-'),
     },
     {
-      title: '回调数据',
-      dataIndex: 'callbackData',
-      key: 'callbackData',
-      width: 200,
-      ellipsis: {
-        showTitle: false,
+      title: '映射关系',
+      key: 'testCaseMapping',
+      width: 120,
+      render: (_, record: PipeCallbackQueue) => {
+        let mappingCount = 0;
+        try {
+          if (record.testCaseMapping) {
+            const mapping = JSON.parse(record.testCaseMapping);
+            mappingCount = Object.keys(mapping).length;
+          }
+        } catch (error) {
+          console.error('解析映射关系失败:', error);
+        }
+        
+        return (
+          <div style={{ textAlign: 'center' }}>
+            <div style={{ fontSize: '14px', fontWeight: 'bold', color: mappingCount > 0 ? '#1890ff' : '#999' }}>
+              {mappingCount}
+            </div>
+            <div style={{ fontSize: '12px', color: '#666' }}>
+              个测试用例
+            </div>
+          </div>
+        );
       },
-      render: (text: string) => (
-        <Tooltip title={text}>
-          <span>{text.length > 50 ? text.substring(0, 50) + '...' : text}</span>
-        </Tooltip>
+    },
+    {
+      title: '回调数据',
+      key: 'callbackDetails',
+      width: 120,
+      render: (_, record: PipeCallbackQueue) => (
+        <Button
+          type="link"
+          size="small"
+          icon={<EyeOutlined />}
+          onClick={() => {
+            setSelectedRecord(record);
+            setDetailsVisible(true);
+          }}
+        >
+          查看详情
+        </Button>
       ),
     },
     {
@@ -463,13 +496,151 @@ const PipeCallbackTab: React.FC = () => {
           },
         }}
       />
+
+      {/* Pipe回调详情弹窗 */}
+      <Modal
+        title="Pipe回调队列详情"
+        open={detailsVisible}
+        onCancel={() => {
+          setDetailsVisible(false);
+          setSelectedRecord(null);
+        }}
+        footer={null}
+        width={1000}
+      >
+        {selectedRecord ? (
+          <div>
+            {/* 基本信息 */}
+            <Descriptions title="基本信息" bordered size="small" column={2}>
+              <Descriptions.Item label="队列ID">{selectedRecord.queueId}</Descriptions.Item>
+              <Descriptions.Item label="Build ID">{selectedRecord.buildId}</Descriptions.Item>
+              <Descriptions.Item label="状态">
+                {getStatusTag(selectedRecord.status)}
+              </Descriptions.Item>
+              <Descriptions.Item label="重试次数">{selectedRecord.retryCount}</Descriptions.Item>
+              <Descriptions.Item label="创建时间">
+                {selectedRecord.createdAt ? new Date(selectedRecord.createdAt).toLocaleString() : '-'}
+              </Descriptions.Item>
+              <Descriptions.Item label="处理时间">
+                {selectedRecord.processedAt ? new Date(selectedRecord.processedAt).toLocaleString() : '-'}
+              </Descriptions.Item>
+            </Descriptions>
+
+            {/* 回调数据 */}
+            <div style={{ marginTop: 16 }}>
+              <h4>回调数据</h4>
+              <div
+                style={{
+                  background: '#f5f5f5',
+                  border: '1px solid #d9d9d9',
+                  borderRadius: 4,
+                  padding: 12,
+                  maxHeight: 200,
+                  overflow: 'auto',
+                }}
+              >
+                <pre style={{ margin: 0, fontSize: '12px' }}>
+                  {JSON.stringify(JSON.parse(selectedRecord.callbackData || '{}'), null, 2)}
+                </pre>
+              </div>
+            </div>
+
+            {/* 测试用例映射关系 */}
+            {selectedRecord.testCaseMapping && (
+              <div style={{ marginTop: 16 }}>
+                <h4>测试用例映射关系</h4>
+                {(() => {
+                  try {
+                    const mapping = JSON.parse(selectedRecord.testCaseMapping);
+                    const mappingList = Object.entries(mapping).map(([testId, info]: [string, any]) => ({
+                      testId,
+                      testExecutionId: info.testExecutionId,
+                      className: info.className,
+                      methodName: info.methodName,
+                    }));
+
+                    return (
+                      <Table
+                        size="small"
+                        columns={[
+                          {
+                            title: 'Test ID',
+                            dataIndex: 'testId',
+                            key: 'testId',
+                            width: 200,
+                            ellipsis: { showTitle: false },
+                            render: (text: string) => (
+                              <Tooltip title={text}>
+                                <span>{text}</span>
+                              </Tooltip>
+                            ),
+                          },
+                          {
+                            title: '测试执行ID',
+                            dataIndex: 'testExecutionId',
+                            key: 'testExecutionId',
+                            width: 150,
+                          },
+                          {
+                            title: '类名',
+                            dataIndex: 'className',
+                            key: 'className',
+                            width: 150,
+                          },
+                          {
+                            title: '方法名',
+                            dataIndex: 'methodName',
+                            key: 'methodName',
+                            width: 150,
+                          },
+                        ]}
+                        dataSource={mappingList}
+                        rowKey="testId"
+                        pagination={false}
+                        scroll={{ y: 300 }}
+                      />
+                    );
+                  } catch (error) {
+                    return (
+                      <div style={{ color: 'red' }}>
+                        映射关系解析失败: {error.message}
+                      </div>
+                    );
+                  }
+                })()}
+              </div>
+            )}
+
+            {/* 错误信息 */}
+            {selectedRecord.errorMessage && (
+              <div style={{ marginTop: 16 }}>
+                <h4>错误信息</h4>
+                <div
+                  style={{
+                    background: '#fff2f0',
+                    border: '1px solid #ffccc7',
+                    borderRadius: 4,
+                    padding: 12,
+                    color: '#ff4d4f',
+                  }}
+                >
+                  {selectedRecord.errorMessage}
+                </div>
+              </div>
+            )}
+          </div>
+        ) : (
+          <div style={{ textAlign: 'center', padding: 50 }}>
+            <div>暂无数据</div>
+          </div>
+        )}
+      </Modal>
     </>
   );
 };
 
 // 主组件
 const ExecutionMonitor: React.FC = () => {
-  const { t } = useI18n();
 
   return (
     <div style={{ padding: 24 }}>

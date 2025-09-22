@@ -250,7 +250,7 @@ export class AutomationExecutionHandler {
   }
 
   /**
-   * 构建测试用例映射关系 - 支持TestID和className#methodName两种映射
+   * 构建测试用例映射关系 - 只使用TestID映射
    */
   private buildTestCaseMapping(testCaseInfos: any[]): Record<string, any> {
     const testCaseMapping: Record<string, any> = {};
@@ -267,20 +267,11 @@ export class AutomationExecutionHandler {
         testId: testCase.testId, // 用例唯一标识
       };
 
-      // 1. 通过TestID映射（主要映射方式，Excel中会用到）
+      // 通过TestID映射（主要映射方式，Excel中会用到）
       if (testCase.testId) {
         testCaseMapping[testCase.testId] = executionData;
         console.log(
           `[buildTestCaseMapping] 添加TestID映射: ${testCase.testId} -> 执行${executionData.testExecutionId}`,
-        );
-      }
-
-      // 2. 通过className#methodName映射（备用映射方式）
-      if (testCase.className && testCase.methodName) {
-        const classMethodKey = `${testCase.className}#${testCase.methodName}`;
-        testCaseMapping[classMethodKey] = executionData;
-        console.log(
-          `[buildTestCaseMapping] 添加类方法映射: ${classMethodKey} -> 执行${executionData.testExecutionId}`,
         );
       }
     });

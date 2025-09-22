@@ -770,7 +770,7 @@ async function getHistoryCasesForFile(
         'r_test_manager_atm_method_name',
       ],
       displayContext: AppKey,
-      size: 100, // 一个文件最多查询100个用例
+      size: 10000, // 提高查询限制以处理大量用例的情况
     });
 
     const historyCases = new Map<string, HistoryCaseInfo>();

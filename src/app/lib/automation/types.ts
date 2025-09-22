@@ -72,6 +72,10 @@ export interface PipeCallbackQueue {
   retryCount: number; // 重试次数
   processedAt?: Date; // 处理时间
   errorMessage?: string; // 错误信息
+  testCaseMapping?: string; // 测试用例映射关系（JSON字符串）
+  testExecutionIds?: string; // 测试执行ID列表（JSON字符串）
+  createdAt?: Date; // 创建时间
+  updatedAt?: Date; // 更新时间
 }
 
 // Pipe回调请求接口

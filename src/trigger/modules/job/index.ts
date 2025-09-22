@@ -61,7 +61,7 @@ const DEFAULT_CONFIG = {
     batchSize: 100,
   },
   DELETE_V1: {
-    batchSize: 10,
+    batchSize: 50,  // 从10增加到50，提高删除效率
   },
   REMOVE_CASE: {
     batchSize: 100,
