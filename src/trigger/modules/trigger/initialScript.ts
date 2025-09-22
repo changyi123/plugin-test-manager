@@ -84,7 +84,7 @@ const initializedStatuses = [
 ];
 
 // 获取 parseObject，不存在则创建 (单条数据)
-const getOrCreateParseObject = async (isAppClass, parseClass, attributes) => {
+export const getOrCreateParseObject = async (isAppClass, parseClass, attributes) => {
   const parseData = await getData(isAppClass, parseClass, attributes);
   if (!parseData) {
     const newParseObject = getParseObject(isAppClass, parseClass);

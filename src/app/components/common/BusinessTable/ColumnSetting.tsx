@@ -93,6 +93,7 @@ const ColumnSetting: React.FC<ColumnSettingProps> = props => {
     testCaseSetFieldKeys,
     testExecutionFieldKeys,
     testReportFieldKeys,
+    testApprovalFieldKeys,
   } = useBaseAction();
   const keys = useMemo(() => {
     if (testFieldKeys) return testFieldKeys;
@@ -113,6 +114,9 @@ const ColumnSetting: React.FC<ColumnSettingProps> = props => {
     }
     if (titleCellOption.testType === TestType.Plan) {
       return testPlanFieldKeys;
+    }
+    if (titleCellOption.testType === TestType.Approval) {
+      return testApprovalFieldKeys;
     }
   }, [
     titleCellOption.testType,

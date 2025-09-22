@@ -111,7 +111,7 @@ export const useTreeParams = (props: {
   useUpdateEffect(() => {
     if (!workspaceKey || !selectedTestApproval?.objectId) return;
     setTreeParams({
-      selector: `测试评审 = '${selectedTestApproval?.objectId}'`,
+      selector: `测试评审 = '${selectedTestApproval?.objectId}' and test_manager_type = '${TestType.Case}'`,
     });
   }, [selectedTestApproval?.objectId, workspaceKey]);
 

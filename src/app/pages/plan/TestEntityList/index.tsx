@@ -1304,9 +1304,8 @@ const TestEntityList: React.FC<TestEntityListProps> = ({
         handleSuccess: () => {
           if (isOver) {
             notification.success({
-              message: t('page.plan.testEntityList.updateRunStateAndLimitTips', {
-                number: actionTestTaskLimitQuantity,
-              }),
+              message: t('page.plan.testEntityList.updateRunStateAndLimitTips', { number: actionTestTaskLimitQuantity }),
+              description: t('page.plan.testEntityList.connectAdmin'),  
             });
           } else {
             notification.success({

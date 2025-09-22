@@ -49,14 +49,14 @@ const runScript = async () => {
 
   // 确保类型正确性
   const params: QueryPlanRelatedDataParams = body as QueryPlanRelatedDataParams;
-
-  const {
+  
+  const { 
     versionKeys,
-    requirementKeys,
-    planKeys,
-    includeExecutions = true,
-    includeRuns = true,
-    includeDefects = true,
+    requirementKeys, 
+    planKeys, 
+    includeExecutions = true, 
+    includeRuns = true, 
+    includeDefects = true 
   } = params;
 
   // 参数验证 - 至少需要提供一种查询方式

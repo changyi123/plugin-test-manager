@@ -67,7 +67,7 @@ const TestPlanList: React.FC<any> = ({ setApprovalEntry }) => {
           type: TestType.Approval,
         },
         fields: uniq(
-          ['id', SystemField.ItemType].concat(
+          ['id', SystemField.ItemType, 'reviewMember'].concat(
             SystemFieldKeys,
             tableFields.map(i => i.key).filter(i => i !== 'action'),
           ),
@@ -179,7 +179,7 @@ const TestPlanList: React.FC<any> = ({ setApprovalEntry }) => {
       actionRef.current.refresh();
     }, 500);
     notification.success({
-      message: t('components.business.testPlanList.addPlanSuccess'),
+      message: t('page.approval.addApprovalSuccess'),
     });
   };
 
@@ -232,10 +232,16 @@ const TestPlanList: React.FC<any> = ({ setApprovalEntry }) => {
       <BusinessTable
         titleCellOption={{
           workspaceKey,
-          testType: TestType.Case,
+          testType: TestType.Approval,
         }}
         useColumnSetting
-        defaultColumnKey={['status', 'caseCount', 'createdAt', 'createdBy']}
+        defaultColumnKey={[
+          'status',
+          'createdAt',
+          'createdBy',
+          'reviewMember',
+          // 'caseCount',
+        ]}
         // privateColumnKey={['caseCount']}
         rowKey="objectId"
         columns={columns}

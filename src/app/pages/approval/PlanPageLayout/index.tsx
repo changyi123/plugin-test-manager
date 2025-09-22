@@ -35,12 +35,11 @@ const PlanPageLayout: React.FC<any> = ({ selectedApproval, setApprovalEntry }) =
   const [showType, setShowType] = useState('all');
 
   // 获取关联的全部测试用例 id
-  const { data: approvalLinkCaseIds, refreshAsync: approvalLinkCaseIdRefresh } =
-    useGetApprovalLinkCaseIds({
-      workspaceKey,
-      type: 'TestApproval',
-      testApprovalId: selectedApproval?.objectId,
-    });
+  const { data: approvalLinkCaseIds, refreshAsync: approvalLinkCaseIdRefresh } = useGetApprovalLinkCaseIds({
+    workspaceKey,
+    type: 'TestApproval',
+    testApprovalId: selectedApproval?.objectId || selectedTestApproval?.objectId,
+  });
 
   useUpdateEffect(() => {
     setApprovalLinkCaseIds(approvalLinkCaseIds);
