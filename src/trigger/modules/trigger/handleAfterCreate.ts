@@ -6,11 +6,10 @@ import {
   TestLinkType,
   TestType,
 } from '../../../common/constant';
-import { initProcessBar } from '../../../trigger/lib/helper';
 import { iqlRequest } from '../../../trigger/lib/iqlRequest';
 import { testEntityFieldTypeValidator } from '../../../trigger/lib/validator';
 import { overwriteIqlParamsWithSelect } from '../api/query';
-import { createTestRuns, updateItemsV2 } from '../job';
+import { createTestRuns } from '../job';
 import { getOrCreateParseObject } from './initialScript';
 
 export const generateSortIndex = (index = 0) => {
@@ -48,11 +47,9 @@ export const handleAfterCreate = async () => {
   const cloneOrigin = parseContext?.cloneOrigin;
   const progressBarKey = parseContext?.progressBarKey;
   console.info('test-manager-item-created-copy-parseContext-1', global?.parseContext);
-  console.info('test-manager-item-created-copy-parseContext-2', globalThis?.parseContext);
   console.info('test-manager-item-created-copy-isClone', isClone);
   console.info('test-manager-item-created-copy-cloneOrigin', cloneOrigin);
   console.info('test-manager-item-created-copy-progressBarKey', progressBarKey);
-  console.info('test-manager-item-created-copy-parseContext', parseContext);
 
   // 测试管理全局配置
   const globalTestConfig = await getOrCreateParseObject(false, TestConfigClassName, {
@@ -71,8 +68,27 @@ export const handleAfterCreate = async () => {
     isClone &&
     cloneOrigin?.values?.r_test_manager_type === TestType.Plan
   ) {
-    const res = await handleCopyTestCase(cloneOrigin, item?.objectId, progressBarKey);
-    console.info('test-manager-item-created-copy-res-复制测试计划下的测试用例', res);
+    await handleCopyTestCase(cloneOrigin, item?.objectId, progressBarKey);
+  }
+};
+
+export const handleAsyncAfterCreate = async () => {
+  const parseContext = global?.parseContext || globalThis?.parseContext;
+  const item = global?.item;
+  const isClone = parseContext?.isClone;
+  const cloneOrigin = parseContext?.cloneOrigin;
+  // 测试管理全局配置
+  const globalTestConfig = await getOrCreateParseObject(false, TestConfigClassName, {
+    global: true,
+  });
+  const globalTestConfigData = globalTestConfig.get('extra') || {};
+  const enableCloneItemWithPlanCase = globalTestConfigData?.enableCloneItemWithPlanCase;
+
+  if (
+    enableCloneItemWithPlanCase &&
+    isClone &&
+    cloneOrigin?.values?.r_test_manager_type === TestType.Plan
+  ) {
     // 调用封装的复制测试用例函数
     await handleCopyTestExecution(cloneOrigin, item);
   }
@@ -98,11 +114,12 @@ export const handleCopyTestCase = async (cloneOrigin, targetItemId, progressBarK
     },
     select: ['id'],
     offset: 0,
-    limit: 9999,
+    limit: 99999,
   });
   console.info('test-manager-item-created-copy-testCaseData-测试计划下的测试用例', testCaseData);
 
   const caseIds = testCaseData?.map((data: any) => data.id);
+  console.info('test-manager-item-created-copy-caseIds-测试计划下的测试用例caseIds', caseIds);
 
   const copyTestCaseParams = {
     items: caseIds,
@@ -111,7 +128,7 @@ export const handleCopyTestCase = async (cloneOrigin, targetItemId, progressBarK
         r_test_manager_linkType: TestLinkType.CaseLinkPlan,
       },
     },
-    key: '',
+    key: progressBarKey,
     update: {
       r_test_manager_linkItems: {
         concat: [targetItemId],
@@ -121,14 +138,12 @@ export const handleCopyTestCase = async (cloneOrigin, targetItemId, progressBarK
       },
     },
   };
-  // 对新复制的事项添加上原事项的测试用例
-  const data = await updateItemsV2(copyTestCaseParams);
-  const message = JSON.stringify(data?.data);
-  if (progressBarKey) {
-    await initProcessBar(progressBarKey, message);
-  }
-  console.info('test-manager-item-created-copy-data-对新复制的事项添加上原事项的测试用例', data);
-  return data;
+  await requestCoreApi(
+    'POST',
+    `/api/app/${global.applicationId}/${global.appKey}/webhooks/api-batch-update-items-v2`,
+    copyTestCaseParams,
+    headers,
+  );
 };
 
 // 复制测试计划下的测试任务，并且关联其测试任务下的测试用例
@@ -158,7 +173,7 @@ const handleCopyTestExecution = async (cloneOrigin, item) => {
     requestCoreApi('POST', '/parse/api/items/clone', {
       objectId: testExecution.id || testExecution.objectId,
       workspace: workspaceId,
-      name: `'副本' ${testExecution.name}`,
+      name: `副本 ${testExecution.name}`,
       includeStatus: false,
       includeDescendant: false,
       progressCacheKey: null,
