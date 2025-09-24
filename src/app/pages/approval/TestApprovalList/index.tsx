@@ -192,8 +192,10 @@ const TestPlanList: React.FC<any> = ({ setApprovalEntry }) => {
                   ['id', SystemField.ItemType, SystemField.Status].concat(SystemFieldKeys),
                 ),
                 selector: `测试评审 = '${rowData.id}' and test_manager_type = '${TestType.Case}'`,
+                onlySelectId: true,
+                limit: 99999,
               });
-              setIgnoreTestEntityIds(list.map(i => i.id));
+              setIgnoreTestEntityIds(list);
               const { selectedData } = await testEntitySelectorRef.current.open();
               if (!selectedData.length) {
                 return notification.warning({
