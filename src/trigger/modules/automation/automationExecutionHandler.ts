@@ -100,16 +100,19 @@ export class AutomationExecutionHandler {
       // 3. 先构建测试用例映射关系
       const testCaseInfos = await this.getTestCaseInfosByExecutionIds(this.actualTestExecutionIds);
       const testCaseMapping = this.buildTestCaseMapping(testCaseInfos);
-      console.log('[executeAutomation] 构建映射关系通过，映射数量:', Object.keys(testCaseMapping).length);
+      console.log(
+        '[executeAutomation] 构建映射关系通过，映射数量:',
+        Object.keys(testCaseMapping).length,
+      );
 
       // 4. 创建执行记录（包含映射关系）
       const recordId = await this.createExecutionRecord(testCaseMapping);
       console.log('[executeAutomation] 创建执行记录通过:');
-      
+
       // 5. 更新测试执行状态
       await this.updateTestExecutionStatus(TestExecutionAutomationStatus.RUNNING);
       console.log('[executeAutomation] 更新测试执行状态通过:');
-      
+
       // 6. 调用Pipe流水线
       const pipeResult = await this.callPipeWebHook();
       console.log('[executeAutomation] 调用Pipe流水线通过:');
@@ -247,11 +250,11 @@ export class AutomationExecutionHandler {
   }
 
   /**
-   * 构建测试用例映射关系 - 支持TestID和className#methodName两种映射
+   * 构建测试用例映射关系 - 只使用TestID映射
    */
   private buildTestCaseMapping(testCaseInfos: any[]): Record<string, any> {
     const testCaseMapping: Record<string, any> = {};
-    
+
     testCaseInfos.forEach(testCase => {
       const executionData = {
         testExecutionId: testCase.executionId,
@@ -264,21 +267,20 @@ export class AutomationExecutionHandler {
         testId: testCase.testId, // 用例唯一标识
       };
 
-      // 1. 通过TestID映射（主要映射方式，Excel中会用到）
+      // 通过TestID映射（主要映射方式，Excel中会用到）
       if (testCase.testId) {
         testCaseMapping[testCase.testId] = executionData;
-        console.log(`[buildTestCaseMapping] 添加TestID映射: ${testCase.testId} -> 执行${executionData.testExecutionId}`);
-      }
-
-      // 2. 通过className#methodName映射（备用映射方式）
-      if (testCase.className && testCase.methodName) {
-        const classMethodKey = `${testCase.className}#${testCase.methodName}`;
-        testCaseMapping[classMethodKey] = executionData;
-        console.log(`[buildTestCaseMapping] 添加类方法映射: ${classMethodKey} -> 执行${executionData.testExecutionId}`);
+        console.log(
+          `[buildTestCaseMapping] 添加TestID映射: ${testCase.testId} -> 执行${executionData.testExecutionId}`,
+        );
       }
     });
-    
-    console.log(`[buildTestCaseMapping] 构建映射关系完成，共 ${Object.keys(testCaseMapping).length} 个映射条目`);
+
+    console.log(
+      `[buildTestCaseMapping] 构建映射关系完成，共 ${
+        Object.keys(testCaseMapping).length
+      } 个映射条目`,
+    );
     return testCaseMapping;
   }
 
@@ -303,16 +305,24 @@ export class AutomationExecutionHandler {
 
       console.log('[executeAutomation][createExecutionRecord] 准备创建记录，数据:');
       console.log(JSON.stringify(recordData, null, 2));
-      
+
       const record = await createExecutionRecord(recordData);
-      
-      console.log('[executeAutomation][createExecutionRecord] ========= createExecutionRecord返回值 =========');
+
+      console.log(
+        '[executeAutomation][createExecutionRecord] ========= createExecutionRecord返回值 =========',
+      );
       console.log(JSON.stringify(record, null, 2));
       console.log('[executeAutomation][createExecutionRecord] ========= 返回值分析 =========');
       console.log('[executeAutomation][createExecutionRecord] 返回值类型:', typeof record);
       if (record && typeof record === 'object') {
-        console.log('[executeAutomation][createExecutionRecord] record的所有key:', Object.keys(record));
-        console.log('[executeAutomation][createExecutionRecord] record.objectId:', (record as any).objectId);
+        console.log(
+          '[executeAutomation][createExecutionRecord] record的所有key:',
+          Object.keys(record),
+        );
+        console.log(
+          '[executeAutomation][createExecutionRecord] record.objectId:',
+          (record as any).objectId,
+        );
         console.log('[executeAutomation][createExecutionRecord] record.id:', (record as any).id);
       }
 
@@ -321,12 +331,17 @@ export class AutomationExecutionHandler {
         typeof record === 'string'
           ? record
           : (record as any).objectId || (record as any).id || String(record);
-      
+
       console.log('[executeAutomation][createExecutionRecord] 解析出的recordId:', recordId);
       console.log('[executeAutomation][createExecutionRecord] recordId类型:', typeof recordId);
-      console.log('[executeAutomation][createExecutionRecord] this.executionId(用于后续查询):', this.executionId);
-      console.log('[executeAutomation][createExecutionRecord] ==========================================');
-      
+      console.log(
+        '[executeAutomation][createExecutionRecord] this.executionId(用于后续查询):',
+        this.executionId,
+      );
+      console.log(
+        '[executeAutomation][createExecutionRecord] ==========================================',
+      );
+
       return String(recordId);
     } catch (error) {
       console.error('[executeAutomation]创建执行记录失败:', error);
@@ -410,7 +425,7 @@ export class AutomationExecutionHandler {
       console.log('[callPipeWebHook] 步骤1: 开始查询测试执行关联的测试用例信息...');
       const testCaseInfos = await this.getTestCaseInfosByExecutionIds(this.actualTestExecutionIds);
       console.log(`[callPipeWebHook] 查询到${testCaseInfos.length}个关联测试用例信息`);
-      
+
       if (testCaseInfos.length === 0) {
         console.error('[callPipeWebHook] 错误: 没有找到任何关联的测试用例，无法继续执行Pipe调用');
         throw new Error('没有找到关联的测试用例');
@@ -436,7 +451,9 @@ export class AutomationExecutionHandler {
       // 2. 构建测试用例映射关系（用于返回）
       console.log('[callPipeWebHook] 步骤2: 构建测试用例映射关系...');
       const testCaseMapping = this.buildTestCaseMapping(testCaseInfos);
-      console.log(`[callPipeWebHook] 构建映射关系完成，映射数量: ${Object.keys(testCaseMapping).length}`);
+      console.log(
+        `[callPipeWebHook] 构建映射关系完成，映射数量: ${Object.keys(testCaseMapping).length}`,
+      );
       // 输出映射关系的key示例
       const mappingKeys = Object.keys(testCaseMapping).slice(0, 5);
       console.log('[callPipeWebHook] 映射关系key示例（前5个）:', mappingKeys);
@@ -473,7 +490,10 @@ export class AutomationExecutionHandler {
       console.log('[callPipeWebHook] Pipe WebHook调用成功！返回结果:');
       console.log('[callPipeWebHook] - buildId:', result.buildId);
       console.log('[callPipeWebHook] - pipeJumpUrl:', result.pipeJumpUrl);
-      console.log('[callPipeWebHook] - 返回的映射关系数量:', Object.keys(result.testCaseMapping || {}).length);
+      console.log(
+        '[callPipeWebHook] - 返回的映射关系数量:',
+        Object.keys(result.testCaseMapping || {}).length,
+      );
 
       const finalResult = {
         buildId: result.buildId,
@@ -485,7 +505,10 @@ export class AutomationExecutionHandler {
       console.log('[callPipeWebHook] 最终返回结果:');
       console.log('[callPipeWebHook] - buildId:', finalResult.buildId);
       console.log('[callPipeWebHook] - pipeJumpUrl:', finalResult.pipeJumpUrl);
-      console.log('[callPipeWebHook] - testCaseMapping数量:', Object.keys(finalResult.testCaseMapping).length);
+      console.log(
+        '[callPipeWebHook] - testCaseMapping数量:',
+        Object.keys(finalResult.testCaseMapping).length,
+      );
 
       return finalResult;
     } catch (error) {
@@ -493,7 +516,7 @@ export class AutomationExecutionHandler {
       console.error('[callPipeWebHook] 错误详情:', error);
       console.error('[callPipeWebHook] 错误消息:', error?.message);
       console.error('[callPipeWebHook] 错误堆栈:', error?.stack);
-      
+
       throw new BusinessError(
         'Pipe接口调用失败',
         AutomationExecutionErrorCode.PIPE_CALL_FAILED,
@@ -526,11 +549,15 @@ export class AutomationExecutionHandler {
       const { data } = await iqlRequest(queryParams);
 
       const testExecutions = data.list || [];
-      console.log(`[getTestCaseInfosByExecutionIds] 查询结果: 找到${testExecutions.length}个测试执行记录`);
-      
+      console.log(
+        `[getTestCaseInfosByExecutionIds] 查询结果: 找到${testExecutions.length}个测试执行记录`,
+      );
+
       if (testExecutions.length === 0) {
         console.error('[getTestCaseInfosByExecutionIds] 错误: 没有找到任何测试执行记录！');
-        console.error('[getTestCaseInfosByExecutionIds] 可能的原因: 1.执行ID不存在 2.类型不是TestRun 3.权限问题');
+        console.error(
+          '[getTestCaseInfosByExecutionIds] 可能的原因: 1.执行ID不存在 2.类型不是TestRun 3.权限问题',
+        );
         return [];
       }
 
@@ -547,12 +574,16 @@ export class AutomationExecutionHandler {
         .map(execution => execution.referenceCase)
         .filter(caseId => caseId); // 过滤掉空值
 
-      console.log(`[getTestCaseInfosByExecutionIds] 提取关联用例ID: 找到${referenceCaseIds.length}个有效的关联用例ID`);
+      console.log(
+        `[getTestCaseInfosByExecutionIds] 提取关联用例ID: 找到${referenceCaseIds.length}个有效的关联用例ID`,
+      );
       console.log('[getTestCaseInfosByExecutionIds] 关联用例ID列表:', referenceCaseIds);
-      
+
       if (referenceCaseIds.length === 0) {
         console.error('[getTestCaseInfosByExecutionIds] 错误: 没有找到关联的测试用例！');
-        console.error('[getTestCaseInfosByExecutionIds] 可能的原因: r_test_manager_referenceCase字段为空');
+        console.error(
+          '[getTestCaseInfosByExecutionIds] 可能的原因: r_test_manager_referenceCase字段为空',
+        );
         return [];
       }
 
@@ -580,16 +611,25 @@ export class AutomationExecutionHandler {
         ],
         pagination: { limit: 9999, offset: 0 },
       };
-      console.log('[getTestCaseInfosByExecutionIds] 用例查询参数:', JSON.stringify(caseQueryParams));
+      console.log(
+        '[getTestCaseInfosByExecutionIds] 用例查询参数:',
+        JSON.stringify(caseQueryParams),
+      );
 
       const { data: caseData } = await iqlRequest(caseQueryParams);
       const testCases = caseData.list || [];
-      
-      console.log(`[getTestCaseInfosByExecutionIds] 查询结果: 找到${testCases.length}个测试用例详细信息：${JSON.stringify(testCases)}`);
-      
+
+      console.log(
+        `[getTestCaseInfosByExecutionIds] 查询结果: 找到${
+          testCases.length
+        }个测试用例详细信息：${JSON.stringify(testCases)}`,
+      );
+
       if (testCases.length === 0) {
         console.error('[getTestCaseInfosByExecutionIds] 错误: 没有找到任何测试用例详细信息！');
-        console.error('[getTestCaseInfosByExecutionIds] 可能的原因: 1.用例ID不存在 2.类型不是TestCase 3.权限问题');
+        console.error(
+          '[getTestCaseInfosByExecutionIds] 可能的原因: 1.用例ID不存在 2.类型不是TestCase 3.权限问题',
+        );
         return [];
       }
 
@@ -621,7 +661,9 @@ export class AutomationExecutionHandler {
         const caseInfo = caseMap.get(caseId);
 
         if (!caseInfo) {
-          console.warn(`[getTestCaseInfosByExecutionIds] 警告: 执行${execution.objectId}关联的用例${caseId}没有找到详细信息`);
+          console.warn(
+            `[getTestCaseInfosByExecutionIds] 警告: 执行${execution.objectId}关联的用例${caseId}没有找到详细信息`,
+          );
         }
 
         const mappedCase = {
@@ -646,19 +688,27 @@ export class AutomationExecutionHandler {
       });
 
       console.log(`[getTestCaseInfosByExecutionIds] 组装完成${result.length}个测试用例信息`);
-      
+
       // 检查关键字段是否有缺失
       const missingClassName = result.filter(item => !item.className).length;
       const missingMethodName = result.filter(item => !item.methodName).length;
       const missingGitInfo = result.filter(item => !item.gitCloneUrl).length;
-      
+
       console.log('[getTestCaseInfosByExecutionIds] 数据质量检查:');
-      console.log(`[getTestCaseInfosByExecutionIds] - 缺少className的用例数量: ${missingClassName}`);
-      console.log(`[getTestCaseInfosByExecutionIds] - 缺少methodName的用例数量: ${missingMethodName}`);
-      console.log(`[getTestCaseInfosByExecutionIds] - 缺少gitCloneUrl的用例数量: ${missingGitInfo}`);
+      console.log(
+        `[getTestCaseInfosByExecutionIds] - 缺少className的用例数量: ${missingClassName}`,
+      );
+      console.log(
+        `[getTestCaseInfosByExecutionIds] - 缺少methodName的用例数量: ${missingMethodName}`,
+      );
+      console.log(
+        `[getTestCaseInfosByExecutionIds] - 缺少gitCloneUrl的用例数量: ${missingGitInfo}`,
+      );
 
       if (missingClassName > 0 || missingMethodName > 0) {
-        console.warn('[getTestCaseInfosByExecutionIds] 警告: 存在缺少className或methodName的用例，这会影响映射关系的构建');
+        console.warn(
+          '[getTestCaseInfosByExecutionIds] 警告: 存在缺少className或methodName的用例，这会影响映射关系的构建',
+        );
       }
 
       console.log('[getTestCaseInfosByExecutionIds] === 查询测试用例信息完成 ===');
@@ -692,7 +742,7 @@ export class AutomationExecutionHandler {
         status: TestExecutionAutomationStatus.RUNNING,
         completeTime: new Date(), // 使用completeTime替代startTime
       };
-      
+
       console.log('[executeAutomation] 准备更新的数据:', JSON.stringify(updateData));
 
       // 注意：updateExecutionRecord需要的是executionId，而不是objectId

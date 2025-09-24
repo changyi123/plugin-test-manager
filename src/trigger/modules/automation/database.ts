@@ -173,7 +173,10 @@ export async function createExecutionRecord(data: {
     skippedCount: data.skippedCount || 0,
   };
 
-  console.log('[database.createExecutionRecord] 准备写入storage的数据:', JSON.stringify(recordData, null, 2));
+  console.log(
+    '[database.createExecutionRecord] 准备写入storage的数据:',
+    JSON.stringify(recordData, null, 2),
+  );
 
   try {
     const result = await storage.entity('AutomationExecutionRecord').add(recordData);
@@ -187,7 +190,10 @@ export async function createExecutionRecord(data: {
       console.log('[database.createExecutionRecord] result的所有key:', Object.keys(result));
       console.log('[database.createExecutionRecord] result.objectId:', (result as any).objectId);
       console.log('[database.createExecutionRecord] result.id:', (result as any).id);
-      console.log('[database.createExecutionRecord] result.executionId:', (result as any).executionId);
+      console.log(
+        '[database.createExecutionRecord] result.executionId:',
+        (result as any).executionId,
+      );
       console.log('[database.createExecutionRecord] result.buildId:', (result as any).buildId);
     }
     console.log('[database.createExecutionRecord] ==========================================');
@@ -213,6 +219,7 @@ export async function updateExecutionRecord(
     successCount?: number;
     failedCount?: number;
     skippedCount?: number;
+    blockedCount?: number;
     testCaseMapping?: string;
   },
 ) {
@@ -220,19 +227,21 @@ export async function updateExecutionRecord(
   console.log('[database.updateExecutionRecord] executionId:', executionId);
   console.log('[database.updateExecutionRecord] updateData完整内容:');
   console.log(JSON.stringify(updateData, null, 2));
-  
+
   const execution = await getExecutionByExecutionId(executionId);
-  
+
   if (!execution) {
     console.error(`[database.updateExecutionRecord] 未找到执行记录: ${executionId}`);
     throw new Error(`Execution record not found: ${executionId}`);
   }
-  
+
   console.log('[database.updateExecutionRecord] 找到执行记录，objectId:', execution.objectId);
   console.log('[database.updateExecutionRecord] 当前记录的buildId:', execution.buildId);
   console.log('[database.updateExecutionRecord] 准备更新buildId为:', updateData.buildId);
-  
-  const result = await storage.entity('AutomationExecutionRecord').set(execution.objectId, updateData);
+
+  const result = await storage
+    .entity('AutomationExecutionRecord')
+    .set(execution.objectId, updateData);
   console.log('[database.updateExecutionRecord] ========= storage.set完整返回结果 =========');
   console.log(JSON.stringify(result, null, 2));
   console.log('[database.updateExecutionRecord] ========= 返回结果分析 =========');
@@ -241,20 +250,20 @@ export async function updateExecutionRecord(
     console.log('[database.updateExecutionRecord] result的所有key:', Object.keys(result));
   }
   console.log('[database.updateExecutionRecord] ==========================================');
-  
+
   return result;
 }
 
 export async function getExecutionByExecutionId(executionId: string) {
   console.log('[database.getExecutionByExecutionId] ========= 开始查询 =========');
   console.log('[database.getExecutionByExecutionId] 查询executionId:', executionId);
-  
+
   const result = await storage
     .entity('AutomationExecutionRecord')
     .query()
     .equalTo('executionId', executionId)
     .first();
-  
+
   console.log('[database.getExecutionByExecutionId] ========= 查询完整结果 =========');
   console.log(JSON.stringify(result, null, 2));
   console.log('[database.getExecutionByExecutionId] ========= 结果分析 =========');
@@ -267,20 +276,20 @@ export async function getExecutionByExecutionId(executionId: string) {
     console.log('[database.getExecutionByExecutionId] executionId:', result.executionId);
   }
   console.log('[database.getExecutionByExecutionId] ==========================================');
-  
+
   return result;
 }
 
 export async function getExecutionByBuildId(buildId: string) {
   console.log('[database.getExecutionByBuildId] ========= 开始通过buildId查询 =========');
   console.log('[database.getExecutionByBuildId] 查询buildId:', buildId);
-  
+
   const result = await storage
     .entity('AutomationExecutionRecord')
     .query()
     .equalTo('buildId', buildId)
     .first();
-  
+
   console.log('[database.getExecutionByBuildId] ========= 查询完整结果 =========');
   console.log(JSON.stringify(result, null, 2));
   console.log('[database.getExecutionByBuildId] ========= 结果分析 =========');
@@ -293,7 +302,7 @@ export async function getExecutionByBuildId(buildId: string) {
     console.log('[database.getExecutionByBuildId] executionId:', result.executionId);
   }
   console.log('[database.getExecutionByBuildId] ==========================================');
-  
+
   return result;
 }
 
@@ -366,12 +375,24 @@ export async function addToPipeCallbackQueue(data: {
   status: string;
   retryCount?: number;
 }) {
-  const queueData = {
+  const queueData: any = {
     buildId: data.buildId,
     callbackData: data.callbackData,
     status: data.status,
     retryCount: data.retryCount || 0,
   };
+
+  // 尝试从执行记录中获取映射关系数据
+  try {
+    const execution = await getExecutionByBuildId(data.buildId);
+    if (execution) {
+      queueData.testCaseMapping = execution.testCaseMapping || null;
+      queueData.testExecutionIds = execution.testExecutionIds || null;
+    }
+  } catch (error) {
+    console.error('[addToPipeCallbackQueue] 获取执行记录失败:', error);
+    // 不阻塞队列创建，继续执行
+  }
 
   return await storage.entity('PipeCallbackQueue').add(queueData);
 }

@@ -24,6 +24,12 @@ export class JavaParser {
       if (line.includes('@TestId')) {
         console.log(`[Parser] 第${i + 1}行发现@TestId注解: ${line}`);
 
+        // 检查是否是注释掉的@TestId
+        if (this.isCommentedLine(lines[i])) {
+          console.log(`[Parser] 第${i + 1}行的@TestId注解已被注释，跳过`);
+          continue;
+        }
+
         // 修复：支持标准双引号格式的@TestId注解
         const testIdMatch =
           /@TestId\s*\(\s*"([^"]+)"\s*\)/.exec(line) || /@TestId\s*\(\s*'([^']+)'\s*\)/.exec(line);
@@ -31,8 +37,25 @@ export class JavaParser {
           const testId = testIdMatch[1];
           const startLine = i + 1;
           let methodName = '';
+          let isCommentedMethod = false;
 
           console.log(`[Parser] 提取到testId: ${testId}，开始查找对应方法`);
+
+          // 检查整个测试方法是否被注释掉
+          // 向上查找@Test注解
+          for (let k = i - 1; k >= Math.max(0, i - 10); k--) {
+            if (lines[k].includes('@Test')) {
+              if (this.isCommentedLine(lines[k])) {
+                console.log(`[Parser] @Test注解在第${k + 1}行已被注释，此测试用例无效`);
+                isCommentedMethod = true;
+              }
+              break;
+            }
+          }
+
+          if (isCommentedMethod) {
+            continue;
+          }
 
           // 在注解后50行内查找方法定义（增加搜索范围）
           for (let j = i + 1; j < Math.min(i + 50, lines.length); j++) {
@@ -41,6 +64,13 @@ export class JavaParser {
             // 支持更多的方法格式：public/private，void/其他返回类型，有无注解
             if (methodLine.includes('void ') && /\w+\s*\(/.test(methodLine)) {
               console.log(`[Parser] 第${j + 1}行可能是方法定义: ${methodLine}`);
+
+              // 检查方法定义行是否被注释
+              if (this.isCommentedLine(lines[j])) {
+                console.log(`[Parser] 第${j + 1}行的方法定义已被注释，跳过`);
+                isCommentedMethod = true;
+                break;
+              }
 
               // 匹配各种方法格式，支持包含连字符、下划线的方法名
               const methodMatch =
@@ -64,7 +94,7 @@ export class JavaParser {
             }
           }
 
-          if (!methodName) {
+          if (!methodName && !isCommentedMethod) {
             console.warn(`[Parser] 未能找到@TestId("${testId}")对应的方法定义`);
           }
         } else {
@@ -233,6 +263,38 @@ export class JavaParser {
     }
 
     return line.substring(0, commentIndex);
+  }
+
+  /**
+   * 判断一行代码是否被注释掉
+   */
+  private isCommentedLine(line: string): boolean {
+    const trimmedLine = line.trim();
+
+    // 检查单行注释 //
+    if (trimmedLine.startsWith('//')) {
+      return true;
+    }
+
+    // 检查块注释 /* ... */
+    if (trimmedLine.startsWith('/*') || trimmedLine.startsWith('*')) {
+      return true;
+    }
+
+    // 检查行内注释（注释在代码前面）
+    const beforeComment = line.match(/^\s*\/\//);
+    if (beforeComment) {
+      return true;
+    }
+
+    // 检查是否整行都在块注释中
+    // 注意：这个简单的检查可能不完全准确，但对大部分情况足够
+    const blockCommentStart = line.match(/^\s*\/\*/);
+    if (blockCommentStart) {
+      return true;
+    }
+
+    return false;
   }
 }
 

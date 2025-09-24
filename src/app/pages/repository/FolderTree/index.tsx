@@ -7,11 +7,7 @@ import { sum, uniq } from 'lodash';
 import React, { useCallback, useState } from 'react';
 
 import { copyFolderWithProcess } from '@/components/business/BatchResult/hooks';
-import {
-  CustomMore,
-  CustomPlus,
-  CustomScreenOff,
-} from '@/icons';
+import { CustomMore, CustomPlus, CustomScreenOff } from '@/icons';
 import { updateTestEntity } from '@/lib/api/item';
 import { createFolder, deleteFolder, updateFolders } from '@/lib/api/repository';
 import { getAppEnv } from '@/lib/appEnv';

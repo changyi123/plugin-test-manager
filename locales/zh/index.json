@@ -446,6 +446,20 @@
         "restrictiveConditions": "限制条件",
         "restrictiveConditionsPlaceholder": "请输入限制条件"
       },
+      "automationQueueMonitor": {
+        "title": "自动化队列监控",
+        "description": "监控自动化队列状态，包括Webhook队列和执行记录",
+        "tab": {
+          "webhook": "Webhook队列",
+          "execution": "执行监控"
+        },
+        "webhook": {
+          "placeholder": "暂无Webhook队列数据"
+        },
+        "execution": {
+          "placeholder": "暂无执行监控数据"
+        }
+      },
       "approvalConfig": {
         "title": "评审配置",
         "description": "评审配置",

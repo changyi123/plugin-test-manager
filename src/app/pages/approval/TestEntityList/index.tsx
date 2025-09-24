@@ -19,10 +19,7 @@ import { BusinessTable } from '@/components/common/BusinessTable';
 import { SystemFieldKeys } from '@/components/common/BusinessTable/hook';
 import { useStepAfterUpdateItemList } from '@/components/common/BusinessTable/hook';
 import type { BusinessTableActionType } from '@/components/common/BusinessTable/type';
-import {
-  getTestEntityByQuery,
-  handleSelector,
-} from '@/lib/api/item';
+import { getTestEntityByQuery, handleSelector } from '@/lib/api/item';
 import { useCurrentUser } from '@/lib/api/user';
 import { getCurrentUserSetting, saveUserSetting } from '@/lib/api/userSetting';
 import { featureFlags, SupportFeatureFlags } from '@/lib/appEnv';
@@ -30,19 +27,14 @@ import { useBaseAction, useTestConfig } from '@/lib/hooks/useContext';
 import useI18n from '@/lib/hooks/useI18n';
 import { useUserCellUserDataProp } from '@/lib/hooks/useProxima';
 import { actionConfirm, openItemViewScreen } from '@/lib/utils/helper';
-import {
-  mergeIQL,
-  selectorToIql,
-} from '@/lib/utils/iql';
+import { mergeIQL, selectorToIql } from '@/lib/utils/iql';
 import { getRepositoryQuery } from '@/lib/utils/tree';
 import TableCellTestDetailForm from '@/modules/beforeCreateOrUpdateModal/TableCellTestDetailForm';
+import { FormFieldKey } from '@/pages/config/ApprovalConfig';
 
 import { usePageContext } from '../hook';
-import {
-  useGetFilterApprovalLinkCaseIds,
-} from '../PlanPageLayout/hooks';
+import { useGetFilterApprovalLinkCaseIds } from '../PlanPageLayout/hooks';
 import cx from './index.less';
-import { FormFieldKey } from '@/pages/config/ApprovalConfig';
 
 interface TestEntityListProps {
   loading: boolean;
@@ -92,10 +84,10 @@ const TestEntityList: React.FC<TestEntityListProps> = ({
   const enableRepositoryTableStep = featureFlags(SupportFeatureFlags.ENABLE_REPOSITORY_TABLE_STEP);
   const proxima = createProximaSdk();
   const { config } = useTestConfig();
-  const { testCaseFieldKeys, globalTestConfig, createItemUseModal } =
-    useBaseAction();
+  const { testCaseFieldKeys, globalTestConfig, createItemUseModal } = useBaseAction();
 
-  const DISABLED_STATUSES = globalTestConfig?.approvalConfig?.[FormFieldKey.actionDisabledItemStatuses]; // || window.QiankunProps?.context?.env?.TEST_APPROVAL_DISABLED_STATUS;
+  const DISABLED_STATUSES =
+    globalTestConfig?.approvalConfig?.[FormFieldKey.actionDisabledItemStatuses]; // || window.QiankunProps?.context?.env?.TEST_APPROVAL_DISABLED_STATUS;
 
   console.log('selectedTestApproval', selectedTestApproval, config, globalTestConfig);
 
@@ -178,14 +170,18 @@ const TestEntityList: React.FC<TestEntityListProps> = ({
               tableFields.map(i => i.key).filter(i => i !== 'action'),
             ),
           ),
-          selector: mergeIQL(selectorToIql(handleSelector(selectors)), `测试评审 = '${selectedTestApproval?.objectId}'`),
+          selector: mergeIQL(
+            selectorToIql(handleSelector(selectors)),
+            `测试评审 = '${selectedTestApproval?.objectId}'`,
+          ),
           ...queryParams,
         });
         return {
-          list: list.map(i => ({
-            ...i,
-            status: i.workflowStatus,
-          })) ?? [],
+          list:
+            list.map(i => ({
+              ...i,
+              status: i.workflowStatus,
+            })) ?? [],
           total,
         };
       },
@@ -308,8 +304,22 @@ const TestEntityList: React.FC<TestEntityListProps> = ({
       },
     ];
 
-    console.log('QiankunProps.env', window.QiankunProps.context.env, DISABLED_STATUSES, (selectedTestApproval as any)?.status?.objectId, !(DISABLED_STATUSES && DISABLED_STATUSES.includes((selectedTestApproval as any)?.status?.objectId)));
-    if (!(DISABLED_STATUSES && DISABLED_STATUSES.includes((selectedTestApproval as any)?.status?.objectId))) {
+    console.log(
+      'QiankunProps.env',
+      window.QiankunProps.context.env,
+      DISABLED_STATUSES,
+      (selectedTestApproval as any)?.status?.objectId,
+      !(
+        DISABLED_STATUSES &&
+        DISABLED_STATUSES.includes((selectedTestApproval as any)?.status?.objectId)
+      ),
+    );
+    if (
+      !(
+        DISABLED_STATUSES &&
+        DISABLED_STATUSES.includes((selectedTestApproval as any)?.status?.objectId)
+      )
+    ) {
       allColumns.push({
         key: 'action',
         isSystem: true,
@@ -467,13 +477,7 @@ const TestEntityList: React.FC<TestEntityListProps> = ({
           restoreWithDefaultColumnKey: true,
         }}
         useColumnSetting
-        defaultColumnKey={[
-          'status',
-          'key',
-          'repositoryGroup',
-          'createdBy',
-          'createdAt',
-        ]}
+        defaultColumnKey={['status', 'key', 'repositoryGroup', 'createdBy', 'createdAt']}
         privateColumnKey={['repositoryGroup', 'status']}
         rowKey="objectId"
         columns={allTestColumns}

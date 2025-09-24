@@ -432,6 +432,20 @@
         "restrictiveConditions": "Restrictive conditions",
         "restrictiveConditionsPlaceholder": "Please enter restrictive conditions"
       },
+      "automationQueueMonitor": {
+        "title": "Automation Queue Monitor",
+        "description": "Monitor automation queue status, including Webhook queue and execution records",
+        "tab": {
+          "webhook": "Webhook Queue",
+          "execution": "Execution Monitor"
+        },
+        "webhook": {
+          "placeholder": "No Webhook queue data"
+        },
+        "execution": {
+          "placeholder": "No execution monitor data"
+        }
+      },
       "approvalConfig": {
         "title": "Approval configuration",
         "description": "Approval configuration",

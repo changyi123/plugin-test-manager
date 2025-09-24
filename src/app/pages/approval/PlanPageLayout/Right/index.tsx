@@ -4,31 +4,24 @@ import { Button, message, notification, Select } from 'antd';
 import { QueryLinkedTestEntityPayload } from 'common/types/api';
 import React, { useMemo, useRef, useState } from 'react';
 
-import {
-  updateItemsWithProcess,
-} from '@/components/business/BatchResult/hooks';
+import { updateItemsWithProcess } from '@/components/business/BatchResult/hooks';
 import TestEntitySelectorModal, {
   ActionType as ModelActionType,
 } from '@/components/business/TestEntitySelectorModal';
 import { SystemFieldKeys } from '@/components/common/BusinessTable/hook';
 import FilterSearch from '@/components/common/FilterSearch';
 import { getFilterFields } from '@/components/common/FilterSearch/utils';
-import {
-  getExtendFields,
-  RepositoryModel,
-  TestFiledKeyMapping,
-  TestType,
-} from '@/lib/constants';
+import { getExtendFields, RepositoryModel, TestFiledKeyMapping, TestType } from '@/lib/constants';
 import { useBaseAction } from '@/lib/hooks/useContext';
 import { useTestConfig } from '@/lib/hooks/useContext';
 import useI18n from '@/lib/hooks/useI18n';
+import { openItemViewScreen } from '@/lib/utils/helper';
+import { FormFieldKey } from '@/pages/config/ApprovalConfig';
 
 import { usePageContext } from '../../hook';
 import TestEntityList from '../../TestEntityList';
 import { useSetTableHeight } from './hooks';
 import cx from './index.less';
-import { openItemViewScreen } from '@/lib/utils/helper';
-import { FormFieldKey } from '@/pages/config/ApprovalConfig';
 
 interface RightProps {
   activeType?: string;
@@ -73,8 +66,11 @@ const Right: React.FC<RightProps> = props => {
 
   useSetTableHeight();
 
-  const DISABLED_STATUSES = globalTestConfig?.approvalConfig?.[FormFieldKey.actionDisabledItemStatuses];
-  const isCreateDisabled = DISABLED_STATUSES && DISABLED_STATUSES.includes((selectedTestApproval as any)?.status?.objectId);
+  const DISABLED_STATUSES =
+    globalTestConfig?.approvalConfig?.[FormFieldKey.actionDisabledItemStatuses];
+  const isCreateDisabled =
+    DISABLED_STATUSES &&
+    DISABLED_STATUSES.includes((selectedTestApproval as any)?.status?.objectId);
 
   const testEntitySelectorRef = useRef<ModelActionType>();
   const detailSearchRef = useRef(null);
@@ -151,9 +147,7 @@ const Right: React.FC<RightProps> = props => {
     <div className={cx('right-box')}>
       <div data-element-id="test-manager-execution-table-header" className={cx('box-header')}>
         <div className={cx('extra-content')}>
-          <div className={cx('extra-content-left')}>
-            {t('common.allTestCase')}
-          </div>
+          <div className={cx('extra-content-left')}>{t('common.allTestCase')}</div>
           <div className={cx('extra-content-right')}>
             <Select
               className={cx('select-group')}
@@ -170,9 +164,14 @@ const Right: React.FC<RightProps> = props => {
               ]}
               onChange={val => setShowType(val)}
             ></Select>
-            <Button type='primary' onClick={() => {
-              openItemViewScreen(selectedTestApproval?.objectId);
-            }}>{t('page.approval.action.approval')}</Button>
+            <Button
+              type="primary"
+              onClick={() => {
+                openItemViewScreen(selectedTestApproval?.objectId);
+              }}
+            >
+              {t('page.approval.action.approval')}
+            </Button>
             <Button
               type="primary"
               onClick={activeType === 'TestApproval' ? addTestDetail : null}

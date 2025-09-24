@@ -25,10 +25,12 @@ const ApprovalConfig = () => {
 
   useEffect(() => {
     getAllStatus().then(res => {
-      setStatusOptions(res.map(item => ({
-        label: item.name,
-        value: item.objectId,
-      })));
+      setStatusOptions(
+        res.map(item => ({
+          label: item.name,
+          value: item.objectId,
+        })),
+      );
     });
   }, []);
 

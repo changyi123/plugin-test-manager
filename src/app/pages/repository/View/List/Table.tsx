@@ -680,7 +680,7 @@ const TestDetailTable: React.FC<TestDetailTableProps> = props => {
           const folderKey = rowData?.repository ?? UNGROUPED_FOLDER_KEY;
           console.log('Table render - enableRepositoryTableStep:', enableRepositoryTableStep);
           console.log('Table render - selectionMode:', rowData._tableState.selectionMode);
-          
+
           if (enableRepositoryTableStep) {
             return (
               <>

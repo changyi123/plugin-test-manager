@@ -1,5 +1,6 @@
 import { useUpdateEffect } from 'ahooks';
 import React, { useCallback, useEffect, useRef, useState } from 'react';
+
 import PageLayout from '@/components/common/PageLayout';
 import BasicPageLayout from '@/components/common/PageLayout/Basic';
 import { useTestConfig } from '@/lib/hooks/useContext';
@@ -8,10 +9,7 @@ import TestApprovalList from '@/pages/approval/TestApprovalList';
 
 import { usePageContext } from '../hook';
 import Header from './Header';
-import {
-  useGetApprovalLinkCaseIds,
-  useTreeParams,
-} from './hooks';
+import { useGetApprovalLinkCaseIds, useTreeParams } from './hooks';
 import cx from './index.less';
 import Left from './Left';
 import Right from './Right';
@@ -81,10 +79,7 @@ const PlanPageLayout: React.FC<any> = ({ selectedApproval, setApprovalEntry }) =
         <>
           <PageLayout>
             <PageLayout.Header>
-              <Header
-                activeType={activeType}
-                setActiveType={setActiveType}
-              />
+              <Header activeType={activeType} setActiveType={setActiveType} />
             </PageLayout.Header>
             <PageLayout.Left>
               <Left

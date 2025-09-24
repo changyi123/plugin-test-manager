@@ -4,9 +4,7 @@ import { isEmpty } from 'lodash';
 import React, { useState } from 'react';
 
 import { getCasesByStatus, getTestEntityByQuery } from '@/lib/api/item';
-import {
-  TestCaseStatusModel,
-} from '@/lib/constants';
+import { TestCaseStatusModel } from '@/lib/constants';
 import {
   getTestCaseStatusModelValue,
   handleCustomerSelector,
@@ -108,20 +106,14 @@ export const useTreeParams = (props: {
   selectedTestApproval: TestPlanEntity | null;
 }) => {
   const [treeParams, setTreeParams] = useState<any>(null);
-  const {
-    workspaceKey,
-    selectedTestApproval,
-  } = props;
+  const { workspaceKey, selectedTestApproval } = props;
 
   useUpdateEffect(() => {
     if (!workspaceKey || !selectedTestApproval?.objectId) return;
     setTreeParams({
       selector: `测试评审 = '${selectedTestApproval?.objectId}' and test_manager_type = '${TestType.Case}'`,
     });
-  }, [
-    selectedTestApproval?.objectId,
-    workspaceKey,
-  ]);
+  }, [selectedTestApproval?.objectId, workspaceKey]);
 
   return treeParams;
 };
