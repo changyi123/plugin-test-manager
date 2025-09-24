@@ -28,17 +28,17 @@ import {
   TestType,
 } from '@/lib/constants';
 import { useBaseAction } from '@/lib/hooks/useContext';
+import { useTestConfig } from '@/lib/hooks/useContext';
 import useI18n from '@/lib/hooks/useI18n';
+import { openItemViewScreen } from '@/lib/utils/helper';
+import { FormFieldKey } from '@/pages/config/ApprovalConfig';
 import RepoDropDown from '@/pages/repository/RepoDropDown';
 
 import { usePageContext } from '../../hook';
 import TestEntityList from '../../TestEntityList';
 // import ExecutionStatus from '../ExecutionStatus';
 import { useSetTableHeight } from './hooks';
-import { useTestConfig } from '@/lib/hooks/useContext';
 import cx from './index.less';
-import { openItemViewScreen } from '@/lib/utils/helper';
-import { FormFieldKey } from '@/pages/config/ApprovalConfig';
 
 interface RightProps {
   activeType?: string;
@@ -83,8 +83,11 @@ const Right: React.FC<RightProps> = props => {
 
   useSetTableHeight();
 
-  const DISABLED_STATUSES = globalTestConfig?.approvalConfig?.[FormFieldKey.actionDisabledItemStatuses];
-  const isCreateDisabled = DISABLED_STATUSES && DISABLED_STATUSES.includes((selectedTestApproval as any)?.status?.objectId);
+  const DISABLED_STATUSES =
+    globalTestConfig?.approvalConfig?.[FormFieldKey.actionDisabledItemStatuses];
+  const isCreateDisabled =
+    DISABLED_STATUSES &&
+    DISABLED_STATUSES.includes((selectedTestApproval as any)?.status?.objectId);
 
   const testEntitySelectorRef = useRef<ModelActionType>();
   const detailSearchRef = useRef(null);
@@ -161,9 +164,7 @@ const Right: React.FC<RightProps> = props => {
     <div className={cx('right-box')}>
       <div data-element-id="test-manager-execution-table-header" className={cx('box-header')}>
         <div className={cx('extra-content')}>
-          <div className={cx('extra-content-left')}>
-            {t('common.allTestCase')}
-          </div>
+          <div className={cx('extra-content-left')}>{t('common.allTestCase')}</div>
           <div className={cx('extra-content-right')}>
             <Select
               className={cx('select-group')}
@@ -180,9 +181,14 @@ const Right: React.FC<RightProps> = props => {
               ]}
               onChange={val => setShowType(val)}
             ></Select>
-            <Button type='primary' onClick={() => {
-              openItemViewScreen(selectedTestApproval?.objectId);
-            }}>{t('page.approval.action.approval')}</Button>
+            <Button
+              type="primary"
+              onClick={() => {
+                openItemViewScreen(selectedTestApproval?.objectId);
+              }}
+            >
+              {t('page.approval.action.approval')}
+            </Button>
             <Button
               type="primary"
               onClick={activeType === 'TestApproval' ? addTestDetail : null}
@@ -198,7 +204,9 @@ const Right: React.FC<RightProps> = props => {
           onSearch={setSearchParams}
           className={cx('plan-page-layout-search')}
           extendFields={filterSearchExtendFieldsProps}
-          fields={getFilterFields([].concat(SystemFieldKeys, testCaseFieldKeys, 'r_test_manager_isCaseUpdate'))}
+          fields={getFilterFields(
+            [].concat(SystemFieldKeys, testCaseFieldKeys, 'r_test_manager_isCaseUpdate'),
+          )}
           testType={TestType.Case}
           storageKey={activeType === 'TestApproval' ? 'testPlan' : 'testExecution'}
         />

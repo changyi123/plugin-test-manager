@@ -1,3 +1,4 @@
+import { getParseQuery, requestCoreApi } from '@giteeteam/apps-team-api';
 import { uniq } from 'lodash';
 
 import {
@@ -7,9 +8,8 @@ import {
   TestType,
 } from '../../../common/constant';
 import { batchUpdateItemsValues } from '../../lib/batchRequest';
-import { iqlRequest } from '../../lib/iqlRequest';
-import { getParseQuery, requestCoreApi } from '@giteeteam/apps-team-api';
 import { dataFetcher } from '../../lib/initialization';
+import { iqlRequest } from '../../lib/iqlRequest';
 
 function getLinkItem(i) {
   if (!Array.isArray(i.values.r_test_manager_linkItems)) return null;
@@ -63,20 +63,29 @@ export const itemAfterSaveForApproval = async () => {
   const { item, originalItem, env } = global as any;
   const globalConfig = await dataFetcher.getGlobalTestConfig();
   const approvalConfig = globalConfig.extra?.approvalConfig;
-  
-  console.log('itemAfterSaveForApproval approvalConfig', globalConfig, approvalConfig, item, JSON.stringify(item));
 
-  const workspaceTestConfig = await getParseQuery(true, 'TestConfig').equalTo('workspaceKey', item.workspace?.key)
+  console.log(
+    'itemAfterSaveForApproval approvalConfig',
+    globalConfig,
+    approvalConfig,
+    item,
+    JSON.stringify(item),
+  );
+
+  const workspaceTestConfig = await getParseQuery(true, 'TestConfig')
+    .equalTo('workspaceKey', item.workspace?.key)
     .select(['itemTypeMap'])
     .first({ useMasterKey: true })
     .then(o => o.toJSON());
   console.log('itemAfterSaveForApproval itemTypeMap', workspaceTestConfig);
 
-  if (!approvalConfig || !workspaceTestConfig?.itemTypeMap?.['TestApproval']) {
+  if (!approvalConfig || !workspaceTestConfig?.itemTypeMap?.TestApproval) {
     return;
   }
-  const approvalItemTypeKey = workspaceTestConfig?.itemTypeMap?.['TestApproval'] || env.APPROVAL_ITEM_TYPE_KEY;
-  const itemTargatStatusId = approvalConfig.itemApprovalStatus || env.APPROVAL_ITEM_TARGET_STATUS_ID;
+  const approvalItemTypeKey =
+    workspaceTestConfig?.itemTypeMap?.TestApproval || env.APPROVAL_ITEM_TYPE_KEY;
+  const itemTargatStatusId =
+    approvalConfig.itemApprovalStatus || env.APPROVAL_ITEM_TARGET_STATUS_ID;
   console.info('itemAfterSaveForApproval', item, JSON.stringify(item));
   console.info('itemAfterSaveForApproval env', env);
 
@@ -94,16 +103,18 @@ export const itemAfterSaveForApproval = async () => {
     console.info('事项[' + item.name + ']状态未发生变化');
     return;
   }
-  
+
   console.info('事项[' + item.name + ']变化后状态是:' + item.status.objectId);
   console.info('statusId', statusId, 'itemTargatStatusId', itemTargatStatusId);
   // 状态发生变更 且符合目标状态 才触发以下逻辑
   if (statusId !== itemTargatStatusId) {
     return;
-  }  
+  }
 
   // 查询关联的测试用例
-  const {data: { list: cases = [] }} = await iqlRequest({
+  const {
+    data: { list: cases = [] },
+  } = await iqlRequest({
     fields: ['id', 'name', 'status', 'r_test_manager_type'],
     pagination: { limit: InfinityLimit },
     selector: `测试评审 = '${item.objectId}' and test_manager_type = '${TestType.Case}'`,
@@ -117,29 +128,40 @@ export const itemAfterSaveForApproval = async () => {
     return;
   }
 
-  const itemWorkflowRes = await requestCoreApi('GET', `/parse/api/workflows/item/${firstCase.objectId}`)
+  const itemWorkflowRes = await requestCoreApi(
+    'GET',
+    `/parse/api/workflows/item/${firstCase.objectId}`,
+  );
 
-  console.info('itemWorkflowRes', itemWorkflowRes, (itemWorkflowRes as any)?.transitions, JSON.stringify(itemWorkflowRes));
-  
+  console.info(
+    'itemWorkflowRes',
+    itemWorkflowRes,
+    (itemWorkflowRes as any)?.transitions,
+    JSON.stringify(itemWorkflowRes),
+  );
+
   const caseTargatStatusId = approvalConfig.caseApprovalStatus || env.CASE_TARGAT_STATUS_ID;
   console.log('caseTargatStatusId', caseTargatStatusId);
 
-  const caseTargetStatus = await getParseQuery(false, 'Status').select(['name'])
-      .equalTo('objectId', caseTargatStatusId)
-      .first({ useMasterKey: true })
-      .then(status => status.toJSON());
+  const caseTargetStatus = await getParseQuery(false, 'Status')
+    .select(['name'])
+    .equalTo('objectId', caseTargatStatusId)
+    .first({ useMasterKey: true })
+    .then(status => status.toJSON());
   console.log('caseTargatStatusIdName', caseTargetStatus);
 
-  const caseTargetStatusName = caseTargetStatus.name || env.CASE_TARGET_STATUS_NAME;
+  // const caseTargetStatusName = caseTargetStatus.name || env.CASE_TARGET_STATUS_NAME;
 
-  const targetTransitions = ((itemWorkflowRes as any).transitions || []).filter(item => item.targetId === caseTargatStatusId);
+  const targetTransitions = ((itemWorkflowRes as any).transitions || []).filter(
+    item => item.targetId === caseTargatStatusId,
+  );
 
   console.info('targetTransitions', targetTransitions);
 
   // 遍历可到达用例目标状态的源状态
-  const sourceStatusIdMap = {}
+  const sourceStatusIdMap = {};
   targetTransitions.forEach(item => {
-    sourceStatusIdMap[item.sourceId] = true;
+    sourceStatusIdMap[item.sourceId] = item;
   });
 
   console.info('sourceStatusIdMap', sourceStatusIdMap);
@@ -151,8 +173,8 @@ export const itemAfterSaveForApproval = async () => {
       caseStatutIdMap[(item as any).workflowStatus?.objectId] = [];
     }
     caseStatutIdMap[(item as any).workflowStatus?.objectId].push(item.objectId);
-  })
-  
+  });
+
   console.info('caseStatutIdMap', caseStatutIdMap);
 
   // 批量扭转
@@ -163,17 +185,22 @@ export const itemAfterSaveForApproval = async () => {
     }
     console.info('触发扭转，目前状态:' + statusId, '关联用例:', caseStatutIdMap[statusId]);
     try {
-      const execRes = await requestCoreApi('POST', '/parse/api/v2/items/batch/transition', {
-        transition: caseTargetStatusName,
-        currentState: statusId,
-        items: caseStatutIdMap[statusId],
-      }, {
-        'X-Parse-Session-Token': env.AUTOMATION_TOKEN || 'a:5342414fbd5b66363156fb08',
-      })
+      const execRes = await requestCoreApi(
+        'POST',
+        '/parse/api/v2/items/batch/transition',
+        {
+          transition: sourceStatusIdMap[statusId].name,
+          currentState: statusId,
+          items: caseStatutIdMap[statusId],
+        },
+        {
+          'X-Parse-Session-Token': env.AUTOMATION_TOKEN || 'a:5342414fbd5b66363156fb08',
+        },
+      );
       console.info('扭转完成, 执行结果:', execRes);
     } catch (error) {
       console.error('扭转失败, 执行结果:', error, JSON.stringify(error));
     }
-  };
+  }
   // console.info('涉及用例：', caseStatutIdMap, JSON.stringify(caseStatutIdMap));
-}
+};
