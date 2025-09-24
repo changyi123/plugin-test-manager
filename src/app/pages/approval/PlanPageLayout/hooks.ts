@@ -46,7 +46,7 @@ export const useGetApprovalLinkCaseIds = (params: ScopedTestDetailIdsParams) => 
 
       console.log('useGetApprovalLinkCaseIds', list);
 
-      return list.map(item => item.objectId);
+      return list;
     },
     {
       ready: Boolean(workspaceKey && testApprovalId),
