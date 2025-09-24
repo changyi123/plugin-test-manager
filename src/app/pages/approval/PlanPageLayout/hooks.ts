@@ -39,6 +39,7 @@ export const useGetApprovalLinkCaseIds = (params: ScopedTestDetailIdsParams) => 
           workspaceKey: workspaceKey,
           type: TestType.Case,
         },
+        limit: 999999,
         selector: `测试评审 = '${testApprovalId}'`,
         notConcatField: true,
       });
