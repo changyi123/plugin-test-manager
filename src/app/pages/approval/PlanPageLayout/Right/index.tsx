@@ -4,27 +4,19 @@ import { Button, message, notification, Select } from 'antd';
 import { QueryLinkedTestEntityPayload } from 'common/types/api';
 import React, { useMemo, useRef, useState } from 'react';
 
-import {
-  updateItemsWithProcess,
-} from '@/components/business/BatchResult/hooks';
+import { updateItemsWithProcess } from '@/components/business/BatchResult/hooks';
 import TestEntitySelectorModal, {
   ActionType as ModelActionType,
 } from '@/components/business/TestEntitySelectorModal';
 import { SystemFieldKeys } from '@/components/common/BusinessTable/hook';
 import FilterSearch from '@/components/common/FilterSearch';
 import { getFilterFields } from '@/components/common/FilterSearch/utils';
-import {
-  getExtendFields,
-  RepositoryModel,
-  TestFiledKeyMapping,
-  TestType,
-} from '@/lib/constants';
+import { getExtendFields, RepositoryModel, TestFiledKeyMapping, TestType } from '@/lib/constants';
 import { useBaseAction } from '@/lib/hooks/useContext';
 import { useTestConfig } from '@/lib/hooks/useContext';
 import useI18n from '@/lib/hooks/useI18n';
 import { openItemViewScreen } from '@/lib/utils/helper';
 import { FormFieldKey } from '@/pages/config/ApprovalConfig';
-import RepoDropDown from '@/pages/repository/RepoDropDown';
 
 import { usePageContext } from '../../hook';
 import TestEntityList from '../../TestEntityList';

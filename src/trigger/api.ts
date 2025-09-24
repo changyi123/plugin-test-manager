@@ -64,3 +64,24 @@ export { checkFilterGroupName } from './modules/filterGroup';
 
 export { executeAutomation } from './modules/automation/automationExecutionHandler';
 export { pipeAutomationCallback } from './modules/automation/pipeCallback';
+
+export {
+  queryWebhookQueue,
+  queryExecutionRecords,
+  queryPipeCallbackQueue,
+  retryWebhookQueueItem,
+  retryExecutionRecord,
+  getQueueStats,
+  getQueueDetails,
+  getQueueFileStats,
+} from './modules/api/queueMonitor';
+
+export {
+  initializeDirectory,
+  previewDirectoryMapping,
+  validateMappings,
+  getDirectoryMappings,
+  previewFileMapping,
+} from './modules/api/directoryMapping';
+
+export { mappingDeletionAnalyzer } from './modules/automation/mappingDeletionAnalyzer';

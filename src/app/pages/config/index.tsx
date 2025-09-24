@@ -16,6 +16,7 @@ import { useDataContext } from './hooks';
 import cx from './index.less';
 import IsolatedTestType from './IsolatedTestType';
 import ItemTypeMapping from './ItemTypeMapping';
+import AutomationQueueMonitor from './MoreConfig/AutomationQueueMonitor';
 import FieldSettings from './MoreConfig/FieldSettings';
 import GeneralSettings from './MoreConfig/GeneralSettings';
 import IsolatedSystem from './MoreConfig/IsolatedSystem';
@@ -62,6 +63,13 @@ const MoreConfigPages = [
     title: 'defectManageConfig',
     component: DefectManageConfig,
     description: 'defectManageConfig',
+    isGlobalConfig: true,
+  },
+  {
+    key: 'AutomationQueueMonitor',
+    title: 'automationQueueMonitor',
+    component: AutomationQueueMonitor,
+    description: 'automationQueueMonitor',
     isGlobalConfig: true,
   },
 ];

@@ -7,7 +7,9 @@ import {
   AUTOMATION_FIELD_KEYS,
   AutomationExecutionRecord,
   AutomationExecutionStatus,
+  AutomationWebhookQueue,
   generateExecutionId,
+  PipeCallbackQueue,
   serializeTestExecutionIds,
   TestExecutionAutomationStatus,
 } from './types';
@@ -31,6 +33,23 @@ interface ExecutionStatusCheck {
   canExecute: boolean;
   runningExecutions: string[];
   totalCount: number;
+}
+
+// 队列查询参数接口
+interface QueueQueryParams {
+  limit?: number;
+  skip?: number;
+  status?: string;
+  workspaceKey?: string;
+}
+
+// 分页响应接口
+interface PaginationResponse<T> {
+  success: boolean;
+  data: T[];
+  total: number;
+  limit: number;
+  skip: number;
 }
 
 /**
@@ -167,13 +186,13 @@ export async function triggerAutomationExecution(
     // 获取当前环境，优先从context中获取，如果没有则根据NODE_ENV判断，默认为development
     const context = (globalThis as any)?.QiankunProps?.context;
     let environment = 'development';
-    
+
     if (context?.env?.NODE_ENV === 'production') {
       environment = 'production';
     } else if (process.env.NODE_ENV === 'production') {
       environment = 'production';
     }
-    
+
     console.log('[Automation] 当前环境:', environment);
     const apiPath = `/apps/api/v1/${tenant}/apps/test_manager/environments/${environment}/webtriggers/api-automation-execute`;
 
@@ -189,11 +208,13 @@ export async function triggerAutomationExecution(
     const result = await fetch.$post(apiPath, requestData);
 
     if (result.success) {
-      console.log(`[Automation] 自动化执行触发成功: ${result.data.executionId}`);
+      // 处理嵌套的data结构：result.data.data.executionId
+      const responseData = result.data.data || result.data;
+      console.log(`[Automation] 自动化执行触发成功: ${responseData.executionId}`);
       return {
-        executionId: result.data.executionId,
-        buildId: result.data.buildId || '',
-        pipeJumpUrl: result.data.pipeJumpUrl || '',
+        executionId: responseData.executionId,
+        buildId: responseData.buildId || '',
+        pipeJumpUrl: responseData.pipeJumpUrl || '',
       };
     } else {
       console.error('[Automation] 后端接口返回失败:', result.error);
@@ -243,6 +264,381 @@ export async function updateExecutionRecord(
     console.log(`[Automation] 更新执行记录成功: ${recordId}`);
   } catch (error) {
     console.error('[Automation] 更新执行记录失败:', error);
+    throw error;
+  }
+}
+
+// ======================== 队列监控相关API ========================
+
+/**
+ * 查询Webhook队列列表
+ */
+export async function queryWebhookQueue(
+  params: QueueQueryParams = {},
+): Promise<PaginationResponse<AutomationWebhookQueue>> {
+  try {
+    const tenant = getTenantKey();
+    const context = (globalThis as any)?.QiankunProps?.context;
+    let environment = 'development';
+
+    if (context?.env?.NODE_ENV === 'production') {
+      environment = 'production';
+    } else if (process.env.NODE_ENV === 'production') {
+      environment = 'production';
+    }
+
+    const apiPath = `/apps/api/v1/${tenant}/apps/test_manager/environments/${environment}/webtriggers/api-queue-webhook-list`;
+
+    const result = await fetch.$post(apiPath, params);
+
+    if (result.success) {
+      // 解析嵌套的数据结构
+      if (result.data?.data?.list) {
+        return {
+          success: true,
+          data: result.data.data.list.data || [],
+          total: result.data.data.list.total || 0,
+          limit: result.data.data.list.limit || 20,
+          skip: result.data.data.list.skip || 0,
+        };
+      }
+      return result;
+    } else {
+      throw new Error(result.error?.message || '查询Webhook队列失败');
+    }
+  } catch (error) {
+    console.error('[QueueMonitor] 查询Webhook队列失败:', error);
+    throw error;
+  }
+}
+
+/**
+ * 查询执行记录列表
+ */
+export async function queryExecutionRecords(
+  params: QueueQueryParams = {},
+): Promise<PaginationResponse<AutomationExecutionRecord>> {
+  try {
+    const tenant = getTenantKey();
+    const context = (globalThis as any)?.QiankunProps?.context;
+    let environment = 'development';
+
+    if (context?.env?.NODE_ENV === 'production') {
+      environment = 'production';
+    } else if (process.env.NODE_ENV === 'production') {
+      environment = 'production';
+    }
+
+    const apiPath = `/apps/api/v1/${tenant}/apps/test_manager/environments/${environment}/webtriggers/api-queue-execution-list`;
+
+    const result = await fetch.$post(apiPath, params);
+
+    if (result.success) {
+      // 解析嵌套的数据结构
+      if (result.data?.data?.list) {
+        return {
+          success: true,
+          data: result.data.data.list.data || [],
+          total: result.data.data.list.total || 0,
+          limit: result.data.data.list.limit || 20,
+          skip: result.data.data.list.skip || 0,
+        };
+      }
+      return result;
+    } else {
+      throw new Error(result.error?.message || '查询执行记录失败');
+    }
+  } catch (error) {
+    console.error('[QueueMonitor] 查询执行记录失败:', error);
+    throw error;
+  }
+}
+
+/**
+ * 查询Pipe回调队列列表
+ */
+export async function queryPipeCallbackQueue(
+  params: QueueQueryParams = {},
+): Promise<PaginationResponse<PipeCallbackQueue>> {
+  try {
+    const tenant = getTenantKey();
+    const context = (globalThis as any)?.QiankunProps?.context;
+    let environment = 'development';
+
+    if (context?.env?.NODE_ENV === 'production') {
+      environment = 'production';
+    } else if (process.env.NODE_ENV === 'production') {
+      environment = 'production';
+    }
+
+    const apiPath = `/apps/api/v1/${tenant}/apps/test_manager/environments/${environment}/webtriggers/api-queue-callback-list`;
+
+    const result = await fetch.$post(apiPath, params);
+
+    if (result.success) {
+      // 解析嵌套的数据结构
+      if (result.data?.data?.list) {
+        return {
+          success: true,
+          data: result.data.data.list.data || [],
+          total: result.data.data.list.total || 0,
+          limit: result.data.data.list.limit || 20,
+          skip: result.data.data.list.skip || 0,
+        };
+      }
+      return result;
+    } else {
+      throw new Error(result.error?.message || '查询Pipe回调队列失败');
+    }
+  } catch (error) {
+    console.error('[QueueMonitor] 查询Pipe回调队列失败:', error);
+    throw error;
+  }
+}
+
+/**
+ * 重试Webhook队列项
+ */
+export async function retryWebhookQueueItem(params: {
+  queueId: string;
+  forceReset?: boolean;
+}): Promise<{ success: boolean; message?: string; error?: string }> {
+  try {
+    const tenant = getTenantKey();
+    const context = (globalThis as any)?.QiankunProps?.context;
+    let environment = 'development';
+
+    if (context?.env?.NODE_ENV === 'production') {
+      environment = 'production';
+    } else if (process.env.NODE_ENV === 'production') {
+      environment = 'production';
+    }
+
+    const apiPath = `/apps/api/v1/${tenant}/apps/test_manager/environments/${environment}/webtriggers/api-queue-webhook-retry`;
+
+    const result = await fetch.$post(apiPath, params);
+
+    if (result.success) {
+      return result;
+    } else {
+      throw new Error(result.error?.message || '重试Webhook队列项失败');
+    }
+  } catch (error) {
+    console.error('[QueueMonitor] 重试Webhook队列项失败:', error);
+    throw error;
+  }
+}
+
+/**
+ * 重试执行记录
+ */
+export async function retryExecutionRecord(
+  executionId: string,
+): Promise<{ success: boolean; message?: string }> {
+  try {
+    const tenant = getTenantKey();
+    const context = (globalThis as any)?.QiankunProps?.context;
+    let environment = 'development';
+
+    if (context?.env?.NODE_ENV === 'production') {
+      environment = 'production';
+    } else if (process.env.NODE_ENV === 'production') {
+      environment = 'production';
+    }
+
+    const apiPath = `/apps/api/v1/${tenant}/apps/test_manager/environments/${environment}/webtriggers/api-queue-execution-retry`;
+
+    const result = await fetch.$post(apiPath, { executionId });
+
+    if (result.success) {
+      return result;
+    } else {
+      throw new Error(result.error?.message || '重试执行记录失败');
+    }
+  } catch (error) {
+    console.error('[QueueMonitor] 重试执行记录失败:', error);
+    throw error;
+  }
+}
+
+/**
+ * 获取队列统计信息
+ */
+export async function getQueueStats(): Promise<{
+  webhook: {
+    pending: number;
+    processing: number;
+    completed: number;
+    failed: number;
+    total: number;
+  };
+  execution: { pending: number; running: number; completed: number; failed: number; total: number };
+  pipeCallback: {
+    pending: number;
+    processing: number;
+    completed: number;
+    failed: number;
+    total: number;
+  };
+}> {
+  try {
+    const tenant = getTenantKey();
+    const context = (globalThis as any)?.QiankunProps?.context;
+    let environment = 'development';
+
+    if (context?.env?.NODE_ENV === 'production') {
+      environment = 'production';
+    } else if (process.env.NODE_ENV === 'production') {
+      environment = 'production';
+    }
+
+    const apiPath = `/apps/api/v1/${tenant}/apps/test_manager/environments/${environment}/webtriggers/api-queue-stats`;
+
+    const result = await fetch.$post(apiPath, {});
+
+    if (result.success) {
+      // 解析嵌套的数据结构
+      if (result.data?.data?.data) {
+        return result.data.data.data;
+      }
+      return result.data;
+    } else {
+      throw new Error(result.error?.message || '获取队列统计失败');
+    }
+  } catch (error) {
+    console.error('[QueueMonitor] 获取队列统计失败:', error);
+    throw error;
+  }
+}
+
+// ======================== 新增统计详情API ========================
+
+/**
+ * 队列详细统计信息接口
+ */
+export interface QueueDetailedStats {
+  queueInfo: AutomationWebhookQueue;
+  processingStats?: {
+    totalFiles: number;
+    processedFiles: number;
+    identifiedCases: number;
+    pendingOperations: number;
+    completedOperations: number;
+    successfulCases: number;
+    failedCases: number;
+    skippedCases: number;
+    currentCommit?: string;
+    currentFile?: string;
+    currentStep?: string;
+    lastUpdateTime?: Date;
+  };
+  operationStats?: {
+    createOperations: number;
+    updateOperations: number;
+    deleteOperations: number;
+    queryOperations: number;
+    totalOperations: number;
+    uniqueTestCases: number;
+    timestamp?: Date;
+  };
+  fileProcessingLogs: Array<{
+    commitId: string;
+    fileName: string;
+    shouldProcess: boolean;
+    operationsGenerated?: number;
+    processingTime?: number;
+    timestamp: Date;
+    errorMessage?: string;
+  }>;
+  caseGenerationLogs: Array<{
+    fileName: string;
+    operationsGenerated: number;
+    operationTypes: string;
+    timestamp: Date;
+  }>;
+  summary: {
+    totalFiles: number;
+    processedFiles: number;
+    shouldProcessFiles: number;
+    identifiedCases: number;
+    successfulCases: number;
+    failedCases: number;
+  };
+}
+
+/**
+ * 查询队列详细统计信息
+ */
+export async function getQueueDetails(queueId: string): Promise<QueueDetailedStats> {
+  try {
+    const tenant = getTenantKey();
+    const context = (globalThis as any)?.QiankunProps?.context;
+    let environment = 'development';
+
+    if (context?.env?.NODE_ENV === 'production') {
+      environment = 'production';
+    } else if (process.env.NODE_ENV === 'production') {
+      environment = 'production';
+    }
+
+    const apiPath = `/apps/api/v1/${tenant}/apps/test_manager/environments/${environment}/webtriggers/api-queue-details`;
+
+    const result = await fetch.$post(apiPath, { queueId });
+
+    if (result.success) {
+      // Handle nested data structure - data is at result.data.data.data
+      if (result.data?.data?.data) {
+        return result.data.data.data;
+      }
+      // Fallback for other structures
+      if (result.data?.data) {
+        return result.data.data;
+      }
+      return result.data;
+    } else {
+      throw new Error(result.error?.message || '查询队列详情失败');
+    }
+  } catch (error) {
+    console.error('[QueueMonitor] 查询队列详情失败:', error);
+    throw error;
+  }
+}
+
+/**
+ * 查询文件处理统计
+ */
+export async function getFileProcessingStats(queueId: string): Promise<{
+  files: Array<{
+    fileName: string;
+    shouldProcess: boolean;
+    operationsGenerated: number;
+    processingTime: number;
+    status: 'success' | 'failed' | 'skipped';
+    errorMessage?: string;
+  }>;
+}> {
+  try {
+    const tenant = getTenantKey();
+    const context = (globalThis as any)?.QiankunProps?.context;
+    let environment = 'development';
+
+    if (context?.env?.NODE_ENV === 'production') {
+      environment = 'production';
+    } else if (process.env.NODE_ENV === 'production') {
+      environment = 'production';
+    }
+
+    const apiPath = `/apps/api/v1/${tenant}/apps/test_manager/environments/${environment}/webtriggers/api-queue-file-stats`;
+
+    const result = await fetch.$post(apiPath, { queueId });
+
+    if (result.success) {
+      return result.data;
+    } else {
+      throw new Error(result.error?.message || '查询文件处理统计失败');
+    }
+  } catch (error) {
+    console.error('[QueueMonitor] 查询文件处理统计失败:', error);
     throw error;
   }
 }

@@ -1,5 +1,25 @@
 // 自动化执行相关的类型定义
 
+// Webhook队列接口
+export interface AutomationWebhookQueue {
+  objectId?: string;
+  webhookUuid: string; // Webhook唯一标识
+  repositoryId: string; // 仓库ID
+  repositoryName: string; // 仓库名称
+  branchName: string; // 分支名称
+  commitIds: string; // 提交ID列表（JSON字符串）
+  workspaceKey: string; // 工作空间key
+  gitCloneUrl: string; // Git克隆URL
+  gitBranch: string; // Git分支
+  gitPath: string; // Git路径
+  status: 'pending' | 'processing' | 'completed' | 'failed'; // 处理状态
+  retryCount: number; // 重试次数
+  processedAt?: Date; // 处理时间
+  errorMessage?: string; // 错误信息
+  createdAt?: Date; // 创建时间
+  updatedAt?: Date; // 更新时间
+}
+
 // 自动化执行状态枚举
 export enum AutomationExecutionStatus {
   PENDING = 'pending', // 已创建，等待执行
@@ -52,6 +72,10 @@ export interface PipeCallbackQueue {
   retryCount: number; // 重试次数
   processedAt?: Date; // 处理时间
   errorMessage?: string; // 错误信息
+  testCaseMapping?: string; // 测试用例映射关系（JSON字符串）
+  testExecutionIds?: string; // 测试执行ID列表（JSON字符串）
+  createdAt?: Date; // 创建时间
+  updatedAt?: Date; // 更新时间
 }
 
 // Pipe回调请求接口

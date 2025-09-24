@@ -1,4 +1,5 @@
 import React from 'react';
+
 import { ArrowLeftOutlined } from '@/icons';
 import useI18n from '@/lib/hooks/useI18n';
 
@@ -10,10 +11,7 @@ interface HeaderProps {
   setActiveType?: (val) => void;
 }
 
-const Header: React.FC<HeaderProps> = ({
-  activeType,
-  setActiveType,
-}) => {
+const Header: React.FC<HeaderProps> = ({ activeType, setActiveType }) => {
   const { t } = useI18n();
   const { setSelectedTestApproval } = usePageContext();
 

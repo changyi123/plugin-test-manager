@@ -46,7 +46,11 @@ const ApprovalEntryDropdown = ({ setApprovalEntry, createTestApproval }) => {
     {
       key: t('page.approval.view'),
       label: (
-        <a onClick={() => { setApprovalEntry(ApprovalEntry.View) }}>
+        <a
+          onClick={() => {
+            setApprovalEntry(ApprovalEntry.View);
+          }}
+        >
           {t('page.approval.view')}
         </a>
       ),
@@ -54,7 +58,11 @@ const ApprovalEntryDropdown = ({ setApprovalEntry, createTestApproval }) => {
     {
       key: t('page.approval.create'),
       label: (
-        <a onClick={() => { createTestApproval() }}>
+        <a
+          onClick={() => {
+            createTestApproval();
+          }}
+        >
           {t('page.approval.create')}
         </a>
       ),

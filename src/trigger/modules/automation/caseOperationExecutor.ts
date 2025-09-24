@@ -479,31 +479,68 @@ async function executeBatchDelete(
     }));
   }
 
-  try {
-    // 使用现有的批量删除API
-    await batchDeleteItems(caseIds);
+  // 当删除数量较大时，记录警告
+  if (caseIds.length > 50) {
+    console.warn(`[CaseOperationExecutor] ⚠️ 警告：即将删除 ${caseIds.length} 个用例，可能需要较长时间`);
+    console.log(`[CaseOperationExecutor] 批次大小限制: DELETE_V1.batchSize = 10`);
+    console.log(`[CaseOperationExecutor] 预计需要 ${Math.ceil(caseIds.length / 10)} 批次处理`);
+  }
 
-    // 记录同步日志
-    await Promise.all(
+  try {
+    // 使用现有的批量删除API并检查返回结果
+    console.log(`[CaseOperationExecutor] 准备删除 ${caseIds.length} 个用例`);
+    console.log(`[CaseOperationExecutor] 前10个用例ID:`, caseIds.slice(0, 10));
+    
+    const startTime = Date.now();
+    const deleteResult = await batchDeleteItems(caseIds);
+    const endTime = Date.now();
+    
+    console.log(`[CaseOperationExecutor] 删除操作耗时: ${(endTime - startTime) / 1000}秒`);
+    console.log(`[CaseOperationExecutor] 删除API返回结果:`, JSON.stringify(deleteResult));
+    
+    // 检查删除结果
+    const failedIds = new Set<string>();
+    if (deleteResult && deleteResult.items && Array.isArray(deleteResult.items)) {
+      // deleteResult.items 包含删除失败的用例ID
+      deleteResult.items.forEach((failedId: string) => failedIds.add(failedId));
+    }
+    
+    // 为每个操作生成结果并记录日志
+    const results = await Promise.all(
       operations.map(async op => {
+        const caseId = op.existingCaseInfo?.caseId;
+        const success = caseId && !failedIds.has(caseId);
+        
         await logSyncOperation({
           operationType: 'DELETE',
           testId: op.testId,
-          caseId: op.existingCaseInfo?.caseId,
-          success: true,
-          details: `批量删除用例: ${op.testId}`,
+          caseId: caseId,
+          success: success,
+          details: success ? `成功删除用例: ${op.testId}` : `删除用例失败: ${op.testId}`,
+          error: success ? undefined : `用例ID ${caseId} 删除失败`,
         });
+        
+        return {
+          success: success,
+          operation: op,
+          caseId: caseId,
+          message: success ? `批量删除成功: ${caseId}` : `批量删除失败: ${caseId}`,
+          error: success ? undefined : `用例ID ${caseId} 删除失败`,
+        };
       }),
     );
 
-    return operations.map(op => ({
-      success: true,
-      operation: op,
-      caseId: op.existingCaseInfo?.caseId,
-      message: `批量删除成功: ${op.existingCaseInfo?.caseId}`,
-    }));
+    return results;
   } catch (error) {
     console.error(`[AutoSync] 批量删除失败:`, error);
+    console.error(`[AutoSync] 错误类型:`, error?.constructor?.name);
+    console.error(`[AutoSync] 错误消息:`, error?.message);
+    console.error(`[AutoSync] 错误堆栈:`, error?.stack);
+    
+    // 检查是否是超时错误
+    if (error?.message?.includes('timeout') || error?.message?.includes('ETIMEDOUT')) {
+      console.error(`[AutoSync] ⚠️ 删除操作超时！可能因为用例数量过多 (${caseIds.length} 个)`);
+    }
 
     // 记录失败日志
     await Promise.all(
@@ -513,7 +550,8 @@ async function executeBatchDelete(
           testId: op.testId,
           caseId: op.existingCaseInfo?.caseId,
           success: false,
-          error: `批量删除失败: ${error}`,
+          error: `批量删除失败: ${error?.message || error}`,
+          details: `尝试删除 ${caseIds.length} 个用例时失败`,
         });
       }),
     );
@@ -521,7 +559,8 @@ async function executeBatchDelete(
     return operations.map(op => ({
       success: false,
       operation: op,
-      error: `批量删除失败: ${error}`,
+      error: `批量删除失败: ${error?.message || error}`,
+      message: `删除失败 - 共尝试删除 ${caseIds.length} 个用例`,
     }));
   }
 }

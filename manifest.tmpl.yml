@@ -63,6 +63,23 @@ modules:
     # Pipe自动化执行回调接口
     - key: pipeAutomationCallback
       function: pipe-automation-callback-function
+    # 队列监控API
+    - key: api-queue-stats
+      function: api-queue-stats-function
+    - key: api-queue-webhook-list
+      function: api-queue-webhook-list-function
+    - key: api-queue-execution-list
+      function: api-queue-execution-list-function
+    - key: api-queue-callback-list
+      function: api-queue-callback-list-function
+    - key: api-queue-webhook-retry
+      function: api-queue-webhook-retry-function
+    - key: api-queue-execution-retry
+      function: api-queue-execution-retry-function
+    - key: api-queue-details
+      function: api-queue-details-function
+    - key: api-queue-file-stats
+      function: api-queue-file-stats-function
       # 查询实体数据
     - key: api-query-test-entity
       function: api-query-test-entity-function
@@ -367,6 +384,31 @@ modules:
     - key: pipe-callback-queue-processor-function
       handler: job.processPipeCallbackQueue
       timeout: 120000
+    # 队列监控API函数
+    - key: api-queue-stats-function
+      handler: api.getQueueStats
+      timeout: 30000
+    - key: api-queue-webhook-list-function
+      handler: api.queryWebhookQueue
+      timeout: 30000
+    - key: api-queue-execution-list-function
+      handler: api.queryExecutionRecords
+      timeout: 30000
+    - key: api-queue-callback-list-function
+      handler: api.queryPipeCallbackQueue
+      timeout: 30000
+    - key: api-queue-webhook-retry-function
+      handler: api.retryWebhookQueueItem
+      timeout: 30000
+    - key: api-queue-execution-retry-function
+      handler: api.retryExecutionRecord
+      timeout: 30000
+    - key: api-queue-details-function
+      handler: api.getQueueDetails
+      timeout: 30000
+    - key: api-queue-file-stats-function
+      handler: api.getQueueFileStats
+      timeout: 30000
       # api backend Query
     - key: api-query-test-entity-function
       handler: query.queryTestEntity
@@ -1744,3 +1786,150 @@ storage:
         - status
         - createdAt
         - status,retryCount
+    - name: QueueProcessingStatistics
+      attributes:
+        queueId:
+          type: String
+          required: true
+        totalFiles:
+          type: Float
+          defaultValue: 0
+        processedFiles:
+          type: Float
+          defaultValue: 0
+        identifiedCases:
+          type: Float
+          defaultValue: 0
+        pendingOperations:
+          type: Float
+          defaultValue: 0
+        completedOperations:
+          type: Float
+          defaultValue: 0
+        successfulCases:
+          type: Float
+          defaultValue: 0
+        failedCases:
+          type: Float
+          defaultValue: 0
+        skippedCases:
+          type: Float
+          defaultValue: 0
+        currentCommit:
+          type: String
+        currentFile:
+          type: String
+        currentStep:
+          type: String
+        lastUpdateTime:
+          type: Date
+      indexes:
+        - name: unique_queue_id
+          fields:
+            - queueId
+          unique: true
+        - lastUpdateTime
+    - name: FileProcessingLog
+      attributes:
+        queueId:
+          type: String
+          required: true
+        commitId:
+          type: String
+          required: true
+        fileName:
+          type: String
+          required: true
+        shouldProcess:
+          type: Boolean
+          defaultValue: false
+        operationsGenerated:
+          type: Float
+        processingTime:
+          type: Float
+        timestamp:
+          type: Date
+          required: true
+        errorMessage:
+          type: String
+      indexes:
+        - queueId
+        - queueId,commitId
+        - timestamp
+    - name: CaseGenerationLog
+      attributes:
+        queueId:
+          type: String
+          required: true
+        fileName:
+          type: String
+          required: true
+        operationsGenerated:
+          type: Float
+          required: true
+        operationTypes:
+          type: String
+        timestamp:
+          type: Date
+          required: true
+      indexes:
+        - queueId
+        - queueId,fileName
+        - timestamp
+    - name: CaseFailureLog
+      attributes:
+        queueId:
+          type: String
+          required: true
+        caseId:
+          type: String
+        caseName:
+          type: String
+        itemKey:
+          type: String
+        failureReason:
+          type: String
+          required: true
+        failureTime:
+          type: Date
+          required: true
+        operationType:
+          type: String
+          required: true
+        filePath:
+          type: String
+          required: true
+        errorCode:
+          type: String
+      indexes:
+        - queueId
+        - queueId,operationType
+        - failureTime
+    - name: OperationStatistics
+      attributes:
+        queueId:
+          type: String
+          required: true
+        createOperations:
+          type: Float
+          defaultValue: 0
+        updateOperations:
+          type: Float
+          defaultValue: 0
+        deleteOperations:
+          type: Float
+          defaultValue: 0
+        queryOperations:
+          type: Float
+          defaultValue: 0
+        totalOperations:
+          type: Float
+          defaultValue: 0
+        uniqueTestCases:
+          type: Float
+          defaultValue: 0
+        timestamp:
+          type: Date
+          required: true
+      indexes:
+        - queueId
