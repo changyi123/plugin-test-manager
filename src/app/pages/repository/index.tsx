@@ -2,6 +2,7 @@ import { useSDK } from '@giteeteam/plugin-sdk';
 import { useRequest } from 'ahooks';
 import { message, notification } from 'antd';
 import { TestFiledKeyMapping, TestType } from 'common/constant';
+import { Item } from 'common/types/app';
 import { cloneDeep } from 'lodash';
 import React, { useCallback } from 'react';
 
@@ -23,7 +24,6 @@ import cx from './index.less';
 import { getTreeNodeByKey } from './util';
 import MinderList from './View/List';
 import MinderView from './View/Minder';
-import { Item } from 'common/types/app';
 
 /** 用例库视图切换 */
 const ViewModeSelector = ({ viewMode, onViewModeChange }) => {
@@ -90,40 +90,37 @@ const TestRepository: React.FC<{ workspaceKey: string }> = ({ workspaceKey }) =>
 
     return data;
   }, [t]);
-  
-  const createTestApproval = useCallback(
-    async () => {
-      const data = await getSelectCaseIds();
-      if (!data) return;
-      const { selectedData: caseIds } = data;
 
-      const { item } = await createItemUseModal({
-        type: TestType.Approval,
-      });
-      if (!item) return;
+  const createTestApproval = useCallback(async () => {
+    const data = await getSelectCaseIds();
+    if (!data) return;
+    const { selectedData: caseIds } = data;
 
-      await updateItemsWithProcess({
-        title: t('page.approval.action.addingCase'),
-        items: caseIds,
-        update: {
-          [TestFiledKeyMapping.testApprovals]: {
-            concat: [item.objectId],
-          },
+    const { item } = await createItemUseModal({
+      type: TestType.Approval,
+    });
+    if (!item) return;
+
+    await updateItemsWithProcess({
+      title: t('page.approval.action.addingCase'),
+      items: caseIds,
+      update: {
+        [TestFiledKeyMapping.testApprovals]: {
+          concat: [item.objectId],
         },
-        handleSuccess: () => {
-          notification.success({
-            message: t('page.plan.planPageLayout.right.caseToApprovalSuccessMessage'),
-          });
-          setApprovalEntry(ApprovalEntry.View);
-          setSelectedApproval(item);
-        },
-        handleFail: error => {
-          message.error(error.message);
-        },
-      });
-    },
-    [getSelectCaseIds, t],
-  );
+      },
+      handleSuccess: () => {
+        notification.success({
+          message: t('page.plan.planPageLayout.right.caseToApprovalSuccessMessage'),
+        });
+        setApprovalEntry(ApprovalEntry.View);
+        setSelectedApproval(item);
+      },
+      handleFail: error => {
+        message.error(error.message);
+      },
+    });
+  }, [getSelectCaseIds, t]);
 
   const {
     data: folderTreeData = [
@@ -155,7 +152,7 @@ const TestRepository: React.FC<{ workspaceKey: string }> = ({ workspaceKey }) =>
   }, [folderTreeData, selectedNodeKey]);
 
   if (approvalEntry === ApprovalEntry.View) {
-    return <ApprovalPage setApprovalEntry={setApprovalEntry} selectedApproval={selectedApproval}/>
+    return <ApprovalPage setApprovalEntry={setApprovalEntry} selectedApproval={selectedApproval} />;
   }
 
   return (
