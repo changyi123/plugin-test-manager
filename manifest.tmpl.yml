@@ -2,7 +2,7 @@ app:
   key: test_manager
   uuid: bf73e61c-e15a-4461-a1f7-f940c2009332
   name: test_manager
-  version: "4.38.607"
+  version: "4.38.608"
 modules:
   scheduledTrigger:
     - key: automation-queue-processor
@@ -258,7 +258,14 @@ modules:
       function: item-after-create-function
       events:
         - gei:proxima:item:created
-      async: false
+      async: true
+      timeout: 500000
+    - key: item-after-async-create-trigger
+      function: item-async-after-create-function
+      events:
+        - gei:proxima:item:created
+      async: true
+      timeout: 500000
     - key: item-before-update-trigger
       events:
         - gei:proxima:item:beforeUpdate
@@ -306,6 +313,10 @@ modules:
       handler: trigger.handleBeforeCreate
     - key: item-after-create-function
       handler: trigger.handleAfterCreate
+      timeout: 300000
+    - key: item-async-after-create-function
+      handler: trigger.handleAsyncAfterCreate
+      timeout: 300000
     - key: item-before-update-trigger-function
       handler: trigger.handleBeforeUpdate
     - key: item-created-trigger-function
