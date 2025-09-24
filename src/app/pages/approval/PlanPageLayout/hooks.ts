@@ -36,18 +36,19 @@ export const useGetApprovalLinkCaseIds = (params: ScopedTestDetailIdsParams) => 
     async () => {
       if (!workspaceKey || !testApprovalId) return {};
       // 测试全部用例 ID
-      const { list, total } = await getTestEntityByQuery({
+      const { list } = await getTestEntityByQuery({
         query: {
           workspaceKey: workspaceKey,
           type: TestType.Case,
         },
         selector: `测试评审 = '${testApprovalId}'`,
-        notConcatField: true,
+        onlySelectId: true,
+        limit: 99999,
       });
 
       console.log('useGetApprovalLinkCaseIds', list);
 
-      return list.map(item => item.objectId);
+      return list;
     },
     {
       ready: Boolean(workspaceKey && testApprovalId),
