@@ -112,8 +112,9 @@ export const itemAfterSaveForApproval = async () => {
   }
 
   // 查询关联的测试用例
-  const {data: { list: cases = [] }} = await iqlRequest({
-
+  const {
+    data: { list: cases = [] },
+  } = await iqlRequest({
     fields: ['id', 'name', 'status', 'r_test_manager_type'],
     pagination: { limit: InfinityLimit },
     selector: `测试评审 = '${item.objectId}' and test_manager_type = '${TestType.Case}'`,
@@ -149,7 +150,7 @@ export const itemAfterSaveForApproval = async () => {
     .then(status => status.toJSON());
   console.log('caseTargatStatusIdName', caseTargetStatus);
 
-  const caseTargetStatusName = caseTargetStatus.name || env.CASE_TARGET_STATUS_NAME;
+  // const caseTargetStatusName = caseTargetStatus.name || env.CASE_TARGET_STATUS_NAME;
 
   const targetTransitions = ((itemWorkflowRes as any).transitions || []).filter(
     item => item.targetId === caseTargatStatusId,
@@ -160,7 +161,7 @@ export const itemAfterSaveForApproval = async () => {
   // 遍历可到达用例目标状态的源状态
   const sourceStatusIdMap = {};
   targetTransitions.forEach(item => {
-    sourceStatusIdMap[item.sourceId] = true;
+    sourceStatusIdMap[item.sourceId] = item;
   });
 
   console.info('sourceStatusIdMap', sourceStatusIdMap);
@@ -188,7 +189,7 @@ export const itemAfterSaveForApproval = async () => {
         'POST',
         '/parse/api/v2/items/batch/transition',
         {
-          transition: caseTargetStatusName,
+          transition: sourceStatusIdMap[statusId].name,
           currentState: statusId,
           items: caseStatutIdMap[statusId],
         },

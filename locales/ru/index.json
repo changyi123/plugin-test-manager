@@ -926,7 +926,8 @@
       "approval": "Утверждение",
       "addApprovalSuccess": "Тест-кейс утверждение создано успешно",
       "columns": {
-        "approvalTitle": "Название утверждения"
+        "approvalTitle": "Название утверждения",
+        "approvalCases": "Количество утвержденных тест-кейсов"
       },
       "action": {
         "approval": "Утвердить",
