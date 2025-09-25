@@ -883,7 +883,8 @@
       "approval": "评审",
       "addApprovalSuccess": "用例评审创建成功",
       "columns": {
-        "approvalTitle": "评审名称"
+        "approvalTitle": "评审名称",
+        "approvalCases": "评审用例数"
       },
       "action": {
         "approval": "审批",

@@ -920,7 +920,8 @@
       "approval": "Approval",
       "addApprovalSuccess": "Approval created successfully",
       "columns": {
-        "approvalTitle": "Approval name"
+        "approvalTitle": "Approval name",
+        "approvalCases": "Approval cases"
       },
       "action": {
         "approval": "Approve",

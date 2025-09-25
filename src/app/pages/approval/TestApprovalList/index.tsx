@@ -194,8 +194,7 @@ const TestPlanList: React.FC<any> = ({ setApprovalEntry }) => {
     },
     {
       key: 'caseCount',
-      title: t('components.business.testPlanList.planCaseCount'),
-      align: 'right',
+      title: t('page.approval.columns.approvalCases'),
       width: 100,
       render(_, rowData) {
         return <span>{rowData?.caseCount}</span>;
