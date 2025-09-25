@@ -445,3 +445,184 @@ export async function recordOperationStatistics(
     console.error('[Statistics] 记录操作统计失败:', error);
   }
 }
+
+/**
+ * 目录初始化专用：更新批量文件获取进度（复用现有表）
+ */
+export async function updateBatchFileProgress(
+  requestId: string,
+  batchNumber: number,
+  fileIndex: number,
+  totalFiles: number,
+  fileName: string,
+  status: 'fetching' | 'success' | 'failed',
+  errorMessage?: string,
+) {
+  try {
+    // 复用现有的 QueueProcessingStatistics 表，用 requestId 作为 queueId
+    const existingStats = await storage
+      .entity('QueueProcessingStatistics')
+      .query()
+      .equalTo('queueId', requestId)
+      .first();
+
+    const updateData: any = {
+      queueId: requestId,
+      currentFile: `${fileName} (${fileIndex}/${totalFiles})`,
+      processedFiles: status === 'success' ? fileIndex : (fileIndex - 1),
+      totalFiles,
+      currentStep: status === 'failed' ? ProcessStep.FAILED : ProcessStep.PROCESSING_FILE,
+      lastUpdateTime: new Date(),
+    };
+
+    if (errorMessage) {
+      // 将错误信息记录到 FileProcessingLog 表（现有表）
+      await storage.entity('FileProcessingLog').add({
+        queueId: requestId,
+        commitId: 'directory_init',
+        fileName,
+        shouldProcess: true,
+        processingTime: 0,
+        timestamp: new Date(),
+        errorMessage,
+      });
+    }
+
+    if (existingStats) {
+      await storage.entity('QueueProcessingStatistics').set(existingStats.objectId, updateData);
+    } else {
+      await storage.entity('QueueProcessingStatistics').add(updateData);
+    }
+
+    console.log(
+      `[Statistics] 目录初始化进度: ${fileIndex}/${totalFiles}, 批次${batchNumber}, ${fileName}, 状态: ${status}`,
+    );
+  } catch (error) {
+    console.error('[Statistics] 更新批量文件进度失败:', error);
+  }
+}
+
+/**
+ * 目录初始化专用：记录文件内容获取失败（复用现有表）
+ */
+export async function logFileContentFetchFailure(
+  requestId: string,
+  filePath: string,
+  errorMessage: string,
+  statusCode?: number,
+) {
+  try {
+    // 复用现有的 FileProcessingLog 表
+    await storage.entity('FileProcessingLog').add({
+      queueId: requestId,
+      commitId: 'directory_init',
+      fileName: filePath,
+      shouldProcess: true,
+      processingTime: 0,
+      timestamp: new Date(),
+      errorMessage: `HTTP ${statusCode}: ${errorMessage}`,
+    });
+
+    console.log(`[Statistics] 记录文件获取失败: ${filePath} - ${errorMessage}`);
+  } catch (error) {
+    console.error('[Statistics] 记录文件获取失败日志失败:', error);
+  }
+}
+
+/**
+ * 目录初始化专用：更新解析阶段进度（复用现有表）
+ */
+export async function updateParsingProgress(
+  requestId: string,
+  parsedCount: number,
+  totalFiles: number,
+  successCount: number,
+  skipCount: number,
+  errorCount: number,
+  currentStatus?: string,
+) {
+  try {
+    // 复用现有的 QueueProcessingStatistics 表
+    const existingStats = await storage
+      .entity('QueueProcessingStatistics')
+      .query()
+      .equalTo('queueId', requestId)
+      .first();
+
+    const updateData = {
+      currentStep: ProcessStep.GENERATING_OPERATIONS,
+      processedFiles: parsedCount,
+      totalFiles,
+      identifiedCases: successCount,
+      failedCases: errorCount,
+      skippedCases: skipCount,
+      currentFile: currentStatus || `解析中... ${parsedCount}/${totalFiles}`,
+      lastUpdateTime: new Date(),
+    };
+
+    if (existingStats) {
+      await storage.entity('QueueProcessingStatistics').set(existingStats.objectId, updateData);
+    } else {
+      await storage.entity('QueueProcessingStatistics').add({
+        queueId: requestId,
+        ...updateData,
+      });
+    }
+
+    console.log(
+      `[Statistics] 解析进度: ${parsedCount}/${totalFiles}, 成功${successCount}, 跳过${skipCount}, 失败${errorCount}`,
+    );
+  } catch (error) {
+    console.error('[Statistics] 更新解析进度失败:', error);
+  }
+}
+
+/**
+ * 目录初始化专用：标记完成（复用现有表）
+ */
+export async function markDirectoryInitComplete(
+  requestId: string,
+  result: {
+    totalFiles: number;
+    processedFiles: number;
+    createdCases: number;
+    errors: any[];
+    duration: number;
+  },
+) {
+  try {
+    // 复用现有的 QueueProcessingStatistics 表
+    const existingStats = await storage
+      .entity('QueueProcessingStatistics')
+      .query()
+      .equalTo('queueId', requestId)
+      .first();
+
+    const updateData = {
+      currentStep: ProcessStep.COMPLETED,
+      totalFiles: result.totalFiles,
+      processedFiles: result.processedFiles,
+      identifiedCases: result.createdCases,
+      successfulCases: result.createdCases,
+      failedCases: result.errors.length,
+      completedOperations: result.processedFiles,
+      currentFile: '处理完成',
+      lastUpdateTime: new Date(),
+    };
+
+    if (existingStats) {
+      await storage.entity('QueueProcessingStatistics').set(existingStats.objectId, updateData);
+    } else {
+      await storage.entity('QueueProcessingStatistics').add({
+        queueId: requestId,
+        ...updateData,
+      });
+    }
+
+    console.log(
+      `[Statistics] 目录初始化完成: 处理${result.processedFiles}/${result.totalFiles}文件, 创建${result.createdCases}用例, 耗时${result.duration}ms`,
+    );
+  } catch (error) {
+    console.error('[Statistics] 标记目录初始化完成失败:', error);
+  }
+}

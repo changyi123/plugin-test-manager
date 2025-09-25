@@ -7,6 +7,11 @@ import { axios } from '@giteeteam/apps-team-api';
 
 import { getCodePlatformConfig } from './config';
 
+import {
+  updateBatchFileProgress,
+  logFileContentFetchFailure,
+} from './queueStatistics';
+
 /**
  * 文件内容接口
  */
@@ -180,27 +185,107 @@ export class CodeApiEnhanced {
     for (let i = 0; i < filePaths.length; i += concurrency) {
       const batch = filePaths.slice(i, i + concurrency);
       const batchNumber = Math.floor(i / concurrency) + 1;
+      const batchStartTime = Date.now();
 
-      const batchPromises = batch.map(async filePath => {
+      console.log(`[CodeApiEnhanced] [${requestId}] 开始处理批次 ${batchNumber}`, {
+        batchNumber,
+        batchSize: batch.length,
+        startIndex: i,
+        endIndex: Math.min(i + concurrency, filePaths.length) - 1,
+        progress: `${Math.min(i + concurrency, filePaths.length)}/${filePaths.length}`,
+        sampleFiles: batch.slice(0, 3).map(f => f.split('/').pop()),
+      });
+
+      const batchPromises = batch.map(async (filePath, index) => {
+        const fileIndex = i + index + 1;
+        const fileName = filePath.split('/').pop() || filePath;
+        
         try {
+          // 更新监控：开始获取文件
+          await updateBatchFileProgress(
+            requestId,
+            batchNumber,
+            fileIndex,
+            filePaths.length,
+            fileName,
+            'fetching'
+          );
+          
+          console.log(`[CodeApiEnhanced] [${requestId}] 正在获取文件 ${fileIndex}/${filePaths.length}: ${fileName}`);
           const content = await this.getSingleFileContent(projectId, filePath, ref, requestId);
+          
+          // 更新监控：获取成功
+          await updateBatchFileProgress(
+            requestId,
+            batchNumber,
+            fileIndex,
+            filePaths.length,
+            fileName,
+            'success'
+          );
+          
+          console.log(`[CodeApiEnhanced] [${requestId}] 文件获取成功 ${fileIndex}/${filePaths.length}: ${fileName} (${content.size} bytes)`);
           return content;
         } catch (error) {
-          errors.push({ filePath, error: error.message });
+          const errorMessage = error.message;
+          const statusCode = error.response?.status;
+          
+          // 更新监控：获取失败
+          await updateBatchFileProgress(
+            requestId,
+            batchNumber,
+            fileIndex,
+            filePaths.length,
+            fileName,
+            'failed',
+            errorMessage
+          );
+          
+          // 记录详细的失败日志
+          await logFileContentFetchFailure(requestId, filePath, errorMessage, statusCode);
+          
+          console.error(`[CodeApiEnhanced] [${requestId}] 文件获取失败 ${fileIndex}/${filePaths.length}: ${fileName}`, {
+            error: errorMessage,
+            status: statusCode,
+            statusText: error.response?.statusText,
+          });
+          errors.push({ filePath, error: errorMessage });
           return null;
         }
       });
 
-      const batchResults = await Promise.all(batchPromises);
-      const successCount = batchResults.filter(result => result !== null).length;
-      results.push(...batchResults.filter(result => result !== null));
+      try {
+        const batchResults = await Promise.all(batchPromises);
+        const successCount = batchResults.filter(result => result !== null).length;
+        const failCount = batchResults.filter(result => result === null).length;
+        results.push(...batchResults.filter(result => result !== null));
 
-      console.log(`[CodeApiEnhanced] [${requestId}] 批次 ${batchNumber} 完成`, {
-        batchNumber,
-        success: successCount,
-        total: batch.length,
-        progress: `${Math.min(i + concurrency, filePaths.length)}/${filePaths.length}`,
-      });
+        const batchDuration = Date.now() - batchStartTime;
+        console.log(`[CodeApiEnhanced] [${requestId}] 批次 ${batchNumber} 完成`, {
+          batchNumber,
+          success: successCount,
+          failed: failCount,
+          total: batch.length,
+          progress: `${Math.min(i + concurrency, filePaths.length)}/${filePaths.length}`,
+          batchDuration: `${batchDuration}ms`,
+          avgPerFile: `${Math.round(batchDuration / batch.length)}ms`,
+        });
+      } catch (batchError) {
+        console.error(`[CodeApiEnhanced] [${requestId}] 批次 ${batchNumber} 处理异常`, {
+          error: batchError.message,
+          stack: batchError.stack?.split('\n')[0],
+        });
+        // 将整个批次的文件标记为失败
+        batch.forEach(filePath => {
+          errors.push({ filePath, error: `批次处理失败: ${batchError.message}` });
+        });
+      }
+
+      // 如果是串行处理(concurrency=1)，添加延迟避免API限流
+      if (concurrency === 1 && i + concurrency < filePaths.length) {
+        console.log(`[CodeApiEnhanced] [${requestId}] 串行模式：等待1秒后处理下一个文件...`);
+        await new Promise(resolve => setTimeout(resolve, 1000));
+      }
     }
 
     if (errors.length > 0) {

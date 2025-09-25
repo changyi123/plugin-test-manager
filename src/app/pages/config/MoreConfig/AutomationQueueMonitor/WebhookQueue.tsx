@@ -833,6 +833,80 @@ const WebhookQueue: React.FC = () => {
                 </div>
               </div>
             )}
+
+            {/* 文件处理详情表格 */}
+            {queueDetails.fileProcessingLogs && queueDetails.fileProcessingLogs.length > 0 && (
+              <div style={{ marginTop: 16 }}>
+                <h4>文件处理详情</h4>
+                <Table
+                  size="small"
+                  columns={[
+                    {
+                      title: '文件名',
+                      dataIndex: 'fileName',
+                      key: 'fileName',
+                      width: 200,
+                      render: (text: string) => (
+                        <span style={{ fontFamily: 'monospace', fontSize: '12px' }}>{text}</span>
+                      ),
+                    },
+                    {
+                      title: '用例数',
+                      key: 'operationsGenerated',
+                      width: 80,
+                      align: 'center' as const,
+                      render: (_: any, record: any) => {
+                        // 从caseGenerationLogs中查找对应的操作数
+                        const genLog = queueDetails.caseGenerationLogs?.find(
+                          (log: any) => log.fileName === record.fileName
+                        );
+                        if (genLog && genLog.operationsGenerated > 0) {
+                          return (
+                            <span style={{ fontWeight: 'bold', color: '#1890ff' }}>
+                              {genLog.operationsGenerated}
+                            </span>
+                          );
+                        }
+                        return <span style={{ color: '#999' }}>-</span>;
+                      },
+                    },
+                    {
+                      title: '状态',
+                      key: 'status',
+                      width: 80,
+                      align: 'center' as const,
+                      render: (_: any, record: any) => {
+                        if (record.errorMessage) {
+                          return <Tag color="warning">跳过</Tag>;
+                        } else if (record.shouldProcess) {
+                          return <Tag color="success">成功</Tag>;
+                        } else {
+                          return <Tag color="default">忽略</Tag>;
+                        }
+                      },
+                    },
+                    {
+                      title: '处理时间',
+                      dataIndex: 'processingTime',
+                      key: 'processingTime',
+                      width: 100,
+                      align: 'center' as const,
+                      render: (time: number) => `${time}ms`,
+                    },
+                    {
+                      title: '备注',
+                      dataIndex: 'errorMessage',
+                      key: 'errorMessage',
+                      render: (text: string) => text || '-',
+                    },
+                  ]}
+                  dataSource={queueDetails.fileProcessingLogs}
+                  rowKey={(record: any) => record.fileName + record.timestamp}
+                  pagination={false}
+                  scroll={{ y: 300 }}
+                />
+              </div>
+            )}
           </div>
         ) : (
           <div style={{ textAlign: 'center', padding: 50 }}>

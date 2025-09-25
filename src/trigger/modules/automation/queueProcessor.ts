@@ -15,6 +15,18 @@ import {
 export async function processAutomationQueue() {
   console.log('[AutoSync] 开始处理队列...');
 
+  // 并发控制：检查是否有正在处理的任务
+  const processingCount = await storage
+    .entity('AutomationWebhookQueue')
+    .query()
+    .equalTo('status', 'processing')
+    .count();
+
+  if (processingCount > 1) {
+    console.log(`[AutoSync] 发现 ${processingCount} 个任务正在处理中，跳过本次执行`);
+    return; // 直接返回，等待下次定时任务
+  }
+
   // 0. 定期清理旧日志 (每小时执行一次)
   const now = new Date();
   if (now.getMinutes() === 0) {
@@ -23,7 +35,7 @@ export async function processAutomationQueue() {
   }
 
   // 1. 先处理超时的processing状态记录 (超过10分钟视为超时)
-  const timeoutThreshold = new Date(Date.now() - 10 * 60 * 1000); // 10分钟前
+  const timeoutThreshold = new Date(Date.now() - 18 * 60 * 1000); // 20分钟前
   const timeoutRecords = await storage
     .entity('AutomationWebhookQueue')
     .query()
