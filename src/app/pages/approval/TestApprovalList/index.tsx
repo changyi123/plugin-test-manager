@@ -12,12 +12,13 @@ import FilterSearch from '@/components/common/FilterSearch';
 import { getFilterFields } from '@/components/common/FilterSearch/utils';
 import { BusinessTable } from '@/components/dynamicComponents';
 import { ArrowLeftOutlined, EditIcon } from '@/icons';
-import { getStatsTestPlan, getTestEntityByQuery } from '@/lib/api/item';
+import { getTestEntityByQuery } from '@/lib/api/item';
 import { useCurrentUser } from '@/lib/api/user';
 import { getCurrentUserSetting, saveUserSetting } from '@/lib/api/userSetting';
 import { SystemField, TestFiledKeyMapping, TestType } from '@/lib/constants';
 import { useBaseAction } from '@/lib/hooks/useContext';
 import useI18n from '@/lib/hooks/useI18n';
+import fetch from '@/lib/utils/fetch';
 import { goToItemDetailPage } from '@/lib/utils/helper';
 import { usePageContext } from '@/pages/approval/hook';
 
@@ -60,7 +61,6 @@ const TestPlanList: React.FC<any> = ({ setApprovalEntry }) => {
 
   const tableDataGetter = useCallback(
     async (queryParams, tableFields) => {
-      console.log('tableDataGetter', workspaceKey, queryParams, tableFields);
       if (!workspaceKey || !tableFields?.length)
         return {
           list: [],
@@ -102,19 +102,38 @@ const TestPlanList: React.FC<any> = ({ setApprovalEntry }) => {
   const onSuccess = useMemoizedFn(async (data, mutate) => {
     const { list = [], total } = data ?? {};
     if (!list.length) return;
-    const stats = await getStatsTestPlan({
-      planIds: list.map(d => d.objectId),
-      select: ['caseStatus', 'caseCount'],
+    const ids = list.map(d => d.objectId);
+    const res = await fetch.post('/parse/api/report/normal-aggs-chart/search', {
+      group: [
+        {
+          key: 'r_test_manager_testApprovals',
+          source: true,
+        },
+      ],
+      value: [
+        {
+          key: 'count',
+          name: '事项数',
+          compute: 'count',
+        },
+      ],
+      iql: `测试评审 in [${ids.map(i => `'${i}'`)}] and test_manager_type = '${TestType.Case}'`,
+      iqlContext: { displayContext: 'test_manager' },
+      size: 9999,
+    });
+
+    const idCountMap = {};
+    (res?.data?.payload?.value || []).forEach(item => {
+      idCountMap[item.r_test_manager_testApprovals] = item.count;
     });
 
     mutate({
       total,
       list: _.chain(list)
-        .map(testPlan => {
+        .map(item => {
           return {
-            ...testPlan,
-            ...stats?.[testPlan.objectId],
-            status: testPlan.status,
+            ...item,
+            caseCount: idCountMap[item.objectId] || 0,
           };
         })
         .value(),
@@ -171,6 +190,14 @@ const TestPlanList: React.FC<any> = ({ setApprovalEntry }) => {
             </span>
           </div>
         );
+      },
+    },
+    {
+      key: 'caseCount',
+      title: t('page.approval.columns.approvalCases'),
+      width: 100,
+      render(_, rowData) {
+        return <span>{rowData?.caseCount}</span>;
       },
     },
     {
@@ -297,14 +324,8 @@ const TestPlanList: React.FC<any> = ({ setApprovalEntry }) => {
           testType: TestType.Approval,
         }}
         useColumnSetting
-        defaultColumnKey={[
-          'status',
-          'createdAt',
-          'createdBy',
-          'reviewMember',
-          // 'caseCount',
-        ]}
-        // privateColumnKey={['caseCount']}
+        defaultColumnKey={['status', 'createdAt', 'createdBy', 'reviewMember', 'caseCount']}
+        privateColumnKey={['caseCount']}
         rowKey="objectId"
         columns={columns}
         name={`${workspaceKey}_TestApprovalTable`}
