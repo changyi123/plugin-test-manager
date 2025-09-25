@@ -500,9 +500,18 @@ async function executeBatchDelete(
     
     // 检查删除结果
     const failedIds = new Set<string>();
-    if (deleteResult && deleteResult.items && Array.isArray(deleteResult.items)) {
-      // deleteResult.items 包含删除失败的用例ID
-      deleteResult.items.forEach((failedId: string) => failedIds.add(failedId));
+    if (deleteResult && Array.isArray(deleteResult)) {
+      // deleteResult 是一个数组，包含删除失败的响应信息
+      deleteResult.forEach((result: any) => {
+        // 检查每个批次的删除结果，如果有错误则记录失败的ID
+        if (result && result.error) {
+          console.warn('[CaseOperationExecutor] 删除操作中发现错误:', result.error);
+          // 如果API返回了具体的失败项，提取ID
+          if (result.failedIds && Array.isArray(result.failedIds)) {
+            result.failedIds.forEach((id: string) => failedIds.add(id));
+          }
+        }
+      });
     }
     
     // 为每个操作生成结果并记录日志

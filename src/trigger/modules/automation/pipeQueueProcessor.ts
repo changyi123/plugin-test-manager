@@ -3,6 +3,7 @@ import { axios, requestCoreApi } from '@giteeteam/apps-team-api';
 
 import { batchUpdateItemsV2 } from '../../lib/coreApi';
 import {
+  getExecutionByBuildId,
   getPendingPipeCallbacks,
   getTestCaseMappingByBuildId,
   incrementPipeCallbackRetryCount,
@@ -547,7 +548,7 @@ async function processExcelParseResult(
     );
 
     // 先通过buildId查找执行记录
-    const { getExecutionByBuildId } = await import('./database');
+    // 使用已导入的 getExecutionByBuildId
     const execution = await getExecutionByBuildId(buildId);
 
     console.log('[PipeQueueProcessor] getExecutionByBuildId查询结果:');
@@ -594,7 +595,7 @@ async function handleUnmappedTestExecutions(buildId: string, testRecords: any[])
 
   try {
     // 1. 获取该执行记录对应的所有测试执行ID
-    const { getExecutionByBuildId } = await import('./database');
+    // 使用已导入的 getExecutionByBuildId
     const execution = await getExecutionByBuildId(buildId);
 
     if (!execution || !execution.testExecutionIds) {
@@ -682,7 +683,7 @@ async function processPipeCallback(queueItem: any): Promise<void> {
 
       try {
         // 获取该buildId对应的执行记录
-        const { getExecutionByBuildId } = await import('./database');
+        // 使用已导入的 getExecutionByBuildId
         const execution = await getExecutionByBuildId(buildId);
 
         if (execution && execution.testExecutionIds) {
@@ -870,6 +871,18 @@ async function consumePipeCallbackQueue(): Promise<void> {
   console.log('[PipeQueueProcessor] === Pipe回调队列消费开始 ===');
 
   try {
+    // 并发控制：检查是否有正在处理的Pipe回调任务
+    const processingCount = await storage
+      .entity('PipeCallbackQueue')
+      .query()
+      .equalTo('status', 'processing')
+      .count();
+
+    if (processingCount > 1) {
+      console.log(`[PipeQueueProcessor] 发现 ${processingCount} 个Pipe回调任务正在处理中，跳过本次执行`);
+      return; // 直接返回，等待下次定时任务
+    }
+
     // 1. 先检查正在进行的Excel解析任务
     await checkProcessingTasks();
 

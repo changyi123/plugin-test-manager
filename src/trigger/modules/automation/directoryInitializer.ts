@@ -3,9 +3,17 @@
  * 负责批量初始化目录下的测试用例
  */
 
+import { storage } from '@giteeteam/apps-api';
+
 import { codeApiEnhanced } from './codeApiEnhanced';
+import { getFileContent } from './codeApi';
 import { javaParser } from './parser';
 import { enhancedPathMapping } from './pathMappingEnhanced';
+import {
+  updateParsingProgress,
+  markDirectoryInitComplete,
+  logFileContentFetchFailure,
+} from './queueStatistics';
 
 /**
  * 目录初始化参数接口
@@ -230,6 +238,9 @@ export class DirectoryInitializer {
 
       result.duration = Date.now() - startTime;
 
+      // 更新监控：标记完成
+      await markDirectoryInitComplete(requestId, result);
+
       console.log(`[DirectoryInit] [${requestId}] 初始化完成`, {
         processedFiles: result.processedFiles,
         createdCases: result.createdCases,
@@ -320,7 +331,7 @@ export class DirectoryInitializer {
   }
 
   /**
-   * 解析文件中的测试用例（合并内容检查）
+   * 流式处理文件：逐个获取和解析，避免内存压力
    */
   private async parseTestCasesFromFiles(
     javaFiles: string[],
@@ -328,93 +339,207 @@ export class DirectoryInitializer {
     branch: string,
     requestId: string,
   ): Promise<ParseResult[]> {
-    console.log(`[DirectoryInit] [${requestId}] 开始解析测试用例`, {
+    console.log(`[DirectoryInit] [${requestId}] 开始流式处理文件`, {
       totalFiles: javaFiles.length,
-      concurrency: 5,
+      mode: 'streaming', // 流式处理模式
+      sampleFiles: javaFiles.slice(0, 5),
     });
 
     const results: ParseResult[] = [];
     const startTime = Date.now();
 
-    // 批量获取文件内容
-    const fileContents = await codeApiEnhanced.getMultipleFileContents(
-      repositoryId,
-      javaFiles,
-      branch,
-      5, // 限制并发数为5，避免对Code平台造成压力
-    );
-
-    // 为每个文件解析测试用例
     let successCount = 0;
     let skipCount = 0;
+    let errorCount = 0;
 
-    for (const fileContent of fileContents) {
+    // 逐个处理文件，避免内存压力
+    for (let index = 0; index < javaFiles.length; index++) {
+      const filePath = javaFiles[index];
+      const fileName = filePath.split('/').pop() || filePath;
+      const fileIndex = index + 1;
+
       try {
-        const testMethods = javaParser.parseTestMethods(fileContent.content);
+        console.log(`[DirectoryInit] [${requestId}] 开始处理文件 ${fileIndex}/${javaFiles.length}: ${fileName}`);
+
+        // 更新监控：当前处理的文件
+        await updateParsingProgress(
+          requestId,
+          fileIndex - 1, // 已完成的文件数
+          javaFiles.length,
+          successCount,
+          skipCount,
+          errorCount,
+          `正在获取: ${fileName}`, // 当前文件状态
+        );
+
+        // 获取单个文件内容
+        const fileContent = await this.getSingleFileContent(repositoryId, filePath, branch);
+        
+        if (!fileContent) {
+          errorCount++;
+          results.push({
+            filePath,
+            testCases: [],
+            status: 'error',
+            error: '获取文件内容失败',
+          });
+
+          // 记录失败到监控
+          await logFileContentFetchFailure(requestId, filePath, '获取文件内容失败', 0);
+          continue;
+        }
+
+        console.log(`[DirectoryInit] [${requestId}] 文件获取成功，开始解析: ${fileName} (${fileContent.length} chars)`);
+
+        // 更新监控：正在解析
+        await updateParsingProgress(
+          requestId,
+          fileIndex - 1,
+          javaFiles.length,
+          successCount,
+          skipCount,
+          errorCount,
+          `正在解析: ${fileName}`,
+        );
+
+        // 解析测试用例
+        const testMethods = javaParser.parseTestMethods(fileContent);
 
         if (testMethods.length > 0) {
           // 文件包含测试用例
           results.push({
-            filePath: fileContent.filePath,
+            filePath,
             testCases: testMethods,
             status: 'success',
           });
           successCount++;
 
-          // 只记录前几个成功案例的详情
-          if (successCount <= 3) {
-            console.log(`[DirectoryInit] [${requestId}] 解析成功`, {
-              fileName: fileContent.filePath.split('/').pop(),
-              testMethodCount: testMethods.length,
-              sampleMethods: testMethods.slice(0, 2).map(m => m.methodName),
-            });
-          }
+          console.log(`[DirectoryInit] [${requestId}] 解析成功 ${fileIndex}/${javaFiles.length}: ${fileName}`, {
+            testMethodCount: testMethods.length,
+            sampleMethods: testMethods.slice(0, 2).map(m => m.methodName),
+          });
         } else {
           // 文件不包含测试用例
           skipCount++;
-          console.log(`[DirectoryInit] [${requestId}] 跳过文件`, {
-            fileName: fileContent.filePath.split('/').pop(),
-            reason: '未找到测试用例',
-          });
+          console.log(`[DirectoryInit] [${requestId}] 跳过文件 ${fileIndex}/${javaFiles.length}: ${fileName} (无测试用例)`);
         }
+
+        // 更新监控：文件处理完成
+        await updateParsingProgress(
+          requestId,
+          fileIndex, // 已完成的文件数
+          javaFiles.length,
+          successCount,
+          skipCount,
+          errorCount,
+          `已完成: ${fileName}`,
+        );
+
+        // 记录文件处理日志
+        await this.logSingleFileProcessing(
+          requestId,
+          filePath,
+          testMethods.length > 0 ? 'success' : 'skipped',
+          testMethods.length,
+          Date.now() - startTime,
+        );
+
+        // 流式处理延迟，避免过快请求
+        if (fileIndex < javaFiles.length) {
+          await new Promise(resolve => setTimeout(resolve, 100)); // 100ms延迟
+        }
+
       } catch (error) {
-        console.warn(`[DirectoryInit] [${requestId}] 解析失败`, {
-          fileName: fileContent.filePath.split('/').pop(),
+        errorCount++;
+        console.error(`[DirectoryInit] [${requestId}] 处理文件失败 ${fileIndex}/${javaFiles.length}: ${fileName}`, {
           error: error.message,
         });
+
         results.push({
-          filePath: fileContent.filePath,
+          filePath,
           testCases: [],
           status: 'error',
           error: error.message,
         });
+
+        // 记录失败到监控
+        await logFileContentFetchFailure(requestId, filePath, error.message);
+        await this.logSingleFileProcessing(requestId, filePath, 'failed', 0, 0, error.message);
+
+        // 更新监控：处理失败
+        await updateParsingProgress(
+          requestId,
+          fileIndex,
+          javaFiles.length,
+          successCount,
+          skipCount,
+          errorCount,
+          `失败: ${fileName}`,
+        );
       }
     }
 
-    // 处理获取内容失败的文件
-    const processedPaths = fileContents.map(fc => fc.filePath);
-    const failedFiles = javaFiles.filter(file => !processedPaths.includes(file));
-    for (const failedFile of failedFiles) {
-      results.push({
-        filePath: failedFile,
-        testCases: [],
-        status: 'error',
-        error: '获取文件内容失败',
-      });
-    }
+    const totalDuration = Date.now() - startTime;
+    const totalTestCases = results.reduce((sum, r) => sum + r.testCases.length, 0);
 
-    const successFiles = results.filter(r => r.status === 'success').length;
-    const errorFiles = results.filter(r => r.status === 'error').length;
-
-    console.log(`[DirectoryInit] [${requestId}] 解析完成`, {
-      successFiles,
-      errorFiles,
-      skipFiles: skipCount,
-      totalTestCases: results.reduce((sum, r) => sum + r.testCases.length, 0),
-      duration: `${Date.now() - startTime}ms`,
+    console.log(`[DirectoryInit] [${requestId}] 流式处理完成`, {
+      processedFiles: javaFiles.length,
+      successFiles: successCount,
+      skippedFiles: skipCount,
+      errorFiles: errorCount,
+      totalTestCases,
+      avgTimePerFile: Math.round(totalDuration / javaFiles.length),
+      duration: `${totalDuration}ms`,
     });
 
     return results;
+  }
+
+  /**
+   * 获取单个文件内容
+   */
+  private async getSingleFileContent(
+    repositoryId: string,
+    filePath: string,
+    branch: string,
+  ): Promise<string | null> {
+    try {
+      // 使用现有的 getFileContent 函数
+      return await getFileContent(repositoryId, filePath, branch);
+    } catch (error) {
+      console.error(`[DirectoryInit] 获取文件内容失败: ${filePath}`, error);
+      return null;
+    }
+  }
+
+  /**
+   * 记录单个文件处理日志
+   */
+  private async logSingleFileProcessing(
+    requestId: string,
+    filePath: string,
+    status: 'success' | 'skipped' | 'failed',
+    testCasesCount: number,
+    processingTime: number,
+    errorMessage?: string,
+  ): Promise<void> {
+    try {
+      // 使用已导入的 storage
+      await storage.entity('FileProcessingLog').add({
+        queueId: requestId,
+        commitId: 'directory_init',
+        fileName: filePath,
+        shouldProcess: status !== 'skipped',
+        processingTime,
+        timestamp: new Date(),
+        errorMessage: errorMessage || null,
+        // 额外信息
+        testCasesFound: testCasesCount,
+        fileStatus: status,
+      });
+    } catch (error) {
+      console.error(`[DirectoryInit] 记录文件处理日志失败: ${filePath}`, error);
+    }
   }
 
   /**

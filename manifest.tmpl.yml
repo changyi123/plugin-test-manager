@@ -367,7 +367,7 @@ modules:
     # 自动化测试webhook函数
     - key: automation-webhook-function
       handler: api.automationWebhook
-      timeout: 30000
+      timeout: 60000
     # 自动化执行触发函数
     - key: automation-execute-function
       handler: api.executeAutomation
@@ -379,11 +379,11 @@ modules:
     # 自动化测试队列处理器函数
     - key: automation-queue-processor-function
       handler: modules/automation/queueProcessor.processAutomationQueue
-      timeout: 120000
+      timeout: 1200000
     # Pipe回调队列处理器函数
     - key: pipe-callback-queue-processor-function
       handler: job.processPipeCallbackQueue
-      timeout: 120000
+      timeout: 1200000
     # 队列监控API函数
     - key: api-queue-stats-function
       handler: api.getQueueStats

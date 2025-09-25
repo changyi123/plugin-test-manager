@@ -4,7 +4,7 @@ import { getItemCreateRequiredAttrs } from '../../lib/item';
 import { getCommitDiff, getFileContent, scanDirectoryForJavaFiles } from './codeApi';
 import { javaParser } from './parser';
 import { findBestPathMapping } from './pathMappingEnhanced';
-import { updateCaseGenerationProgress } from './queueStatistics';
+import { updateCaseGenerationProgress, logFileProcessing, updateCurrentFileProgress } from './queueStatistics';
 
 /**
  * T5.8: 用例操作生成引擎
@@ -230,10 +230,23 @@ async function generateCreateAllOperations(
   const allOperations: CaseOperation[] = [];
 
   // 2. 处理每个文件
-  for (const filePath of filesToProcess) {
-    console.log(`[T7.6] 处理文件: ${filePath}`);
+  for (let index = 0; index < filesToProcess.length; index++) {
+    const filePath = filesToProcess[index];
+    const fileName = filePath.split('/').pop() || filePath;
+    console.log(`[T7.6] 处理文件 ${index + 1}/${filesToProcess.length}: ${filePath}`);
+    
+    // 更新文件级进度监控
+    if (commitContext.queueId) {
+      await updateCurrentFileProgress(
+        commitContext.queueId,
+        fileName,
+        index + 1,
+        filesToProcess.length,
+      );
+    }
 
     // 获取文件内容并解析
+    const fileStartTime = Date.now();
     const fileContent = await getFileContent(
       commitContext.repositoryId,
       filePath,
@@ -241,6 +254,18 @@ async function generateCreateAllOperations(
     );
     if (!fileContent) {
       console.warn(`[T7.6] 无法获取文件内容: ${filePath}`);
+      
+      // 记录文件处理失败日志
+      if (commitContext.queueId) {
+        await logFileProcessing(
+          commitContext.queueId,
+          commitContext.commitId,
+          fileName,
+          false, // shouldProcess: false (获取内容失败)
+          Date.now() - fileStartTime,
+          '无法获取文件内容'
+        );
+      }
       continue;
     }
 
@@ -293,6 +318,30 @@ async function generateCreateAllOperations(
       console.log(
         `[T7.6] 生成CREATE操作: ${method.testId} -> ${className}.${method.methodName} (来自文件: ${filePath})`,
       );
+    }
+    
+    // 统计当前文件生成的操作
+    const fileOperations = allOperations.filter(op => op.filePath === filePath);
+    
+    // 记录文件处理成功日志
+    if (commitContext.queueId) {
+      await logFileProcessing(
+        commitContext.queueId,
+        commitContext.commitId,
+        fileName,
+        testMethods.length > 0, // shouldProcess: 有测试方法时为true
+        Date.now() - fileStartTime,
+        testMethods.length === 0 ? '文件中没有测试方法' : undefined
+      );
+      
+      // 记录用例生成进度（针对每个具体文件）
+      if (fileOperations.length > 0) {
+        await updateCaseGenerationProgress(
+          commitContext.queueId,
+          fileName, // 使用文件名而不是完整路径
+          fileOperations,
+        );
+      }
     }
   }
 
