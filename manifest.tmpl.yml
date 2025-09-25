@@ -7,10 +7,10 @@ modules:
   scheduledTrigger:
     - key: automation-queue-processor
       function: automation-queue-processor-function
-      cronTime: "*/2 * * * * *"
+      cronTime: "0 */2 * * * *"
     - key: pipe-callback-queue-processor
       function: pipe-callback-queue-processor-function
-      cronTime: "*/2 * * * * *"
+      cronTime: "0 */2 * * * *"
   webtrigger:
     # TODO: Debug 使用，生产环境禁止调用下面的 trigger
     # ---------------------------------------------

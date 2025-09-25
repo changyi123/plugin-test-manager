@@ -222,6 +222,27 @@ async function generateCreateAllOperations(
       commitContext.branchName,
     );
     console.log(`[T7.6] 目录扫描结果: 找到 ${filesToProcess.length} 个Java文件`);
+    
+    // 过滤掉已经被其他更具体的映射覆盖的文件
+    if (config.mappings) {
+      const originalCount = filesToProcess.length;
+      filesToProcess = filesToProcess.filter(filePath => {
+        // 检查是否有更具体的映射（即映射路径就是这个文件）
+        const hasSpecificMapping = Object.keys(config.mappings).some(mappingPath => {
+          // 如果有精确匹配这个文件的映射，且不是当前正在处理的目录映射，则排除
+          return mappingPath === filePath && mappingPath !== fileDecision.filePath;
+        });
+        
+        if (hasSpecificMapping) {
+          console.log(`[T7.6] 文件 ${filePath} 已有更具体的映射，跳过`);
+        }
+        return !hasSpecificMapping;
+      });
+      
+      if (originalCount !== filesToProcess.length) {
+        console.log(`[T7.6] 过滤后剩余 ${filesToProcess.length} 个文件需要处理（排除了 ${originalCount - filesToProcess.length} 个已有具体映射的文件）`);
+      }
+    }
   } else {
     console.log(`[T7.6] 文件级映射: ${fileDecision.filePath}`);
     filesToProcess = [fileDecision.filePath];
@@ -659,15 +680,14 @@ async function generateConfigCoordinationOperations(
       break;
 
     case 'config_mapping_added':
-      // 新增映射：扫描文件创建用例
+      // 新增映射：需要智能处理
       console.log(
-        `[T5.8] config_mapping_added: 调用generateCreateAllOperations处理文件 ${fileDecision.filePath}`,
+        `[T5.8] config_mapping_added: 智能处理新增映射 ${fileDecision.filePath}`,
       );
-      const createOps = await generateCreateAllOperations(fileDecision, config, commitContext);
-      console.log(
-        `[T5.8] config_mapping_added: generateCreateAllOperations返回 ${createOps.length} 个操作`,
-      );
-      return createOps;
+      
+      // 先检查该路径下的文件是否已经有用例存在
+      // 如果有用例但模块不同，应该是迁移而不是创建
+      return await generateSmartMappingAddedOperations(fileDecision, config, commitContext);
 
     case 'config_mapping_removed':
       // 删除映射：删除相关用例
@@ -873,6 +893,155 @@ async function getHistoryCasesForFile(
     console.error(`[T5.8] 查询文件历史用例失败: ${filePath}`, error);
     return new Map();
   }
+}
+
+/**
+ * 智能处理新增映射：检查是否需要迁移而非创建
+ */
+async function generateSmartMappingAddedOperations(
+  fileDecision: FileDecisionResult,
+  config: any,
+  commitContext: CommitContext,
+): Promise<CaseOperation[]> {
+  console.log(`[T5.8] 智能处理新增映射: ${fileDecision.filePath}`);
+  
+  const operations: CaseOperation[] = [];
+  const isDirectoryMapping = !fileDecision.filePath.endsWith('.java');
+  let filesToProcess: string[] = [];
+  
+  // 1. 确定要处理的文件列表
+  if (isDirectoryMapping) {
+    filesToProcess = await scanDirectoryForJavaFiles(
+      commitContext.repositoryId,
+      fileDecision.filePath,
+      commitContext.branchName,
+    );
+    console.log(`[T5.8] 目录映射，扫描到 ${filesToProcess.length} 个Java文件`);
+    
+    // 过滤掉已有更具体映射的文件
+    if (config.mappings) {
+      const originalCount = filesToProcess.length;
+      filesToProcess = filesToProcess.filter(filePath => {
+        const hasSpecificMapping = Object.keys(config.mappings).some(mappingPath => 
+          mappingPath === filePath && mappingPath !== fileDecision.filePath
+        );
+        return !hasSpecificMapping;
+      });
+      
+      if (originalCount !== filesToProcess.length) {
+        console.log(`[T5.8] 过滤后剩余 ${filesToProcess.length} 个文件需要处理`);
+      }
+    }
+  } else {
+    filesToProcess = [fileDecision.filePath];
+  }
+  
+  // 2. 获取新映射的目标模块路径
+  const newModulePath = findBestPathMapping(fileDecision.filePath, config.mappings);
+  if (!newModulePath) {
+    console.warn(`[T5.8] 无法找到新增映射的目标模块路径: ${fileDecision.filePath}`);
+    return [];
+  }
+  
+  // 3. 处理每个文件
+  for (const filePath of filesToProcess) {
+    console.log(`[T5.8] 检查文件是否已有用例: ${filePath}`);
+    
+    // 查询该文件是否已有用例
+    const existingCases = await getHistoryCasesForFile(filePath, commitContext.workspaceKey);
+    
+    if (existingCases.size > 0) {
+      console.log(`[T5.8] 文件 ${filePath} 已有 ${existingCases.size} 个用例`);
+      
+      // 检查现有用例的模块路径是否与新映射不同
+      for (const [testId, caseInfo] of existingCases) {
+        const oldModulePath = caseInfo.modulePath || '';
+        
+        if (oldModulePath !== newModulePath) {
+          console.log(`[T5.8] 用例 ${testId} 需要迁移: ${oldModulePath} -> ${newModulePath}`);
+          
+          // 生成MIGRATE操作
+          operations.push({
+            operationType: 'MIGRATE',
+            testId: testId,
+            methodName: caseInfo.methodName,
+            className: caseInfo.className,
+            filePath: filePath,
+            existingCaseInfo: {
+              caseId: caseInfo.caseId,
+              testId: testId,
+              name: caseInfo.methodName,
+              oldClassName: caseInfo.className,
+              currentModulePath: oldModulePath,
+            },
+            moduleChange: {
+              oldModulePath: oldModulePath,
+              newModulePath: newModulePath,
+              reason: '新增更具体的映射配置，迁移到新模块',
+            },
+          });
+        } else {
+          console.log(`[T5.8] 用例 ${testId} 模块路径相同，无需迁移`);
+        }
+      }
+    } else {
+      // 文件没有现有用例，需要创建新用例
+      console.log(`[T5.8] 文件 ${filePath} 没有现有用例，创建新用例`);
+      
+      try {
+        const fileContent = await getFileContent(
+          commitContext.repositoryId,
+          filePath,
+          commitContext.branchName,
+        );
+        
+        if (!fileContent || !fileContent.trim()) {
+          console.warn(`[T5.8] 文件内容为空: ${filePath}`);
+          continue;
+        }
+        
+        const className = javaParser.extractClassName(fileContent);
+        const testMethods = javaParser.parseTestMethods(fileContent);
+        
+        console.log(`[T5.8] 解析文件: 类名=${className}, 测试方法数=${testMethods.length}`);
+        
+        // 为每个测试方法创建CREATE操作
+        for (const method of testMethods) {
+          const testId = method.testId || `${className}.${method.methodName}`;
+          const caseDesc = await extractCaseDescription(fileContent, method.startLine);
+          
+          operations.push({
+            operationType: 'CREATE',
+            testId: testId,
+            methodName: method.methodName,
+            className: className,
+            filePath: filePath,
+            caseData: {
+              caseName: `${className}.${method.methodName}`,
+              caseDesc: caseDesc || `测试用例: ${testId}`,
+              modulePath: newModulePath,
+              sourceInfo: {
+                filePath: filePath,
+                startLine: method.startLine,
+                endLine: method.endLine,
+                commitId: commitContext.commitId,
+              },
+            },
+          });
+        }
+      } catch (error) {
+        console.error(`[T5.8] 处理文件失败: ${filePath}`, error);
+      }
+    }
+  }
+  
+  const stats = {
+    CREATE: operations.filter(op => op.operationType === 'CREATE').length,
+    MIGRATE: operations.filter(op => op.operationType === 'MIGRATE').length,
+  };
+  
+  console.log(`[T5.8] 智能映射处理完成: CREATE(${stats.CREATE}) MIGRATE(${stats.MIGRATE})`);
+  return operations;
 }
 
 /**
