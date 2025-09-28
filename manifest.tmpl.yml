@@ -587,6 +587,8 @@ modules:
 
     - key: api-generate-offline-report-function
       handler: api.generateOfflineReport
+      # 5 分钟超时时长
+      timeout: 300000
 
     - key: extension-report-shenwan-function
       handler: api.shenwanTestReportInfo
