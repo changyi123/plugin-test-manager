@@ -3,7 +3,7 @@ import { buildResponse, getReqInfoFromVMRuntime } from '../../lib/apiUtil';
 import { batchUpdateItemsV2 } from '../../lib/coreApi';
 import { getAllEntity, uuidv4 } from '../../lib/helper';
 import { iqlRequest } from '../../lib/iqlRequest';
-import { createExecutionRecord, updateExecutionRecord } from './database';
+import { createExecutionRecord, updateExecutionRecord, updateExecutionRecordBuildId } from './database';
 import { callPipeWebHook } from './webhook';
 
 // 自动化执行参数接口
@@ -40,6 +40,14 @@ export interface AutomationExecutionResult {
     buildId?: string;
     pipeJumpUrl?: string;
     message: string;
+    batches?: Array<{
+      executionId: string;
+      buildId: string;
+      pipeJumpUrl: string;
+      recordId: string;
+      batchInfo: any;
+    }>;
+    totalBatches?: number;
   };
   error?: {
     code: string;
@@ -117,20 +125,70 @@ export class AutomationExecutionHandler {
       const pipeResult = await this.callPipeWebHook();
       console.log('[executeAutomation] 调用Pipe流水线通过:');
 
-      // 7. 更新执行记录（包含Pipe信息）
-      await this.updateExecutionRecordWithPipeInfo(recordId, pipeResult);
-      console.log('[executeAutomation] 更新执行记录通过:');
+      // 🚀 新逻辑：处理多批次执行记录
+      if (pipeResult.batches && pipeResult.batches.length > 1) {
+        console.log(`[executeAutomation] 检测到多批次执行，创建 ${pipeResult.batches.length} 个独立执行记录`);
 
-      // 7. 返回执行结果
-      return {
-        success: true,
-        data: {
-          executionId: this.executionId,
-          buildId: pipeResult.buildId,
-          pipeJumpUrl: pipeResult.pipeJumpUrl,
-          message: `自动化测试已成功触发，执行ID: ${this.executionId}`,
-        },
-      };
+        // 为每个批次创建独立的执行记录
+        const batchRecordIds = [];
+        for (let i = 0; i < pipeResult.batches.length; i++) {
+          const batch = pipeResult.batches[i];
+          
+          // 为每个批次创建独立的执行记录（使用该批次的映射关系）
+          const batchRecordId = await this.createExecutionRecord(batch.batchTestCaseMapping);
+          
+          // 更新批次执行记录（包含Pipe信息）
+          await this.updateExecutionRecordWithPipeInfo(batchRecordId, {
+            buildId: batch.buildId,
+            pipeJumpUrl: batch.pipeJumpUrl,
+            testCaseMapping: batch.batchTestCaseMapping, // 🚀 使用批次独立映射
+          });
+          
+          batchRecordIds.push(batchRecordId);
+          
+          console.log(`[executeAutomation] 批次 ${i + 1}/${pipeResult.batches.length} 处理完成: recordId=${batchRecordId}, buildId=${batch.buildId}`);
+        }
+
+        console.log('[executeAutomation] 多批次执行记录创建完成');
+
+        // 返回多批次执行结果
+        return {
+          success: true,
+          data: {
+            executionId: this.executionId,
+            batches: pipeResult.batches.map((batch, index) => ({
+              executionId: batch.executionId,
+              buildId: batch.buildId,
+              pipeJumpUrl: batch.pipeJumpUrl,
+              recordId: batchRecordIds[index],
+              batchInfo: batch.batchInfo,
+            })),
+            totalBatches: pipeResult.batches.length,
+            // 为兼容性提供主要信息
+            buildId: pipeResult.buildId,
+            pipeJumpUrl: pipeResult.pipeJumpUrl,
+            message: `自动化测试已成功触发，共 ${pipeResult.batches.length} 个批次，主执行ID: ${this.executionId}`,
+          },
+        };
+      } else {
+        // 单批次情况，保持原有逻辑
+        console.log('[executeAutomation] 单批次执行，使用原有逻辑');
+
+        // 7. 更新执行记录（包含Pipe信息）
+        await this.updateExecutionRecordWithPipeInfo(recordId, pipeResult);
+        console.log('[executeAutomation] 更新执行记录通过:');
+
+        // 7. 返回执行结果
+        return {
+          success: true,
+          data: {
+            executionId: this.executionId,
+            buildId: pipeResult.buildId,
+            pipeJumpUrl: pipeResult.pipeJumpUrl,
+            message: `自动化测试已成功触发，执行ID: ${this.executionId}`,
+          },
+        };
+      }
     } catch (error) {
       console.error('自动化执行处理失败:', error);
 
@@ -166,12 +224,12 @@ export class AutomationExecutionHandler {
       );
     }
 
-    if (testExecutionIds.length > 100) {
-      throw new ValidationError(
-        '[executeAutomation]单次最多支持100个测试执行',
-        AutomationExecutionErrorCode.BATCH_SIZE_EXCEEDED,
-      );
-    }
+    // if (testExecutionIds.length > 100) {
+    //   throw new ValidationError(
+    //     '[executeAutomation]单次最多支持100个测试执行',
+    //     AutomationExecutionErrorCode.BATCH_SIZE_EXCEEDED,
+    //   );
+    // }
     if (!mavenVersion) {
       throw new ValidationError(
         '[executeAutomation]mavenVersion不能为空',
@@ -413,6 +471,15 @@ export class AutomationExecutionHandler {
     buildId: string;
     pipeJumpUrl: string;
     testCaseMapping: Record<string, any>;
+    batches?: Array<{
+      buildId: string;
+      pipeJumpUrl: string;
+      executionId: string;
+      testCaseMapping: Record<string, any>;
+      batchTestCaseMapping: Record<string, any>;
+      batchInfo: any;
+    }>;
+    totalBatches?: number;
   }> {
     console.log('[executeAutomation]调用Pipe WebHook...');
 
@@ -490,27 +557,69 @@ export class AutomationExecutionHandler {
       console.log('[callPipeWebHook] Pipe WebHook调用成功！返回结果:');
       console.log('[callPipeWebHook] - buildId:', result.buildId);
       console.log('[callPipeWebHook] - pipeJumpUrl:', result.pipeJumpUrl);
-      console.log(
-        '[callPipeWebHook] - 返回的映射关系数量:',
-        Object.keys(result.testCaseMapping || {}).length,
-      );
+      console.log('[callPipeWebHook] - batches数量:', result.batches?.length || 1);
 
-      const finalResult = {
-        buildId: result.buildId,
-        pipeJumpUrl: result.pipeJumpUrl || `https://pipe.gitee.com/builds/${result.buildId}`,
-        testCaseMapping: testCaseMapping,
-      };
+      // 🚀 新逻辑：处理多批次结果，为每个批次创建独立的执行记录
+      if (result.batches && result.batches.length > 1) {
+        console.log('[callPipeWebHook] 检测到多批次调用，为每个批次创建独立执行记录');
 
-      console.log('[callPipeWebHook] === Pipe调用流程完成 ===');
-      console.log('[callPipeWebHook] 最终返回结果:');
-      console.log('[callPipeWebHook] - buildId:', finalResult.buildId);
-      console.log('[callPipeWebHook] - pipeJumpUrl:', finalResult.pipeJumpUrl);
-      console.log(
-        '[callPipeWebHook] - testCaseMapping数量:',
-        Object.keys(finalResult.testCaseMapping).length,
-      );
+        const batchExecutionResults = [];
 
-      return finalResult;
+        for (let i = 0; i < result.batches.length; i++) {
+          const batch = result.batches[i];
+          
+          // 为每个批次生成独立的executionId
+          const batchExecutionId = `${this.executionId}_batch_${i + 1}`;
+          
+          console.log(`[callPipeWebHook] 处理批次 ${i + 1}/${result.batches.length}:`);
+          console.log(`[callPipeWebHook] - batchExecutionId: ${batchExecutionId}`);
+          console.log(`[callPipeWebHook] - buildId: ${batch.buildId}`);
+
+          // 🚀 使用批次独立的映射关系
+          const batchResult = {
+            executionId: batchExecutionId,
+            buildId: batch.buildId,
+            pipeJumpUrl: batch.pipeJumpUrl,
+            testCaseMapping: batch.batchTestCaseMapping || testCaseMapping, // 优先使用批次映射
+            batchTestCaseMapping: batch.batchTestCaseMapping, // 🚀 新增批次独立映射
+            batchInfo: batch.batchInfo,
+          };
+
+          batchExecutionResults.push(batchResult);
+        }
+
+        console.log('[callPipeWebHook] === 多批次Pipe调用流程完成 ===');
+        console.log('[callPipeWebHook] 总批次数量:', batchExecutionResults.length);
+        
+        // 返回多批次结果
+        return {
+          batches: batchExecutionResults,
+          totalBatches: batchExecutionResults.length,
+          // 为兼容性提供主要信息
+          buildId: batchExecutionResults[0].buildId,
+          pipeJumpUrl: batchExecutionResults[0].pipeJumpUrl,
+          testCaseMapping: testCaseMapping,
+        };
+      } else {
+        // 单批次情况，保持原有逻辑
+        console.log('[callPipeWebHook] 单批次调用，使用原有逻辑');
+
+        const finalResult = {
+          buildId: result.buildId,
+          pipeJumpUrl: result.pipeJumpUrl || `https://pipe.gitee.com/builds/${result.buildId}`,
+          testCaseMapping: testCaseMapping,
+        };
+
+        console.log('[callPipeWebHook] === 单批次Pipe调用流程完成 ===');
+        console.log('[callPipeWebHook] - buildId:', finalResult.buildId);
+        console.log('[callPipeWebHook] - pipeJumpUrl:', finalResult.pipeJumpUrl);
+        console.log(
+          '[callPipeWebHook] - testCaseMapping数量:',
+          Object.keys(finalResult.testCaseMapping).length,
+        );
+
+        return finalResult;
+      }
     } catch (error) {
       console.error('[callPipeWebHook] === Pipe调用流程失败 ===');
       console.error('[callPipeWebHook] 错误详情:', error);
@@ -736,12 +845,16 @@ export class AutomationExecutionHandler {
 
     try {
       // 更新执行记录的Pipe信息（映射关系已经在创建时保存）
+      // 注意：buildId在创建记录后需要单独更新，不通过这个接口
       const updateData = {
-        buildId: String(pipeInfo.buildId), // 确保buildId是字符串
         pipeJumpUrl: pipeInfo.pipeJumpUrl,
         status: TestExecutionAutomationStatus.RUNNING,
         completeTime: new Date(), // 使用completeTime替代startTime
       };
+
+      // 单独更新buildId
+      console.log('[executeAutomation] 单独更新buildId:', pipeInfo.buildId);
+      await updateExecutionRecordBuildId(this.executionId, String(pipeInfo.buildId));
 
       console.log('[executeAutomation] 准备更新的数据:', JSON.stringify(updateData));
 
@@ -864,12 +977,12 @@ export const executeAutomation = async (requestParams: any): Promise<AutomationE
       );
     }
     // 批量大小限制检查
-    if (testExecutionIds.length > 500) {
-      throw new ValidationError(
-        '单次批量执行最多支持500个测试执行',
-        AutomationExecutionErrorCode.BATCH_SIZE_EXCEEDED,
-      );
-    }
+    // if (testExecutionIds.length > 500) {
+    //   throw new ValidationError(
+    //     '单次批量执行最多支持500个测试执行',
+    //     AutomationExecutionErrorCode.BATCH_SIZE_EXCEEDED,
+    //   );
+    // }
 
     const params: AutomationExecutionParams = {
       testExecutionIds,

@@ -49,22 +49,30 @@ const WebhookQueue: React.FC = () => {
     queryKey: ['webhookQueue', statusFilter, pagination.current, pagination.pageSize],
     queryFn: () =>
       queryWebhookQueue({
-        status: statusFilter || undefined,
+        status: statusFilter === '' ? undefined : statusFilter,
         skip: (pagination.current - 1) * pagination.pageSize,
         limit: pagination.pageSize,
       }),
     keepPreviousData: true,
     refetchInterval: 60000, // 60秒自动刷新
-    onSuccess: result => {
+  });
+
+  // Handle data loading success
+  React.useEffect(() => {
+    if (queueData?.total !== undefined) {
       setPagination(prev => ({
         ...prev,
-        total: result.total,
+        total: queueData.total,
       }));
-    },
-    onError: (error: any) => {
-      message.error(`查询失败: ${error.message}`);
-    },
-  });
+    }
+  }, [queueData?.total]);
+
+  // Handle errors
+  React.useEffect(() => {
+    if (queueData && 'success' in queueData && !queueData.success) {
+      message.error(`查询失败: ${'error' in queueData ? queueData.error : '未知错误'}`);
+    }
+  }, [queueData]);
 
   // 查询队列详情
   const {
@@ -76,11 +84,15 @@ const WebhookQueue: React.FC = () => {
     queryFn: () => getQueueDetails(selectedQueueId),
     enabled: !!selectedQueueId && detailsVisible,
     refetchInterval: detailsVisible ? 5000 : false, // 打开详情时5秒刷新
-    onError: (error: any) => {
-      console.error('[WebhookQueue] 查询队列详情失败:', error);
-      message.error(`查询详情失败: ${error.message}`);
-    },
   });
+
+  // Handle queue details error
+  React.useEffect(() => {
+    if (detailsError) {
+      console.error('[WebhookQueue] 查询队列详情失败:', detailsError);
+      message.error(`查询详情失败: ${(detailsError as any)?.message || '未知错误'}`);
+    }
+  }, [detailsError]);
 
   // 重试队列项
   const handleRetry = async (queueId: string, forceReset = false) => {

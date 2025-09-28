@@ -207,7 +207,6 @@ export async function createExecutionRecord(data: {
 export async function updateExecutionRecord(
   executionId: string,
   updateData: {
-    buildId?: string;
     status?: string;
     completeTime?: Date;
     pipeJumpUrl?: string;
@@ -236,8 +235,6 @@ export async function updateExecutionRecord(
   }
 
   console.log('[database.updateExecutionRecord] 找到执行记录，objectId:', execution.objectId);
-  console.log('[database.updateExecutionRecord] 当前记录的buildId:', execution.buildId);
-  console.log('[database.updateExecutionRecord] 准备更新buildId为:', updateData.buildId);
 
   const result = await storage
     .entity('AutomationExecutionRecord')
@@ -278,6 +275,26 @@ export async function getExecutionByExecutionId(executionId: string) {
   console.log('[database.getExecutionByExecutionId] ==========================================');
 
   return result;
+}
+
+// 专门用于更新buildId的函数（只在Pipe调用成功后使用一次）
+export async function updateExecutionRecordBuildId(
+  executionId: string,
+  buildId: string,
+): Promise<void> {
+  console.log('[database.updateExecutionRecordBuildId] 更新buildId:', executionId, '->', buildId);
+  
+  const execution = await getExecutionByExecutionId(executionId);
+  if (!execution) {
+    throw new Error(`Execution record not found: ${executionId}`);
+  }
+
+  // 只更新buildId字段
+  await storage.entity('AutomationExecutionRecord').set(execution.objectId, {
+    buildId: String(buildId),
+  });
+  
+  console.log('[database.updateExecutionRecordBuildId] buildId更新成功');
 }
 
 export async function getExecutionByBuildId(buildId: string) {
@@ -432,5 +449,21 @@ export async function markPipeCallbackFailed(queueId: string) {
   return await storage.entity('PipeCallbackQueue').set(queueId, {
     status: 'failed',
     processedTime: new Date(),
+  });
+}
+
+/**
+ * 手动重置Pipe回调状态为待处理
+ * 用于重新处理已完成或失败的任务
+ */
+export async function resetPipeCallbackToPending(queueId: string) {
+  return await storage.entity('PipeCallbackQueue').set(queueId, {
+    status: 'pending',
+    retryCount: 0,
+    processedTime: null,
+    // 清除Excel解析相关字段，让任务重新开始
+    excelParseTaskId: null,
+    excelParseUrl: null,
+    processStartTime: null,
   });
 }

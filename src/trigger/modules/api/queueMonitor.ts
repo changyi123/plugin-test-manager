@@ -127,6 +127,43 @@ export async function queryExecutionRecords(params: QueueQueryParams = {}) {
 }
 
 /**
+ * 手动标记Pipe回调队列项为失败
+ */
+export async function markPipeCallbackFailed(requestParams: any) {
+  try {
+    // 从requestParams.payload中获取参数
+    const { queueId } = requestParams.payload || requestParams;
+
+    if (!queueId) {
+      return buildResponse({
+        success: false,
+        error: '队列ID不能为空',
+      });
+    }
+
+    // 更新队列项状态为failed
+    await storage.entity('PipeCallbackQueue').set(queueId, {
+      status: 'failed',
+      errorMessage: '手动标记为失败（用于处理卡住的任务）',
+      processedAt: new Date(),
+    });
+
+    console.log(`[QueueMonitor] 成功将Pipe回调队列项标记为失败: ${queueId}`);
+
+    return buildResponse({
+      success: true,
+      message: '成功标记为失败',
+    });
+  } catch (error) {
+    console.error('[QueueMonitor] 标记Pipe回调队列项失败:', error);
+    return buildResponse({
+      success: false,
+      error: error.message,
+    });
+  }
+}
+
+/**
  * 查询Pipe回调队列列表
  */
 export async function queryPipeCallbackQueue(params: QueueQueryParams = {}) {
@@ -174,9 +211,10 @@ export async function queryPipeCallbackQueue(params: QueueQueryParams = {}) {
 /**
  * 重试Webhook队列项
  */
-export async function retryWebhookQueueItem(params: { queueId: string; forceReset?: boolean }) {
+export async function retryWebhookQueueItem(requestParams: any) {
   try {
-    const { queueId, forceReset = false } = params;
+    // 从requestParams.payload中获取参数
+    const { queueId, forceReset = false } = requestParams.payload || requestParams;
 
     // 查询当前队列项
     const queueItem = await storage
@@ -536,6 +574,42 @@ export async function getQueueDetails(params: any) {
     });
   } catch (error) {
     console.error('[QueueMonitor] 获取队列详情失败:', error);
+    return buildResponse({
+      success: false,
+      error: error.message,
+    });
+  }
+}
+
+/**
+ * 手动重置Pipe回调队列项为待处理状态
+ */
+export async function resetPipeCallbackToPending(requestParams: any) {
+  try {
+    // 从requestParams.payload中获取参数
+    const { queueId } = requestParams.payload || requestParams;
+
+    if (!queueId) {
+      return buildResponse({
+        success: false,
+        error: '队列ID不能为空',
+      });
+    }
+
+    // 导入重置函数
+    const { resetPipeCallbackToPending: resetCallback } = await import('../automation/database');
+    
+    // 重置队列项状态为pending
+    await resetCallback(queueId);
+
+    console.log(`[QueueMonitor] 成功将Pipe回调队列项重置为待处理: ${queueId}`);
+
+    return buildResponse({
+      success: true,
+      message: '成功重置为待处理状态',
+    });
+  } catch (error) {
+    console.error('[QueueMonitor] 重置Pipe回调队列项失败:', error);
     return buildResponse({
       success: false,
       error: error.message,

@@ -415,7 +415,10 @@ async function processFileUploads(callbackData: PipeCallbackData, buildId: strin
   console.log(`[PipeQueueProcessor] 需要上传文件的测试执行数量: ${testExecutionIds.length}`);
   console.log(`[PipeQueueProcessor] 测试执行ID列表:`, testExecutionIds);
 
-  // 为每个测试执行查找对应的执行任务ID并上传文件
+  // 🚀 新逻辑：先收集所有执行任务ID，然后在执行任务级别去重
+  const executionTaskIds = new Set<string>();
+  
+  // 为每个测试执行查找对应的执行任务ID
   for (const testExecutionId of testExecutionIds) {
     try {
       const executionTaskId = await findExecutionTaskId(testExecutionId);
@@ -425,7 +428,20 @@ async function processFileUploads(callbackData: PipeCallbackData, buildId: strin
         );
         continue;
       }
+      
+      console.log(`[PipeQueueProcessor] 测试执行 ${testExecutionId} 关联执行任务 ${executionTaskId}`);
+      executionTaskIds.add(executionTaskId);
+    } catch (error) {
+      console.error(`[PipeQueueProcessor] 查找测试执行 ${testExecutionId} 的执行任务失败:`, error);
+    }
+  }
 
+  console.log(`[PipeQueueProcessor] 🎯 去重后需要上传文件的执行任务数量: ${executionTaskIds.size}`);
+  console.log(`[PipeQueueProcessor] 🎯 执行任务ID列表:`, Array.from(executionTaskIds));
+
+  // 为每个唯一的执行任务上传文件（避免重复上传）
+  for (const executionTaskId of executionTaskIds) {
+    try {
       console.log(
         `[PipeQueueProcessor] 为执行任务 ${executionTaskId} 上传 ${fileUrls.length} 个文件`,
       );
@@ -452,7 +468,7 @@ async function processFileUploads(callbackData: PipeCallbackData, buildId: strin
         }
       }
     } catch (error) {
-      console.error(`[PipeQueueProcessor] 处理测试执行 ${testExecutionId} 的文件上传失败:`, error);
+      console.error(`[PipeQueueProcessor] 处理执行任务 ${executionTaskId} 的文件上传失败:`, error);
     }
   }
 
@@ -664,6 +680,32 @@ async function processPipeCallback(queueItem: any): Promise<void> {
   console.log(`[PipeQueueProcessor] queueId: ${queueId}, buildId: ${buildId}`);
 
   try {
+    // 原子操作：先抢占此任务，防止并发重复处理
+    console.log(`[PipeQueueProcessor] 尝试抢占任务: ${queueId}`);
+
+    // 使用条件更新来确保原子性：只有当状态为pending时才能更新为processing
+    const currentItem = await storage
+      .entity('PipeCallbackQueue')
+      .query()
+      .equalTo('objectId', queueId)
+      .equalTo('status', 'pending')
+      .first();
+
+    if (!currentItem) {
+      console.log(
+        `[PipeQueueProcessor] 任务 ${queueId} 已被其他处理器抢占或状态不是pending，跳过处理`,
+      );
+      return;
+    }
+
+    // 设置为processing状态，标记开始处理时间
+    await storage.entity('PipeCallbackQueue').set(queueId, {
+      status: 'processing',
+      processStartTime: new Date(),
+    });
+
+    console.log(`[PipeQueueProcessor] 成功抢占任务 ${queueId}，开始处理`);
+
     // 解析回调数据
     let callbackData: PipeCallbackData;
     try {
@@ -798,6 +840,16 @@ async function checkProcessingTasks(): Promise<void> {
         `[PipeQueueProcessor] 检查Excel解析任务状态: queueId=${queueId}, taskId=${taskId}`,
       );
 
+      // 检查任务是否超时（30分钟）
+      const processingTime = Date.now() - new Date(item.updatedAt || item.createdAt).getTime();
+      const TIMEOUT_MS = 30 * 60 * 1000; // 30分钟超时
+
+      if (processingTime > TIMEOUT_MS) {
+        console.log(`[PipeQueueProcessor] 任务处理超时，自动标记为失败: queueId=${queueId}, 处理时间=${Math.round(processingTime/1000/60)}分钟`);
+        await markPipeCallbackFailed(queueId);
+        continue;
+      }
+
       try {
         // 查询Excel解析任务状态
         const taskStatus = await getExcelParseTaskStatus(taskId);
@@ -871,7 +923,10 @@ async function consumePipeCallbackQueue(): Promise<void> {
   console.log('[PipeQueueProcessor] === Pipe回调队列消费开始 ===');
 
   try {
-    // 并发控制：检查是否有正在处理的Pipe回调任务
+    // 1. 先检查正在进行的Excel解析任务（无论有多少个processing任务都要检查）
+    await checkProcessingTasks();
+
+    // 并发控制：检查是否有正在处理的Pipe回调任务，如果太多则跳过新任务处理
     const processingCount = await storage
       .entity('PipeCallbackQueue')
       .query()
@@ -879,12 +934,9 @@ async function consumePipeCallbackQueue(): Promise<void> {
       .count();
 
     if (processingCount > 1) {
-      console.log(`[PipeQueueProcessor] 发现 ${processingCount} 个Pipe回调任务正在处理中，跳过本次执行`);
-      return; // 直接返回，等待下次定时任务
+      console.log(`[PipeQueueProcessor] 发现 ${processingCount} 个Pipe回调任务正在处理中，跳过新任务处理`);
+      return; // 只跳过新任务处理，但已经检查了现有任务
     }
-
-    // 1. 先检查正在进行的Excel解析任务
-    await checkProcessingTasks();
 
     // 2. 处理新的pending队列项目
     const pendingItems = await getPendingPipeCallbacks(3); // 每次处理3个

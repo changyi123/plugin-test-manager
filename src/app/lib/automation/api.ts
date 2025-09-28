@@ -430,6 +430,38 @@ export async function retryWebhookQueueItem(params: {
 }
 
 /**
+ * 手动标记Pipe回调队列项为失败
+ */
+export async function markPipeCallbackFailed(
+  queueId: string,
+): Promise<{ success: boolean; message?: string; error?: string }> {
+  try {
+    const tenant = getTenantKey();
+    const context = (globalThis as any)?.QiankunProps?.context;
+    let environment = 'development';
+
+    if (context?.env?.NODE_ENV === 'production') {
+      environment = 'production';
+    } else if (process.env.NODE_ENV === 'production') {
+      environment = 'production';
+    }
+
+    const apiPath = `/apps/api/v1/${tenant}/apps/test_manager/environments/${environment}/webtriggers/api-queue-callback-mark-failed`;
+
+    const result = await fetch.$post(apiPath, { queueId });
+
+    if (result.success) {
+      return result;
+    } else {
+      throw new Error(result.error?.message || '标记Pipe回调队列项失败');
+    }
+  } catch (error) {
+    console.error('[QueueMonitor] 标记Pipe回调队列项失败:', error);
+    throw error;
+  }
+}
+
+/**
  * 重试执行记录
  */
 export async function retryExecutionRecord(

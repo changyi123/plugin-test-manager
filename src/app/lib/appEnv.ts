@@ -28,6 +28,8 @@ export const SupportFeatureFlags = {
   ENABLE_REPOSITORY_TABLE_STEP: 'ENABLE_REPOSITORY_TABLE_STEP',
   /** 用例导入模板是否展示富文本类型自定义字段 */
   ENABLE_SHOW_TEMPLATE_EDITOR_FIELD: 'ENABLE_SHOW_TEMPLATE_EDITOR_FIELD',
+  /** 开启自动化执行功能 */
+  ENABLE_AUTOMATION_EXECUTE: 'ENABLE_AUTOMATION_EXECUTE',
 } as const;
 
 type SupportFeatureFlagKey = keyof typeof SupportFeatureFlags;

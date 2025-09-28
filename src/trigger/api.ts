@@ -71,6 +71,8 @@ export {
   queryPipeCallbackQueue,
   retryWebhookQueueItem,
   retryExecutionRecord,
+  markPipeCallbackFailed,
+  resetPipeCallbackToPending,
   getQueueStats,
   getQueueDetails,
   getQueueFileStats,
