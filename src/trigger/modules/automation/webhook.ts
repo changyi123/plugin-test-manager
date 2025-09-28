@@ -2,6 +2,7 @@ import { storage } from '@giteeteam/apps-api';
 import { axios } from '@giteeteam/apps-team-api';
 
 import { buildResponse } from '../../lib/apiUtil';
+import { processAutomationQueue } from './queueProcessor';
 
 export interface WebhookPayload {
   action: string;
@@ -146,7 +147,29 @@ function batchTestCases(testCases: any[], maxLength = 10000): any[][] {
  */
 export async function callPipeWebHook(
   params: PipeWebHookParams,
-): Promise<{ buildId: string; pipeJumpUrl: string; testCaseMapping: Record<string, any> }> {
+): Promise<{ 
+  buildId: string; 
+  pipeJumpUrl: string; 
+  testCaseMapping: Record<string, any>;
+  batches?: Array<{
+    buildId: string;
+    pipeJumpUrl: string;
+    batchTestCaseMapping: Record<string, any>;
+    batchInfo: {
+      batchIndex: number;
+      totalBatches: number;
+      caseCount: number;
+      repoKey: string;
+    };
+  }>;
+  totalBatches?: number;
+  batchInfo?: {
+    batchIndex: number;
+    totalBatches: number;
+    caseCount: number;
+    repoKey: string;
+  };
+}> {
   console.log('[Pipe] 开始调用Pipe WebHook，测试用例数量:', params.testCases.length);
 
   try {
@@ -279,6 +302,27 @@ export async function callPipeWebHook(
         console.log(`[Pipe] 提取的buildId: ${buildId}`);
         console.log(`[Pipe] 提取的pipeJumpUrl: ${pipeJumpUrl}`);
 
+        // 为当前批次构建独立的映射关系
+        const batchTestCaseMapping: Record<string, any> = {};
+        batch.forEach(testCase => {
+          const executionData = {
+            testExecutionId: testCase.testExecutionId || testCase.executionId,
+            caseId: testCase.caseId,
+            caseName: testCase.caseName,
+            repository: testCase.repository,
+            filePath: testCase.filePath,
+            className: testCase.className,
+            methodName: testCase.methodName,
+            testId: testCase.testId,
+          };
+
+          if (testCase.testId) {
+            batchTestCaseMapping[testCase.testId] = executionData;
+          }
+        });
+
+        console.log(`[Pipe] 批次 ${i + 1} 构建映射关系完成，映射数量: ${Object.keys(batchTestCaseMapping).length}`);
+
         results.push({
           buildId: String(buildId),
           pipeJumpUrl,
@@ -286,6 +330,7 @@ export async function callPipeWebHook(
           totalBatches: batches.length,
           caseCount: batch.length,
           repoKey,
+          batchTestCaseMapping, // 🚀 新增：每个批次的独立映射关系
         });
       }
     }
@@ -294,17 +339,40 @@ export async function callPipeWebHook(
     console.log('[Pipe] 总批次数量:', results.length);
     console.log('[Pipe] 所有结果汇总:', JSON.stringify(results, null, 2));
 
-    // 返回第一个结果作为主要结果，其他结果在日志中记录
-    const mainResult = results[0];
-    if (results.length > 1) {
-      console.log('[Pipe] 多批次执行，使用第一个结果作为主要结果');
-      console.log('[Pipe] 主要结果buildId:', mainResult.buildId);
+    // 🚀 返回所有批次结果，每个批次都有独立的映射关系
+    const batchResults = results.map((result, index) => ({
+      buildId: result.buildId,
+      pipeJumpUrl: result.pipeJumpUrl,
+      batchTestCaseMapping: result.batchTestCaseMapping, // 🚀 每个批次的独立映射关系
+      batchInfo: {
+        batchIndex: index + 1,
+        totalBatches: results.length,
+        caseCount: result.caseCount || 0,
+        repoKey: result.repoKey,
+      },
+    }));
+
+    console.log(`[Pipe] 构建了 ${batchResults.length} 个批次结果`);
+
+    // 如果只有一个批次，保持原有接口兼容性
+    if (batchResults.length === 1) {
+      return {
+        buildId: batchResults[0].buildId,
+        pipeJumpUrl: batchResults[0].pipeJumpUrl,
+        testCaseMapping: batchResults[0].batchTestCaseMapping || testCaseMapping, // 使用批次映射或全量映射
+        // 添加批次信息
+        batchInfo: batchResults[0].batchInfo,
+      };
     }
 
+    // 多批次情况，返回所有批次信息
     return {
-      buildId: mainResult.buildId,
-      pipeJumpUrl: mainResult.pipeJumpUrl,
+      batches: batchResults,
+      totalBatches: batchResults.length,
       testCaseMapping: testCaseMapping,
+      // 为了兼容性，提供主要信息
+      buildId: batchResults[0]?.buildId,
+      pipeJumpUrl: batchResults[0]?.pipeJumpUrl,
     };
   } catch (error) {
     console.error('[Pipe] WebHook调用失败:', error);
@@ -350,6 +418,37 @@ export const automationWebhook = async params => {
     try {
       const result = await storage.entity('AutomationWebhookQueue').add(queueData);
       console.log('[AutomationWebhook] 队列写入成功，result:', JSON.stringify(result));
+
+      // 立即尝试处理队列（如果没有正在处理的任务）
+      try {
+        console.log('[AutomationWebhook] 检查是否可以立即处理...');
+        
+        // 检查是否有正在处理的任务
+        const processingCount = await storage
+          .entity('AutomationWebhookQueue')
+          .query()
+          .equalTo('status', 'processing')
+          .count();
+        
+        if (processingCount === 0) {
+          console.log('[AutomationWebhook] 没有正在处理的任务，立即触发处理');
+          
+          // 异步触发处理，不等待结果
+          // 使用setTimeout确保webhook响应先返回，避免超时
+          setTimeout(async () => {
+            try {
+              await processAutomationQueue();
+            } catch (error) {
+              console.error('[AutomationWebhook] 立即处理失败:', error);
+            }
+          }, 100);
+        } else {
+          console.log(`[AutomationWebhook] 已有 ${processingCount} 个任务正在处理，等待定时任务`);
+        }
+      } catch (triggerError) {
+        // 触发处理失败不影响webhook响应
+        console.error('[AutomationWebhook] 触发立即处理时出错:', triggerError);
+      }
 
       return buildResponse({
         success: true,

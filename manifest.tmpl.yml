@@ -2,15 +2,15 @@ app:
   key: test_manager
   uuid: bf73e61c-e15a-4461-a1f7-f940c2009332
   name: test_manager
-  version: "4.38.645"
+  version: "4.38.665"
 modules:
   scheduledTrigger:
     - key: automation-queue-processor
       function: automation-queue-processor-function
-      cronTime: "*/2 * * * * *"
+      cronTime: "0 */2 * * * *"
     - key: pipe-callback-queue-processor
       function: pipe-callback-queue-processor-function
-      cronTime: "*/2 * * * * *"
+      cronTime: "0 */2 * * * *"
   webtrigger:
     # TODO: Debug 使用，生产环境禁止调用下面的 trigger
     # ---------------------------------------------
@@ -72,6 +72,10 @@ modules:
       function: api-queue-execution-list-function
     - key: api-queue-callback-list
       function: api-queue-callback-list-function
+    - key: api-queue-callback-mark-failed
+      function: api-queue-callback-mark-failed-function
+    - key: api-queue-callback-reset-pending
+      function: api-queue-callback-reset-pending-function
     - key: api-queue-webhook-retry
       function: api-queue-webhook-retry-function
     - key: api-queue-execution-retry
@@ -396,6 +400,12 @@ modules:
       timeout: 30000
     - key: api-queue-callback-list-function
       handler: api.queryPipeCallbackQueue
+      timeout: 30000
+    - key: api-queue-callback-mark-failed-function
+      handler: api.markPipeCallbackFailed
+      timeout: 30000
+    - key: api-queue-callback-reset-pending-function
+      handler: api.resetPipeCallbackToPending
       timeout: 30000
     - key: api-queue-webhook-retry-function
       handler: api.retryWebhookQueueItem

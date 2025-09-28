@@ -310,7 +310,10 @@ async function executeBatchUpdate(
 
   try {
     // 1. 预先创建所有需要的Repository，避免并发创建同一个Repository
-    const uniqueModulePaths = [...new Set(operations.map(op => op.caseData.modulePath))];
+    const uniqueModulePaths = [...new Set(operations.map(op => {
+      // MIGRATE操作使用moduleChange.newModulePath，其他操作使用caseData.modulePath
+      return op.operationType === 'MIGRATE' ? op.moduleChange?.newModulePath : op.caseData.modulePath;
+    }).filter(Boolean))];
     console.log(`[AutoSync] 预先创建 ${uniqueModulePaths.length} 个不同的模块路径Repository`);
 
     const repositoryCache = new Map<string, string>();
@@ -322,24 +325,26 @@ async function executeBatchUpdate(
 
     // 2. 准备更新数据
     const updateDataList = operations.map(op => {
-      const repositoryId = repositoryCache.get(op.caseData.modulePath) || '';
+      // MIGRATE操作使用moduleChange.newModulePath，其他操作使用caseData.modulePath
+      const modulePath = op.operationType === 'MIGRATE' ? op.moduleChange?.newModulePath : op.caseData.modulePath;
+      const repositoryId = repositoryCache.get(modulePath) || '';
 
       return {
         objectId: op.existingCaseInfo.caseId,
         updateData: {
-          name: op.caseData.caseName, // 更新用例名称
+          name: op.operationType === 'MIGRATE' ? `${op.className}.${op.methodName}` : op.caseData.caseName, // 更新用例名称
           values: {
-            description: op.caseData.caseDesc,
+            description: op.operationType === 'MIGRATE' ? `Test case for ${op.className}.${op.methodName}` : op.caseData.caseDesc,
             // 自定义字段 - 所属模块使用repository字段
             r_test_manager_repository: repositoryId,
             r_test_manager_atm_test_id: op.testId,
-            r_test_manager_atm_file_path: op.caseData.sourceInfo.filePath,
+            r_test_manager_atm_file_path: op.operationType === 'MIGRATE' ? op.filePath : op.caseData.sourceInfo.filePath,
             r_test_manager_atm_class_name: op.className,
             r_test_manager_atm_method_name: op.methodName,
-            r_test_manager_atm_module_path: op.caseData.modulePath,
-            r_test_manager_atm_commit_id: op.caseData.sourceInfo.commitId,
-            r_test_manager_atm_start_line: op.caseData.sourceInfo.startLine.toString(),
-            r_test_manager_atm_end_line: op.caseData.sourceInfo.endLine.toString(),
+            r_test_manager_atm_module_path: modulePath,
+            r_test_manager_atm_commit_id: op.operationType === 'MIGRATE' ? (op.caseData?.sourceInfo?.commitId || '') : op.caseData.sourceInfo.commitId,
+            r_test_manager_atm_start_line: op.operationType === 'MIGRATE' ? (op.caseData?.sourceInfo?.startLine?.toString() || '1') : op.caseData.sourceInfo.startLine.toString(),
+            r_test_manager_atm_end_line: op.operationType === 'MIGRATE' ? (op.caseData?.sourceInfo?.endLine?.toString() || '1') : op.caseData.sourceInfo.endLine.toString(),
             r_test_manager_atm_framework: commitContext?.testingFramework || 'JUnit',
             r_test_manager_atm_last_sync: new Date().toISOString(),
             // 添加Git相关字段

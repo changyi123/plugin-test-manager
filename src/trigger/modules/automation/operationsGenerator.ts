@@ -222,6 +222,27 @@ async function generateCreateAllOperations(
       commitContext.branchName,
     );
     console.log(`[T7.6] 目录扫描结果: 找到 ${filesToProcess.length} 个Java文件`);
+    
+    // 过滤掉已经被其他更具体的映射覆盖的文件
+    if (config.mappings) {
+      const originalCount = filesToProcess.length;
+      filesToProcess = filesToProcess.filter(filePath => {
+        // 检查是否有更具体的映射（即映射路径就是这个文件）
+        const hasSpecificMapping = Object.keys(config.mappings).some(mappingPath => {
+          // 如果有精确匹配这个文件的映射，且不是当前正在处理的目录映射，则排除
+          return mappingPath === filePath && mappingPath !== fileDecision.filePath;
+        });
+        
+        if (hasSpecificMapping) {
+          console.log(`[T7.6] 文件 ${filePath} 已有更具体的映射，跳过`);
+        }
+        return !hasSpecificMapping;
+      });
+      
+      if (originalCount !== filesToProcess.length) {
+        console.log(`[T7.6] 过滤后剩余 ${filesToProcess.length} 个文件需要处理（排除了 ${originalCount - filesToProcess.length} 个已有具体映射的文件）`);
+      }
+    }
   } else {
     console.log(`[T7.6] 文件级映射: ${fileDecision.filePath}`);
     filesToProcess = [fileDecision.filePath];
@@ -659,30 +680,26 @@ async function generateConfigCoordinationOperations(
       break;
 
     case 'config_mapping_added':
-      // 新增映射：扫描文件创建用例
+      // 新增映射：需要智能处理
       console.log(
-        `[T5.8] config_mapping_added: 调用generateCreateAllOperations处理文件 ${fileDecision.filePath}`,
+        `[T5.8] config_mapping_added: 智能处理新增映射 ${fileDecision.filePath}`,
       );
-      const createOps = await generateCreateAllOperations(fileDecision, config, commitContext);
-      console.log(
-        `[T5.8] config_mapping_added: generateCreateAllOperations返回 ${createOps.length} 个操作`,
-      );
-      return createOps;
+      
+      // 先检查该路径下的文件是否已经有用例存在
+      // 如果有用例但模块不同，应该是迁移而不是创建
+      return await generateSmartMappingAddedOperations(fileDecision, config, commitContext);
 
     case 'config_mapping_removed':
-      // 删除映射：删除相关用例
-      return await generateDeleteAllOperations(fileDecision, config, commitContext);
+      // 删除映射：智能处理，检查是否有其他映射覆盖
+      return await generateSmartDeleteOperations(fileDecision, config, commitContext);
 
     case 'config_mapping_removed_smart':
-      // 智能删除映射：需要使用删除分析器分析影响
+      // 智能删除映射：检查是否有其他映射覆盖
       console.log(`[T5.8] config_mapping_removed_smart: 开始智能分析删除影响`);
       console.log(
         `[T5.8] 删除路径: ${fileDecision.filePath}, 删除模块: ${fileDecision.deletedModule}`,
       );
-      // TODO: 这里应该使用 mappingDeletionAnalyzer 进行智能分析
-      // 目前先使用简单的删除逻辑，后续需要实现智能分析
-      console.log(`[T5.8] 暂时使用简单删除逻辑，TODO: 实现智能优先级分析`);
-      return await generateDeleteAllOperations(fileDecision, config, commitContext);
+      return await generateSmartDeleteOperations(fileDecision, config, commitContext);
 
     case 'config_module_change':
     case 'merged_module_change':
@@ -733,9 +750,20 @@ async function generateModuleChangeOperations(
 
   const operations: CaseOperation[] = [];
 
-  // 2. 为每个测试方法生成MIGRATE操作
+  // 2. 查询历史用例信息
+  const historyCases = await getHistoryCasesForFile(fileDecision.filePath, commitContext.workspaceKey);
+  console.log(`[T5.8] 文件 ${fileDecision.filePath} 查询到 ${historyCases.size} 个历史用例`);
+
+  // 3. 为每个测试方法生成MIGRATE操作
   for (const method of currentMethods) {
     const caseDesc = await extractCaseDescription(fileContent, method.startLine);
+
+    // 查找对应的历史用例信息
+    const historyCase = historyCases.get(method.testId);
+    if (!historyCase) {
+      console.warn(`[T5.8] 测试方法 ${method.testId} 没有找到历史用例，跳过MIGRATE操作`);
+      continue;
+    }
 
     operations.push({
       operationType: 'MIGRATE',
@@ -755,13 +783,13 @@ async function generateModuleChangeOperations(
         },
       },
       existingCaseInfo: {
-        caseId: 'TBD', // Will be enriched by caseOperationExecutor
+        caseId: historyCase.caseId,
         testId: method.testId,
         name: `${className}.${method.methodName}`,
-        currentModulePath: 'TBD', // Old module path will be determined from existing case
+        currentModulePath: historyCase.modulePath,
       },
       moduleChange: {
-        oldModulePath: 'TBD', // Will be determined from existing case
+        oldModulePath: historyCase.modulePath,
         newModulePath: newModulePath,
         reason: '配置文件中模块路径变更',
       },
@@ -859,7 +887,7 @@ async function getHistoryCasesForFile(
             filePath: filePath,
           });
 
-          console.log(`[T5.8] - 历史用例: ${testId} (${item.id}) ${className}.${methodName}`);
+          console.log(`[T5.8] - 历史用例: ${testId} (${item.id}) ${className}.${methodName} 模块:${modulePath || '空'}`);
         } else {
           console.warn(`[T5.8] - 用例缺少testId: ${item.id}`);
         }
@@ -873,6 +901,314 @@ async function getHistoryCasesForFile(
     console.error(`[T5.8] 查询文件历史用例失败: ${filePath}`, error);
     return new Map();
   }
+}
+
+/**
+ * 智能处理删除映射：只删除没有其他映射覆盖的用例
+ */
+async function generateSmartDeleteOperations(
+  fileDecision: FileDecisionResult,
+  config: any,
+  commitContext: CommitContext,
+): Promise<CaseOperation[]> {
+  console.log(`[T5.8] 智能处理删除映射: ${fileDecision.filePath}`);
+  
+  const operations: CaseOperation[] = [];
+  const isDirectoryMapping = !fileDecision.filePath.endsWith('.java');
+  
+  if (isDirectoryMapping) {
+    console.log(`[T5.8] 删除目录级映射，需要智能分析`);
+    
+    // 扫描目录下的所有Java文件
+    const allFiles = await scanDirectoryForJavaFiles(
+      commitContext.repositoryId,
+      fileDecision.filePath,
+      commitContext.branchName,
+    );
+    console.log(`[T5.8] 目录下共有 ${allFiles.length} 个Java文件`);
+    
+    // 检查每个文件是否还有其他映射覆盖
+    for (const filePath of allFiles) {
+      // 检查该文件是否还有其他映射
+      const currentMapping = findBestPathMapping(filePath, config.mappings);
+      
+      if (currentMapping) {
+        console.log(`[T5.8] 文件 ${filePath} 还有其他映射覆盖: ${currentMapping}，跳过删除`);
+        
+        // 如果有映射但模块不同，可能需要迁移
+        const historyCases = await getHistoryCasesForFile(filePath, commitContext.workspaceKey);
+        for (const [testId, caseInfo] of historyCases) {
+          if (caseInfo.modulePath !== currentMapping) {
+            console.log(`[T5.8] 用例 ${testId} 需要迁移到新模块: ${caseInfo.modulePath} -> ${currentMapping}`);
+            operations.push({
+              operationType: 'MIGRATE',
+              testId: testId,
+              methodName: caseInfo.methodName,
+              className: caseInfo.className,
+              filePath: filePath,
+              existingCaseInfo: {
+                caseId: caseInfo.caseId,
+                testId: testId,
+                name: caseInfo.methodName,
+                currentModulePath: caseInfo.modulePath,
+              },
+              moduleChange: {
+                oldModulePath: caseInfo.modulePath,
+                newModulePath: currentMapping,
+                reason: '删除目录映射但保留文件映射，迁移到文件映射的模块',
+              },
+            });
+          }
+        }
+      } else {
+        console.log(`[T5.8] 文件 ${filePath} 没有其他映射，删除其用例`);
+        
+        // 没有其他映射覆盖，删除该文件的用例
+        const historyCases = await getHistoryCasesForFile(filePath, commitContext.workspaceKey);
+        for (const [testId, historyCase] of historyCases) {
+          operations.push({
+            operationType: 'DELETE',
+            testId: testId,
+            methodName: historyCase.methodName,
+            className: historyCase.className,
+            filePath: filePath,
+            existingCaseInfo: {
+              caseId: historyCase.caseId,
+              testId: testId,
+              name: historyCase.methodName,
+              currentModulePath: historyCase.modulePath,
+            },
+          });
+        }
+      }
+    }
+  } else {
+    // 文件级映射删除，需要检查是否还有其他映射覆盖
+    console.log(`[T5.8] 删除文件级映射: ${fileDecision.filePath}`);
+    
+    // 检查该文件是否还有其他映射（如目录级映射）
+    const remainingMapping = findBestPathMapping(fileDecision.filePath, config.mappings);
+    
+    if (remainingMapping) {
+      console.log(`[T5.8] 文件 ${fileDecision.filePath} 还有其他映射覆盖: ${remainingMapping}`);
+      
+      // 文件还有其他映射，检查是否需要迁移到新模块
+      const historyCases = await getHistoryCasesForFile(
+        fileDecision.filePath,
+        commitContext.workspaceKey,
+      );
+      
+      for (const [testId, historyCase] of historyCases) {
+        if (historyCase.modulePath !== remainingMapping) {
+          console.log(`[T5.8] 用例 ${testId} 需要迁移: ${historyCase.modulePath} -> ${remainingMapping}`);
+          operations.push({
+            operationType: 'MIGRATE',
+            testId: testId,
+            methodName: historyCase.methodName,
+            className: historyCase.className,
+            filePath: fileDecision.filePath,
+            existingCaseInfo: {
+              caseId: historyCase.caseId,
+              testId: testId,
+              name: historyCase.methodName,
+              currentModulePath: historyCase.modulePath,
+            },
+            moduleChange: {
+              oldModulePath: historyCase.modulePath,
+              newModulePath: remainingMapping,
+              reason: '删除文件级映射但保留目录级映射，迁移到目录映射的模块',
+            },
+          });
+        } else {
+          console.log(`[T5.8] 用例 ${testId} 模块路径相同，无需操作`);
+        }
+      }
+    } else {
+      // 没有其他映射，删除用例
+      console.log(`[T5.8] 文件 ${fileDecision.filePath} 没有其他映射，删除其用例`);
+      const historyCases = await getHistoryCasesForFile(
+        fileDecision.filePath,
+        commitContext.workspaceKey,
+      );
+      
+      for (const [testId, historyCase] of historyCases) {
+        operations.push({
+          operationType: 'DELETE',
+          testId: testId,
+          methodName: historyCase.methodName,
+          className: historyCase.className,
+          filePath: fileDecision.filePath,
+          existingCaseInfo: {
+            caseId: historyCase.caseId,
+            testId: testId,
+            name: historyCase.methodName,
+            currentModulePath: historyCase.modulePath,
+          },
+        });
+      }
+    }
+  }
+  
+  const stats = {
+    DELETE: operations.filter(op => op.operationType === 'DELETE').length,
+    MIGRATE: operations.filter(op => op.operationType === 'MIGRATE').length,
+  };
+  
+  console.log(`[T5.8] 智能删除处理完成: DELETE(${stats.DELETE}) MIGRATE(${stats.MIGRATE})`);
+  return operations;
+}
+
+/**
+ * 智能处理新增映射：检查是否需要迁移而非创建
+ */
+async function generateSmartMappingAddedOperations(
+  fileDecision: FileDecisionResult,
+  config: any,
+  commitContext: CommitContext,
+): Promise<CaseOperation[]> {
+  console.log(`[T5.8] 智能处理新增映射: ${fileDecision.filePath}`);
+  
+  const operations: CaseOperation[] = [];
+  const isDirectoryMapping = !fileDecision.filePath.endsWith('.java');
+  let filesToProcess: string[] = [];
+  
+  // 1. 确定要处理的文件列表
+  if (isDirectoryMapping) {
+    filesToProcess = await scanDirectoryForJavaFiles(
+      commitContext.repositoryId,
+      fileDecision.filePath,
+      commitContext.branchName,
+    );
+    console.log(`[T5.8] 目录映射，扫描到 ${filesToProcess.length} 个Java文件`);
+    
+    // 过滤掉已有更具体映射的文件
+    if (config.mappings) {
+      const originalCount = filesToProcess.length;
+      filesToProcess = filesToProcess.filter(filePath => {
+        const hasSpecificMapping = Object.keys(config.mappings).some(mappingPath => 
+          mappingPath === filePath && mappingPath !== fileDecision.filePath
+        );
+        return !hasSpecificMapping;
+      });
+      
+      if (originalCount !== filesToProcess.length) {
+        console.log(`[T5.8] 过滤后剩余 ${filesToProcess.length} 个文件需要处理`);
+      }
+    }
+  } else {
+    filesToProcess = [fileDecision.filePath];
+  }
+  
+  // 2. 处理每个文件
+  for (const filePath of filesToProcess) {
+    console.log(`[T5.8] 检查文件是否已有用例: ${filePath}`);
+    
+    // 获取该文件的最佳映射（可能是文件级映射或目录级映射）
+    const newModulePath = findBestPathMapping(filePath, config.mappings);
+    if (!newModulePath) {
+      console.warn(`[T5.8] 文件 ${filePath} 没有找到映射配置，跳过`);
+      continue;
+    }
+    
+    console.log(`[T5.8] 文件 ${filePath} 的目标模块: ${newModulePath}`);
+    
+    // 查询该文件是否已有用例
+    const existingCases = await getHistoryCasesForFile(filePath, commitContext.workspaceKey);
+    
+    if (existingCases.size > 0) {
+      console.log(`[T5.8] 文件 ${filePath} 已有 ${existingCases.size} 个用例`);
+      
+      // 检查现有用例的模块路径是否与新映射不同
+      for (const [testId, caseInfo] of existingCases) {
+        const oldModulePath = caseInfo.modulePath || '';
+        
+        console.log(`[T5.8] 用例 ${testId}: 当前模块="${oldModulePath}", 目标模块="${newModulePath}"`);
+        
+        if (oldModulePath !== newModulePath) {
+          console.log(`[T5.8] 用例 ${testId} 需要迁移: ${oldModulePath} -> ${newModulePath}`);
+          
+          // 生成MIGRATE操作
+          operations.push({
+            operationType: 'MIGRATE',
+            testId: testId,
+            methodName: caseInfo.methodName,
+            className: caseInfo.className,
+            filePath: filePath,
+            existingCaseInfo: {
+              caseId: caseInfo.caseId,
+              testId: testId,
+              name: caseInfo.methodName,
+              oldClassName: caseInfo.className,
+              currentModulePath: oldModulePath,
+            },
+            moduleChange: {
+              oldModulePath: oldModulePath,
+              newModulePath: newModulePath,
+              reason: '新增更具体的映射配置，迁移到新模块',
+            },
+          });
+        } else {
+          console.log(`[T5.8] 用例 ${testId} 模块路径相同，无需迁移`);
+        }
+      }
+    } else {
+      // 文件没有现有用例，需要创建新用例
+      console.log(`[T5.8] 文件 ${filePath} 没有现有用例，创建新用例`);
+      
+      try {
+        const fileContent = await getFileContent(
+          commitContext.repositoryId,
+          filePath,
+          commitContext.branchName,
+        );
+        
+        if (!fileContent || !fileContent.trim()) {
+          console.warn(`[T5.8] 文件内容为空: ${filePath}`);
+          continue;
+        }
+        
+        const className = javaParser.extractClassName(fileContent);
+        const testMethods = javaParser.parseTestMethods(fileContent);
+        
+        console.log(`[T5.8] 解析文件: 类名=${className}, 测试方法数=${testMethods.length}`);
+        
+        // 为每个测试方法创建CREATE操作
+        for (const method of testMethods) {
+          const testId = method.testId || `${className}.${method.methodName}`;
+          const caseDesc = await extractCaseDescription(fileContent, method.startLine);
+          
+          operations.push({
+            operationType: 'CREATE',
+            testId: testId,
+            methodName: method.methodName,
+            className: className,
+            filePath: filePath,
+            caseData: {
+              caseName: `${className}.${method.methodName}`,
+              caseDesc: caseDesc || `测试用例: ${testId}`,
+              modulePath: newModulePath,
+              sourceInfo: {
+                filePath: filePath,
+                startLine: method.startLine,
+                endLine: method.endLine,
+                commitId: commitContext.commitId,
+              },
+            },
+          });
+        }
+      } catch (error) {
+        console.error(`[T5.8] 处理文件失败: ${filePath}`, error);
+      }
+    }
+  }
+  
+  const stats = {
+    CREATE: operations.filter(op => op.operationType === 'CREATE').length,
+    MIGRATE: operations.filter(op => op.operationType === 'MIGRATE').length,
+  };
+  
+  console.log(`[T5.8] 智能映射处理完成: CREATE(${stats.CREATE}) MIGRATE(${stats.MIGRATE})`);
+  return operations;
 }
 
 /**

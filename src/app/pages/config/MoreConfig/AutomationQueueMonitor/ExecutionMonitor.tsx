@@ -1,5 +1,5 @@
 import { EyeOutlined, LinkOutlined, RedoOutlined, ReloadOutlined } from '@ant-design/icons';
-import { useQuery } from '@tanstack/react-query';
+import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { Button, Descriptions, message, Modal, Select, Space, Table, Tabs, Tag, Tooltip } from 'antd';
 import React, { useState } from 'react';
 
@@ -7,6 +7,7 @@ import {
   queryExecutionRecords,
   queryPipeCallbackQueue,
   retryExecutionRecord,
+  markPipeCallbackFailed,
 } from '@/lib/automation/api';
 import { AutomationExecutionRecord, PipeCallbackQueue } from '@/lib/automation/types';
 import useI18n from '@/lib/hooks/useI18n';
@@ -283,6 +284,30 @@ const PipeCallbackTab: React.FC = () => {
   });
   const [detailsVisible, setDetailsVisible] = useState(false);
   const [selectedRecord, setSelectedRecord] = useState<PipeCallbackQueue | null>(null);
+  const queryClient = useQueryClient();
+
+  // 手动标记为失败
+  const handleMarkFailed = async (queueId: string) => {
+    Modal.confirm({
+      title: '确认操作',
+      content: '确定要将此任务标记为失败吗？此操作通常用于处理长时间卡在处理中的任务。',
+      okText: '确认',
+      cancelText: '取消',
+      onOk: async () => {
+        try {
+          const result = await markPipeCallbackFailed(queueId);
+          if (result.success) {
+            message.success('已成功标记为失败');
+            queryClient.invalidateQueries(['pipeCallbackQueue']);
+          } else {
+            message.error(result.error || '操作失败');
+          }
+        } catch (error: any) {
+          message.error(`操作失败: ${error.message}`);
+        }
+      },
+    });
+  };
 
   // 查询Pipe回调队列数据
   const {
@@ -441,6 +466,28 @@ const PipeCallbackTab: React.FC = () => {
         ) : (
           '-'
         ),
+    },
+    {
+      title: '操作',
+      key: 'action',
+      width: 120,
+      fixed: 'right' as const,
+      render: (_, record: PipeCallbackQueue) => (
+        <Space>
+          {record.status === 'processing' && (
+            <Tooltip title="标记为失败（用于处理卡住的任务）">
+              <Button
+                type="link"
+                size="small"
+                danger
+                onClick={() => handleMarkFailed(record.objectId!)}
+              >
+                标记失败
+              </Button>
+            </Tooltip>
+          )}
+        </Space>
+      ),
     },
   ];
 

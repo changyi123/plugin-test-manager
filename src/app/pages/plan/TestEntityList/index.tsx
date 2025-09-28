@@ -161,6 +161,9 @@ const TestEntityList: React.FC<TestEntityListProps> = ({
   const [automationModalVisible, setAutomationModalVisible] = useState(false);
   // 单条自动化执行ID
   const [singleExecutionId, setSingleExecutionId] = useState<string | null>(null);
+  
+  // 🚀 检查是否启用自动化执行功能
+  const isAutomationExecuteEnabled = featureFlags(SupportFeatureFlags.ENABLE_AUTOMATION_EXECUTE);
 
   const statusesConfig = React.useMemo(() => {
     return keyBy(globalTestConfig?.statuses ?? [], 'key');
@@ -1110,13 +1113,15 @@ const TestEntityList: React.FC<TestEntityListProps> = ({
           // 更多操作下拉菜单
           const moreActionsMenu = (
             <Menu>
-              <Menu.Item
-                key="automation"
-                icon={<PlayCircleOutlined />}
-                onClick={() => handleSingleAutomationExecute(record.objectId)}
-              >
-                {t('自动化执行')}
-              </Menu.Item>
+              {isAutomationExecuteEnabled && (
+                <Menu.Item
+                  key="automation"
+                  icon={<PlayCircleOutlined />}
+                  onClick={() => handleSingleAutomationExecute(record.objectId)}
+                >
+                  {t('自动化执行')}
+                </Menu.Item>
+              )}
               <Menu.Item
                 key="delete"
                 icon={<DeleteOutlined />}
@@ -1419,13 +1424,15 @@ const TestEntityList: React.FC<TestEntityListProps> = ({
     };
     return [
       // 自动化执行按钮
-      <span
-        className={cx('action', !hasRowSelected && 'disabled')}
-        key="automationExecute"
-        onClick={() => hasRowSelected && handleAutomationExecute()}
-      >
-        <PlayCircleOutlined /> {t('自动化执行')}
-      </span>,
+      ...(isAutomationExecuteEnabled ? [
+        <span
+          className={cx('action', !hasRowSelected && 'disabled')}
+          key="automationExecute"
+          onClick={() => hasRowSelected && handleAutomationExecute()}
+        >
+          <PlayCircleOutlined /> {t('自动化执行')}
+        </span>
+      ] : []),
 
       <Tooltip
         key="assignee"
