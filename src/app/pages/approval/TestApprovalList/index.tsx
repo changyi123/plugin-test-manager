@@ -27,13 +27,14 @@ const { ItemIcon } = components.Components.Common;
 import { updateItemsWithProcess } from '@/components/business/BatchResult/hooks';
 import CreatePermission from '@/components/business/Contianer/CreatePermission';
 import { SystemFieldKeys } from '@/components/common/BusinessTable/hook';
+import { FormFieldKey } from '@/pages/config/ApprovalConfig';
 
 import cx from './index.less';
 
 const TestPlanList: React.FC<any> = ({ setApprovalEntry }) => {
   const { t } = useI18n();
   const actionRef = React.useRef<BusinessTableActionType>();
-  const { createItemUseModal, testPlanFieldKeys } = useBaseAction();
+  const { createItemUseModal, testPlanFieldKeys, globalTestConfig } = useBaseAction();
   const { workspaceKey, selectedTestApproval, setSelectedTestApproval, setSearchParams } =
     usePageContext();
   const [selectors, setSelectors] = useState([{}, {}]);
@@ -44,6 +45,9 @@ const TestPlanList: React.FC<any> = ({ setApprovalEntry }) => {
   const testEntitySelectorRef = useRef<ModelActionType>();
 
   const detailSearchRef = useRef(null);
+
+  const DISABLED_STATUSES =
+    globalTestConfig?.approvalConfig?.[FormFieldKey.actionDisabledItemStatuses];
 
   useEffect(() => {
     if (selectedTestApproval) {
@@ -207,9 +211,16 @@ const TestPlanList: React.FC<any> = ({ setApprovalEntry }) => {
       width: 90,
       fixed: 'right' as any,
       render(_, rowData) {
+        const isDisabled =
+          DISABLED_STATUSES &&
+          DISABLED_STATUSES.includes((rowData as any)?.workflowStatus?.objectId);
         return (
           <a
             onClick={async () => {
+              if (isDisabled) {
+                message.warning(t('page.approval.action.disabledMessage'));
+                return;
+              }
               const { list } = await getTestEntityByQuery({
                 query: {
                   workspaceKey: workspaceKey,
