@@ -914,7 +914,8 @@
       "action": {
         "approval": "审批",
         "addCase": "添加用例",
-        "addingCase": "用例添加中"
+        "addingCase": "用例添加中",
+        "disabledMessage": "当前评审事项状态不支持操作"
       }
     }
   },
