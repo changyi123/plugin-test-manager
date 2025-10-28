@@ -181,6 +181,10 @@ const SupportAppEnv = {
     defaultValue: false,
     transformer: value => value,
   },
+  ENABLE_EXPAND_FIRST_ITEM: {
+    defaultValue: false,
+    transformer: value => value,
+  },
 } as const;
 
 /**
