@@ -3,7 +3,7 @@ import { getParseModel, getParseQuery, saveAllObject } from '@giteeteam/apps-tea
 
 import { AppKey, RepositoryClassName } from '../../../common/constant';
 import { batchDeleteItems } from '../../lib/batchRequest';
-import { forgeCreateItem, forgeUpdateItem, iqlSearch } from '../../lib/coreApi';
+import { forgeUpdateItem, iqlSearch, bulkCreateItems, bulkUpdateItems } from '../../lib/coreApi';
 import { getItemCreateRequiredAttrs } from '../../lib/item';
 import { CaseOperation } from './operationsGenerator';
 
@@ -28,6 +28,7 @@ export interface ExecutionResult {
   caseId?: string;
   error?: string;
   message?: string;
+  createdItem?: any; // 添加createdItem字段用于存储创建的用例信息
 }
 
 export interface ExecutionSummary {
@@ -96,7 +97,7 @@ export async function executeCaseOperations(
 
   // 处理MIGRATE操作
   if (grouped.MIGRATE.length > 0) {
-    const migrateResults = await executeBatchMigrate(grouped.MIGRATE, workspaceKey);
+    const migrateResults = await executeBatchMigrate(grouped.MIGRATE, workspaceKey, commitContext);
     results.push(...migrateResults);
   }
 
@@ -111,7 +112,7 @@ async function executeBatchCreate(
   workspaceKey?: string,
   commitContext?: any,
 ): Promise<ExecutionResult[]> {
-  console.log(`[AutoSync] 并发创建 ${operations.length} 个用例，每次并发5个`);
+  console.log(`[AutoSync] 批量创建 ${operations.length} 个用例，使用batchCreateItemsV2 API`);
 
   try {
     // 获取工作空间配置
@@ -186,95 +187,142 @@ async function executeBatchCreate(
       `[AutoSync] - values.r_test_manager_atm_file_path: ${createDataList[0].values.r_test_manager_atm_file_path}`,
     );
 
-    // 分批并发创建，每次5个
-    const BATCH_SIZE = 5;
-    const results: ExecutionResult[] = [];
+    console.log(`[AutoSync] 准备一次性批量创建 ${createDataList.length} 个用例`);
 
-    for (let i = 0; i < createDataList.length; i += BATCH_SIZE) {
-      const batch = createDataList.slice(i, i + BATCH_SIZE);
-      const batchOperations = operations.slice(i, i + BATCH_SIZE);
+    try {
+      // 构建优化的header，包含跳过验证的参数
+      const headers = {
+        'X-Parse-Cloud-Context': JSON.stringify({
+          // 跳过事项创建校验
+          skipFormValidation: true,
+          // 跳过隐藏事项类型过滤
+          skipItemTypeQueryFilter: true,
+          // 跳过层级校验
+          skipItemValidationLevel: true,
+          // 跳过字段行为校验，提升性能
+          skipFieldBehaviorValidation: true,
+        }),
+      };
 
-      console.log(
-        `[AutoSync] 处理第 ${Math.floor(i / BATCH_SIZE) + 1} 批，共 ${batch.length} 个事项`,
-      );
+      // 使用bulkCreateItems一次性创建所有用例
+      console.log(`[AutoSync] 创建数据:`, JSON.stringify(createDataList));
+      const response = await bulkCreateItems(createDataList, headers);
 
-      // 并发创建当前批次
-      const batchPromises = batch.map(async (createData, index) => {
-        try {
-          console.log(`[AutoSync] 开始创建事项: ${createData.name}`);
-          const createdItem = await forgeCreateItem(createData);
-          console.log(
-            `[AutoSync] 成功创建事项: ${createdItem.objectId || createdItem.id}, name: ${
-              createdItem.name
-            }`,
-          );
+      console.log(`[AutoSync] 批量创建响应:`, {
+        itemsCount: response?.items?.length || 0,
+        errorsCount: response?.errors?.length || 0,
+      });
 
+      const results: ExecutionResult[] = [];
+
+      // 处理成功的项目
+      if (response?.items && response.items.length > 0) {
+        for (let i = 0; i < response.items.length; i++) {
+          const createdItem = response.items[i];
+          const operation = operations[i];
+          
           // 记录成功日志
-          const operation = batchOperations[index];
           await logSyncOperation({
             operationType: 'CREATE',
             testId: operation.testId,
             caseId: createdItem.objectId || createdItem.id,
             success: true,
-            details: `并发创建用例: ${operation.caseData.caseName}`,
+            details: `批量创建用例成功: ${operation.caseData.caseName}`,
+            commitId: commitContext?.commitId,
           });
 
-          return {
+          results.push({
             success: true,
             operation,
             caseId: createdItem.objectId || createdItem.id,
             message: `创建成功: ${createdItem.objectId || createdItem.id}`,
             createdItem,
-          };
-        } catch (error) {
-          console.error(`[AutoSync] 创建事项失败: ${createData.name}`, error);
+          });
+        }
 
-          // 记录失败日志
-          const operation = batchOperations[index];
+        // 验证第一个成功创建的事项
+        if (response.items.length > 0) {
+          const firstItem = response.items[0];
+          console.log(`[AutoSync] 第一个创建的用例:`);
+          console.log(`[AutoSync] - objectId: ${firstItem.objectId}`);
+          console.log(`[AutoSync] - name: ${firstItem.name}`);
+        }
+      }
+
+      // 处理失败的项目
+      if (response?.errors && response.errors.length > 0) {
+        console.error(`[AutoSync] 有 ${response.errors.length} 个创建失败`);
+        for (const error of response.errors) {
+          console.error(`[AutoSync] 创建失败:`, error);
+          
+          // 根据错误索引找到对应的操作
+          const errorIndex = error.index || 0;
+          const failedOperation = operations[errorIndex] || operations[0];
+
+          await logSyncOperation({
+            operationType: 'CREATE',
+            testId: failedOperation.testId,
+            success: false,
+            error: `批量创建失败: ${error.error || error.message || error}`,
+            commitId: commitContext?.commitId,
+          });
+
+          results.push({
+            success: false,
+            operation: failedOperation,
+            error: `创建失败: ${error.error || error.message || error}`,
+          });
+        }
+      }
+
+      // 如果响应不包含items和errors，说明可能全部失败
+      if (!response?.items && !response?.errors) {
+        console.error(`[AutoSync] 批量创建异常，无返回数据`);
+        for (const operation of operations) {
           await logSyncOperation({
             operationType: 'CREATE',
             testId: operation.testId,
             success: false,
-            error: `并发创建失败: ${error}`,
+            error: `批量创建异常：无返回数据`,
+            commitId: commitContext?.commitId,
           });
 
-          return {
+          results.push({
             success: false,
             operation,
-            error: `创建失败: ${error}`,
-          };
-        }
-      });
-
-      const batchResults = await Promise.all(batchPromises);
-      results.push(...batchResults);
-
-      // 检查是否有成功创建的事项并验证自定义字段
-      const successfulItems = batchResults.filter(r => r.success && r.createdItem);
-      if (successfulItems.length > 0) {
-        const firstItem = successfulItems[0].createdItem;
-        console.log(`[AutoSync] 验证第一个成功创建的事项自定义字段:`);
-        console.log(`[AutoSync] - objectId: ${firstItem.objectId}`);
-        console.log(`[AutoSync] - name: ${firstItem.name}`);
-        if (firstItem.values) {
-          console.log(`[AutoSync] - values.atm_test_id: ${firstItem.values.atm_test_id}`);
-          console.log(`[AutoSync] - values.atm_file_path: ${firstItem.values.atm_file_path}`);
-          console.log(`[AutoSync] - values字段总数: ${Object.keys(firstItem.values).length}`);
-        } else {
-          console.log(`[AutoSync] - 警告: values字段为空或未返回`);
+            error: `批量创建异常：无返回数据`,
+          });
         }
       }
 
-      // 避免请求过于频繁，稍作延迟
-      if (i + BATCH_SIZE < createDataList.length) {
-        await new Promise(resolve => setTimeout(resolve, 100));
+      const successCount = results.filter(r => r.success).length;
+      console.log(`[AutoSync] 批量创建完成: ${successCount}/${results.length} 成功`);
+
+      return results;
+
+    } catch (error) {
+      console.error(`[AutoSync] 批量创建失败:`, error);
+      
+      // 整体失败，记录所有操作为失败
+      const results: ExecutionResult[] = [];
+      for (const operation of operations) {
+        await logSyncOperation({
+          operationType: 'CREATE',
+          testId: operation.testId,
+          success: false,
+          error: `批量创建失败: ${error}`,
+          commitId: commitContext?.commitId,
+        });
+
+        results.push({
+          success: false,
+          operation,
+          error: `批量创建失败: ${error}`,
+        });
       }
+
+      return results;
     }
-
-    const successCount = results.filter(r => r.success).length;
-    console.log(`[AutoSync] 并发创建完成: ${successCount}/${results.length} 成功`);
-
-    return results;
   } catch (error) {
     console.error(`[AutoSync] 并发创建失败:`, error);
 
@@ -286,6 +334,7 @@ async function executeBatchCreate(
           testId: op.testId,
           success: false,
           error: `并发创建失败: ${error}`,
+          commitId: commitContext?.commitId,
         });
       }),
     );
@@ -366,81 +415,134 @@ async function executeBatchUpdate(
       `[AutoSync] - values字段数量: ${Object.keys(updateDataList[0].updateData.values).length}`,
     );
 
-    // 分批并发更新，每次5个
-    const BATCH_SIZE = 5;
-    const results: ExecutionResult[] = [];
+    // 使用 bulkUpdateItems 批量更新
+    console.log(`[AutoSync] 准备一次性批量更新 ${updateDataList.length} 个用例`);
 
-    for (let i = 0; i < updateDataList.length; i += BATCH_SIZE) {
-      const batch = updateDataList.slice(i, i + BATCH_SIZE);
-      const batchOperations = operations.slice(i, i + BATCH_SIZE);
+    try {
+      // 将更新数据转换为 bulkUpdateItems 需要的格式
+      const updates = [];
+      
+      updateDataList.forEach((updateItem, index) => {
+        const updateData = updateItem.updateData;
+        const itemId = updateItem.objectId;
+        
+        // 将 name 字段添加到更新列表
+        if (updateData.name) {
+          updates.push({
+            itemIds: [itemId],
+            customField: 'name',
+            value: updateData.name,
+          });
+        }
+        
+        // 将 values 中的每个字段添加到更新列表
+        Object.entries(updateData.values || {}).forEach(([fieldKey, fieldValue]) => {
+          updates.push({
+            itemIds: [itemId],
+            customField: fieldKey,
+            value: fieldValue,
+          });
+        });
+      });
 
-      console.log(
-        `[AutoSync] 处理第 ${Math.floor(i / BATCH_SIZE) + 1} 批更新，共 ${batch.length} 个事项`,
-      );
+      console.log(`[AutoSync] 构建了 ${updates.length} 个字段更新操作`);
 
-      // 并发更新当前批次
-      const batchPromises = batch.map(async (updateItem, index) => {
-        try {
-          console.log(`[AutoSync] 开始更新事项: ${updateItem.objectId}`);
-          const updatedItem = await forgeUpdateItem(updateItem.objectId, updateItem.updateData);
-          console.log(
-            `[AutoSync] 成功更新事项: ${updateItem.objectId} (API返回: ${
-              updatedItem?.objectId || updatedItem?.id || 'success'
-            })`,
-          );
+      // 执行批量更新
+      const response = await bulkUpdateItems({
+        updates,
+        parseContext: {
+          skipPermission: true,
+          skipFormValidation: true,
+          skipItemTypeQueryFilter: true,
+          skipItemValidationLevel: true,
+          skipFieldBehaviorValidation: true,
+         },
+      });
 
-          // 记录成功日志
-          const operation = batchOperations[index];
+      console.log(`[AutoSync] 批量更新响应:`, {
+        code: response?.code,
+        dataLength: response?.data?.length || 0,
+        message: response?.message,
+      });
+
+      const results: ExecutionResult[] = [];
+
+      // 处理更新结果
+      if (response?.code === 200) {
+        // 批量更新成功，为每个操作生成成功结果
+        for (let i = 0; i < operations.length; i++) {
+          const operation = operations[i];
+          
           await logSyncOperation({
             operationType: 'UPDATE',
             testId: operation.testId,
             caseId: operation.existingCaseInfo.caseId,
             success: true,
-            details: `并发更新用例: ${operation.caseData.caseName}`,
+            details: `批量更新用例成功: ${operation.caseData.caseName}`,
+            commitId: commitContext?.commitId,
           });
 
-          return {
+          results.push({
             success: true,
             operation,
             caseId: operation.existingCaseInfo.caseId,
-            message: `更新成功: ${operation.existingCaseInfo.caseId}`,
-          };
-        } catch (error) {
-          console.error(`[AutoSync] 更新事项失败: ${updateItem.objectId}`, error);
-
-          // 记录失败日志
-          const operation = batchOperations[index];
+            message: `批量更新成功: ${operation.existingCaseInfo.caseId}`,
+          });
+        }
+      } else {
+        // 批量更新失败，为每个操作生成失败结果
+        const errorMessage = response?.message || '批量更新失败';
+        console.error(`[AutoSync] 批量更新失败: ${errorMessage}`);
+        
+        for (const operation of operations) {
           await logSyncOperation({
             operationType: 'UPDATE',
             testId: operation.testId,
             caseId: operation.existingCaseInfo?.caseId,
             success: false,
-            error: `并发更新失败: ${error}`,
+            error: `批量更新失败: ${errorMessage}`,
+            commitId: commitContext?.commitId,
           });
 
-          return {
+          results.push({
             success: false,
             operation,
-            error: `更新失败: ${error}`,
-          };
+            error: `批量更新失败: ${errorMessage}`,
+          });
         }
-      });
-
-      const batchResults = await Promise.all(batchPromises);
-      results.push(...batchResults);
-
-      // 避免请求过于频繁，稍作延迟
-      if (i + BATCH_SIZE < updateDataList.length) {
-        await new Promise(resolve => setTimeout(resolve, 100));
       }
+
+      const successCount = results.filter(r => r.success).length;
+      console.log(`[AutoSync] 批量更新完成: ${successCount}/${results.length} 成功`);
+
+      return results;
+
+    } catch (error) {
+      console.error(`[AutoSync] 批量更新失败:`, error);
+      
+      // 整体失败，记录所有操作为失败
+      const results: ExecutionResult[] = [];
+      for (const operation of operations) {
+        await logSyncOperation({
+          operationType: 'UPDATE',
+          testId: operation.testId,
+          caseId: operation.existingCaseInfo?.caseId,
+          success: false,
+          error: `批量更新失败: ${error}`,
+          commitId: commitContext?.commitId,
+        });
+
+        results.push({
+          success: false,
+          operation,
+          error: `批量更新失败: ${error}`,
+        });
+      }
+
+      return results;
     }
-
-    const successCount = results.filter(r => r.success).length;
-    console.log(`[AutoSync] 并发更新完成: ${successCount}/${results.length} 成功`);
-
-    return results;
   } catch (error) {
-    console.error(`[AutoSync] 并发更新失败:`, error);
+    console.error(`[AutoSync] 执行批量更新时出错:`, error);
 
     // 记录失败日志
     await Promise.all(
@@ -450,7 +552,8 @@ async function executeBatchUpdate(
           testId: op.testId,
           caseId: op.existingCaseInfo?.caseId,
           success: false,
-          error: `并发更新失败: ${error}`,
+          error: `执行批量更新失败: ${error}`,
+          commitId: commitContext?.commitId,
         });
       }),
     );
@@ -458,7 +561,7 @@ async function executeBatchUpdate(
     return operations.map(op => ({
       success: false,
       operation: op,
-      error: `并发更新失败: ${error}`,
+      error: `执行批量更新失败: ${error}`,
     }));
   }
 }
@@ -532,6 +635,7 @@ async function executeBatchDelete(
           success: success,
           details: success ? `成功删除用例: ${op.testId}` : `删除用例失败: ${op.testId}`,
           error: success ? undefined : `用例ID ${caseId} 删除失败`,
+          commitId: '', // DELETE操作通常不需要commitId
         });
         
         return {
@@ -566,6 +670,7 @@ async function executeBatchDelete(
           success: false,
           error: `批量删除失败: ${error?.message || error}`,
           details: `尝试删除 ${caseIds.length} 个用例时失败`,
+          commitId: '', // DELETE操作通常不需要commitId
         });
       }),
     );
@@ -585,11 +690,12 @@ async function executeBatchDelete(
 async function executeBatchMigrate(
   operations: CaseOperation[],
   workspaceKey?: string,
+  commitContext?: any,
 ): Promise<ExecutionResult[]> {
   console.log(`[AutoSync] 批量迁移 ${operations.length} 个用例`);
 
   // MIGRATE操作实际上是UPDATE操作，只是模块路径发生了变化
-  return await executeBatchUpdate(operations, workspaceKey);
+  return await executeBatchUpdate(operations, workspaceKey, commitContext);
 }
 
 /**
@@ -906,6 +1012,7 @@ async function logSyncOperation(logData: {
   success: boolean;
   details?: string;
   error?: string;
+  commitId?: string; // 添加commitId字段
 }): Promise<void> {
   try {
     const syncLog = {
@@ -915,6 +1022,7 @@ async function logSyncOperation(logData: {
       success: logData.success,
       details: logData.details,
       error: logData.error,
+      commitId: logData.commitId || '', // 添加commitId字段，默认为空字符串
       timestamp: new Date(),
       syncSource: 'T7.6-批量执行器',
     };

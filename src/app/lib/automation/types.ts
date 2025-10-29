@@ -55,6 +55,7 @@ export interface AutomationExecutionRecord {
   triggerUser: string; // 触发用户
   workspaceKey: string; // 工作空间key
   errorMessage?: string; // 错误信息
+  recordType?: 'summary' | 'batch'; // 记录类型：summary=主汇总记录，batch=批次记录
   // 执行统计
   totalCount: number; // 总执行数
   successCount: number; // 成功数

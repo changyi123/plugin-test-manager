@@ -22,9 +22,11 @@ export async function processAutomationQueue() {
     .equalTo('status', 'processing')
     .count();
 
-  if (processingCount > 1) {
+  if (processingCount > 0) {
     console.log(`[AutoSync] 发现 ${processingCount} 个任务正在处理中，跳过本次执行`);
     return; // 直接返回，等待下次定时任务
+  }else{
+    console.log(`[AutoSync] 发现 ${processingCount} 个任务正在处理中，开始本地执行`);
   }
 
   // 0. 定期清理旧日志 (每小时执行一次)
@@ -79,7 +81,6 @@ export async function processAutomationQueue() {
     .ascending('createdAt')
     .limit(5)
     .find();
-
   if (pendingRecords.length === 0) {
     console.log('[AutoSync] 没有待处理的记录');
     return;

@@ -148,6 +148,7 @@ export async function createExecutionRecord(data: {
   successCount?: number;
   failedCount?: number;
   skippedCount?: number;
+  recordType?: string;
 }) {
   console.log('[database.createExecutionRecord] 接收到数据:', data);
 
@@ -171,6 +172,7 @@ export async function createExecutionRecord(data: {
     successCount: data.successCount || 0,
     failedCount: data.failedCount || 0,
     skippedCount: data.skippedCount || 0,
+    recordType: data.recordType || 'batch', // 默认为批次记录
   };
 
   console.log(

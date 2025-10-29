@@ -136,7 +136,6 @@ export const updateExecutionDefects = async executionIds => {
     parseContext: { skipCheckItemHandler: true },
   });
 };
-
 // 刷新测试执行任务的规划用例数、测试缺陷字段
 export const updateExecutionCasesAndDefects = async executionIds => {
   log('updateExecutionCasesAndDefects', JSON.stringify(executionIds));

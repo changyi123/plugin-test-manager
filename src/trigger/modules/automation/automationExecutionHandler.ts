@@ -104,7 +104,7 @@ export class AutomationExecutionHandler {
       // 2. 状态检查
       // await this.checkExecutionStatus();
       console.log('[executeAutomation] 状态检查通过:');
-
+      console.log(`[executeAutomation-count] ${this.actualTestExecutionIds.length}`);
       // 3. 先构建测试用例映射关系
       const testCaseInfos = await this.getTestCaseInfosByExecutionIds(this.actualTestExecutionIds);
       const testCaseMapping = this.buildTestCaseMapping(testCaseInfos);
@@ -112,36 +112,73 @@ export class AutomationExecutionHandler {
         '[executeAutomation] 构建映射关系通过，映射数量:',
         Object.keys(testCaseMapping).length,
       );
-
-      // 4. 创建执行记录（包含映射关系）
-      const recordId = await this.createExecutionRecord(testCaseMapping);
-      console.log('[executeAutomation] 创建执行记录通过:');
-
-      // 5. 更新测试执行状态
-      await this.updateTestExecutionStatus(TestExecutionAutomationStatus.RUNNING);
-      console.log('[executeAutomation] 更新测试执行状态通过:');
+      
+      console.log(`\n[EXEC_COUNT] ========== 执行开始数量统计 ==========`);
+      console.log(`[EXEC_COUNT] 输入的测试执行ID数量: ${this.actualTestExecutionIds.length}`);
+      console.log(`[EXEC_COUNT] 获取到的测试用例信息数量: ${testCaseInfos.length}`);
+      console.log(`[EXEC_COUNT] 构建的映射关系数量: ${Object.keys(testCaseMapping).length}`);
 
       // 6. 调用Pipe流水线
       const pipeResult = await this.callPipeWebHook();
       console.log('[executeAutomation] 调用Pipe流水线通过:');
 
-      // 🚀 新逻辑：处理多批次执行记录
+      // 🚀 根据批次数量决定记录创建策略
+      let recordId: string;
       if (pipeResult.batches && pipeResult.batches.length > 1) {
-        console.log(`[executeAutomation] 检测到多批次执行，创建 ${pipeResult.batches.length} 个独立执行记录`);
+        console.log(`[executeAutomation] 检测到多批次执行，创建主汇总记录和 ${pipeResult.batches.length} 个批次记录`);
+        // 检查是否有跳过的测试用例，并准备错误信息
+        let skippedInfo = '';
+        if (pipeResult.skippedTestCases && pipeResult.skippedTestCases.length > 0) {
+          skippedInfo = `警告：${pipeResult.skippedTestCases.length}个测试用例因缺少有效标识被跳过。详情：${pipeResult.skippedTestCases.map(skip => `批次${skip.batchIndex}第${skip.caseIndex}个用例[key:${skip.testCase.caseId || 'N/A'}, name:${skip.testCase.caseName || 'N/A'}, executionId:${skip.testCase.testExecutionId}]: ${skip.reason}`).join('; ')}`;
+          console.warn('[executeAutomation] 跳过的测试用例:', skippedInfo);
+        }
+        // 多批次：创建主汇总记录（用于展示批次拆分情况，不参与具体执行）
+        recordId = await this.createExecutionRecord(undefined, this.executionId, true, skippedInfo);
+        console.log('[executeAutomation] 创建主汇总记录通过:', recordId);
+        
+        // 🚀 更新主记录状态为"执行中"
+        await updateExecutionRecord(this.executionId, {
+          status: 'running'
+        });
+        console.log('[executeAutomation] 更新主记录状态为执行中');
 
         // 为每个批次创建独立的执行记录
         const batchRecordIds = [];
         for (let i = 0; i < pipeResult.batches.length; i++) {
           const batch = pipeResult.batches[i];
           
-          // 为每个批次创建独立的执行记录（使用该批次的映射关系）
-          const batchRecordId = await this.createExecutionRecord(batch.batchTestCaseMapping);
+          console.log(`[executeAutomation] === 处理批次 ${i + 1}/${pipeResult.batches.length} ===`);
+          console.log(`[executeAutomation] 批次buildId: ${batch.buildId}`);
+          console.log(`[executeAutomation] 批次映射关系数量: ${Object.keys(batch.batchTestCaseMapping || {}).length}`);
+          console.log(`[executeAutomation] 批次信息:`, JSON.stringify(batch.batchInfo, null, 2));
+          
+          // 🚀 验证批次映射关系不为空
+          if (!batch.batchTestCaseMapping || Object.keys(batch.batchTestCaseMapping).length === 0) {
+            console.warn(`[executeAutomation] ⚠️ 批次 ${i + 1} 的batchTestCaseMapping为空！`);
+            console.warn(`[executeAutomation] batch对象完整内容:`, JSON.stringify(batch, null, 2));
+            console.warn(`[executeAutomation] 将跳过此批次的处理`);
+            continue; // 跳过这个批次，继续处理下一个
+          }
+          
+          // 为每个批次生成独立的executionId
+          const batchExecutionId = `${this.executionId}_batch_${i + 1}`;
+          
+          // 为每个批次创建独立的执行记录（使用该批次的映射关系和独立的executionId）
+          const batchRecordId = await this.createExecutionRecord(batch.batchTestCaseMapping, batchExecutionId);
+          
+          // 🚀 为每个批次分别更新对应的测试用例状态为RUNNING
+          const batchTestExecutionIds = Object.values(batch.batchTestCaseMapping).map((mapping: any) => mapping.testExecutionId);
+          console.log(`[executeAutomation] 批次 ${i + 1} 提取到的执行IDs数量: ${batchTestExecutionIds.length}`);
+          await this.updateTestExecutionStatus(TestExecutionAutomationStatus.RUNNING, batchTestExecutionIds);
+          console.log(`[executeAutomation] 批次 ${i + 1} 更新 ${batchTestExecutionIds.length} 个测试用例状态为RUNNING`);
           
           // 更新批次执行记录（包含Pipe信息）
+          // 注意：这里需要传入batchExecutionId而不是使用this.executionId
           await this.updateExecutionRecordWithPipeInfo(batchRecordId, {
             buildId: batch.buildId,
             pipeJumpUrl: batch.pipeJumpUrl,
             testCaseMapping: batch.batchTestCaseMapping, // 🚀 使用批次独立映射
+            executionId: batchExecutionId, // 传入批次的executionId
           });
           
           batchRecordIds.push(batchRecordId);
@@ -173,6 +210,14 @@ export class AutomationExecutionHandler {
       } else {
         // 单批次情况，保持原有逻辑
         console.log('[executeAutomation] 单批次执行，使用原有逻辑');
+        
+        // 单批次：创建普通执行记录（包含映射关系）
+        recordId = await this.createExecutionRecord(testCaseMapping);
+        console.log('[executeAutomation] 创建执行记录通过:', recordId);
+
+        // 5. 更新测试执行状态为RUNNING
+        await this.updateTestExecutionStatus(TestExecutionAutomationStatus.RUNNING);
+        console.log('[executeAutomation] 更新测试执行状态为RUNNING通过');
 
         // 7. 更新执行记录（包含Pipe信息）
         await this.updateExecutionRecordWithPipeInfo(recordId, pipeResult);
@@ -345,20 +390,44 @@ export class AutomationExecutionHandler {
   /**
    * 创建执行记录
    */
-  private async createExecutionRecord(testCaseMapping?: Record<string, any>): Promise<string> {
+  private async createExecutionRecord(testCaseMapping?: Record<string, any>, customExecutionId?: string, isSummaryRecord = false, errorMessage?: string): Promise<string> {
     console.log('[executeAutomation][createExecutionRecord] 开始创建执行记录...');
 
     try {
+      // 🚀 根据记录类型和批次映射关系提取对应的testExecutionIds
+      let batchTestExecutionIds = this.actualTestExecutionIds;
+      let recordTotalCount: number;
+      
+      if (isSummaryRecord) {
+        // 主汇总记录：不包含具体的testExecutionIds，避免pipe回调时误操作
+        batchTestExecutionIds = [];
+        recordTotalCount = this.actualTestExecutionIds.length; // 显示总数
+        console.log(`[executeAutomation][createExecutionRecord] 创建主汇总记录，总用例数: ${recordTotalCount}`);
+      } else if (testCaseMapping && Object.keys(testCaseMapping).length > 0) {
+        // 批次记录：从批次映射关系中提取testExecutionIds
+        batchTestExecutionIds = Object.values(testCaseMapping).map((mapping: any) => mapping.testExecutionId);
+        recordTotalCount = batchTestExecutionIds.length;
+        console.log(`[executeAutomation][createExecutionRecord] 批次独立执行IDs数量: ${batchTestExecutionIds.length}`);
+        console.log(`[executeAutomation][createExecutionRecord] 批次独立执行IDs: ${batchTestExecutionIds.join(', ')}`);
+      } else {
+        // 兼容性：单批次场景使用全量IDs
+        recordTotalCount = batchTestExecutionIds.length;
+        console.log(`[executeAutomation][createExecutionRecord] 使用全量执行IDs数量: ${batchTestExecutionIds.length}`);
+      }
+
       const recordData = {
-        executionId: this.executionId,
-        testExecutionIds: this.actualTestExecutionIds,
-        testCaseMapping: testCaseMapping,
+        executionId: customExecutionId || this.executionId,
+        testExecutionIds: batchTestExecutionIds, // 🚀 使用正确的testExecutionIds
+        testCaseMapping: isSummaryRecord ? undefined : testCaseMapping, // 主记录不需要映射关系
+        totalCount: recordTotalCount, // 🚀 显式设置正确的总数
         mavenVersion: this.params.mavenVersion,
         jdkVersion: this.params.jdkVersion,
         status: TestExecutionAutomationStatus.PENDING,
         triggerTime: new Date(),
         triggerUser: this.params.triggerUser || 'system',
         workspaceKey: this.params.workspaceKey || 'default',
+        errorMessage: errorMessage || '', // 🚀 添加错误信息字段
+        recordType: isSummaryRecord ? 'summary' : 'batch', // 🚀 添加记录类型标识
       };
 
       console.log('[executeAutomation][createExecutionRecord] 准备创建记录，数据:');
@@ -414,9 +483,18 @@ export class AutomationExecutionHandler {
   /**
    * 更新测试执行状态
    * 使用r_test_manager_status字段，值为EXECUTING/PASSED/FAILED
+   * @param status 状态
+   * @param testExecutionIds 可选，指定要更新的测试执行ID列表，不传则更新全部
    */
-  private async updateTestExecutionStatus(status: TestExecutionAutomationStatus): Promise<void> {
+  private async updateTestExecutionStatus(
+    status: TestExecutionAutomationStatus,
+    testExecutionIds?: string[]
+  ): Promise<void> {
+    // 使用传入的ID列表，如果没有则使用全部ID（用于兼容单批次场景）
+    const idsToUpdate = testExecutionIds || this.actualTestExecutionIds;
+    
     console.log(`[executeAutomation] 更新测试执行状态为: ${status}`);
+    console.log(`[executeAutomation] 要更新的测试执行ID数量: ${idsToUpdate.length}`);
 
     // 将内部状态映射到测试管理系统的状态值
     let testManagerStatus: string;
@@ -441,18 +519,18 @@ export class AutomationExecutionHandler {
             r_test_manager_status: testManagerStatus,
           },
         },
-        items: this.actualTestExecutionIds,
+        items: idsToUpdate,  // 使用过滤后的ID列表
         asynchronous: false,
       };
       console.log(
-        `[executeAutomation] 准备批量更新${this.actualTestExecutionIds.length}个测试执行的r_test_manager_status为${testManagerStatus}`,
+        `[executeAutomation] 准备批量更新${idsToUpdate.length}个测试执行的r_test_manager_status为${testManagerStatus}`,
       );
       console.log(`[executeAutomation] 更新参数结构:`, JSON.stringify(updateParams));
       // 调用批量更新API
       const result = await batchUpdateItemsV2(updateParams);
       console.log(`[executeAutomation]:更新成功的返回${JSON.stringify(result)}`);
       console.log(
-        `[executeAutomation] 成功更新${this.actualTestExecutionIds.length}个测试执行状态为${testManagerStatus}`,
+        `[executeAutomation] 成功更新${idsToUpdate.length}个测试执行状态为${testManagerStatus}`,
       );
     } catch (error) {
       console.error('[executeAutomation] 更新测试执行状态失败:', error);
@@ -480,6 +558,12 @@ export class AutomationExecutionHandler {
       batchInfo: any;
     }>;
     totalBatches?: number;
+    skippedTestCases?: Array<{
+      batchIndex: number;
+      caseIndex: number;
+      reason: string;
+      testCase: any;
+    }>;
   }> {
     console.log('[executeAutomation]调用Pipe WebHook...');
 
@@ -599,6 +683,7 @@ export class AutomationExecutionHandler {
           buildId: batchExecutionResults[0].buildId,
           pipeJumpUrl: batchExecutionResults[0].pipeJumpUrl,
           testCaseMapping: testCaseMapping,
+          skippedTestCases: result.skippedTestCases,
         };
       } else {
         // 单批次情况，保持原有逻辑
@@ -608,6 +693,7 @@ export class AutomationExecutionHandler {
           buildId: result.buildId,
           pipeJumpUrl: result.pipeJumpUrl || `https://pipe.gitee.com/builds/${result.buildId}`,
           testCaseMapping: testCaseMapping,
+          skippedTestCases: result.skippedTestCases,
         };
 
         console.log('[callPipeWebHook] === 单批次Pipe调用流程完成 ===');
@@ -852,15 +938,18 @@ export class AutomationExecutionHandler {
         completeTime: new Date(), // 使用completeTime替代startTime
       };
 
+      // 使用传入的executionId或默认使用this.executionId
+      const executionId = pipeInfo.executionId || this.executionId;
+      
       // 单独更新buildId
-      console.log('[executeAutomation] 单独更新buildId:', pipeInfo.buildId);
-      await updateExecutionRecordBuildId(this.executionId, String(pipeInfo.buildId));
+      console.log('[executeAutomation] 单独更新buildId:', pipeInfo.buildId, 'for executionId:', executionId);
+      await updateExecutionRecordBuildId(executionId, String(pipeInfo.buildId));
 
       console.log('[executeAutomation] 准备更新的数据:', JSON.stringify(updateData));
 
       // 注意：updateExecutionRecord需要的是executionId，而不是objectId
-      // 使用this.executionId而不是recordId
-      await updateExecutionRecord(this.executionId, updateData);
+      // 使用传入的executionId或this.executionId
+      await updateExecutionRecord(executionId, updateData);
 
       console.log('[executeAutomation] 执行记录更新成功！');
       console.log('[executeAutomation] buildId已保存:', pipeInfo.buildId);
