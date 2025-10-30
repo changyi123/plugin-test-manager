@@ -314,6 +314,7 @@ const ListView: React.FC<ViewComponentProps> = ({
             folderKey={selectNodeKey}
             repository={repository}
             selector={selector}
+            itemType={config.itemTypeMap?.[TestType.Case]}
             // filteredCaseIds={allTestCaseIds}
           />
         </div>

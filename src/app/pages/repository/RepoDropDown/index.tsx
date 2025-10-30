@@ -11,7 +11,7 @@ import ManageWorkspace from '@/components/business/TestEntitySelectorModal/Manag
 import { SystemFieldKeys } from '@/components/common/BusinessTable/hook';
 import { CustomMore } from '@/icons';
 import { handleSelector } from '@/lib/api/item';
-import { searchFields } from '@/lib/api/proxima';
+import { searchBehaviorFields, searchFields } from '@/lib/api/proxima';
 import { getAppEnv } from '@/lib/appEnv';
 import {
   AppKey,
@@ -47,6 +47,7 @@ const RepoDropDown = ({
   repository,
   selector,
   selectedTestCaseSetId,
+  itemType,
 }: {
   type: string;
   className?: string;
@@ -59,6 +60,7 @@ const RepoDropDown = ({
   repository?: Record<string, any>;
   selector?: SearchSelectors | string;
   selectedTestCaseSetId?: string;
+  itemType?: string;
 }) => {
   const [visible, setVisible] = useState(false);
   const [iql, setIql] = useState('');
@@ -72,16 +74,29 @@ const RepoDropDown = ({
 
   const [testCaseFields, setTestCaseFields] = useState([]);
 
+  const getFields = useMemo(() => {
+    return itemType ? searchBehaviorFields : searchFields;
+  }, [itemType]);
+
   useEffect(() => {
     testCaseFieldKeys?.length &&
-      searchFields({
+      getFields({
         keys: [...testCaseFieldKeys, ...SystemFieldKeys],
         propertyNames: ['name', 'key', 'fieldType'],
         fieldType: true,
+        workspace: workspace?.objectId,
+        itemTypeKey: itemType,
       }).then(data => {
-        setTestCaseFields(data.filter(f => !EXPORT_EXCLUDED_TYPES.includes(f.fieldType?.key)));
+        setTestCaseFields(
+          data
+            .filter(f => !EXPORT_EXCLUDED_TYPES.includes(f.fieldType?.key))
+            .map(f => {
+              f.checked = f.required;
+              return f;
+            }),
+        );
       });
-  }, [testCaseFieldKeys, exportType]);
+  }, [testCaseFieldKeys, exportType, getFields, itemType, workspace?.objectId]);
 
   const testEntitySelectorRef = useRef<ModelActionType>();
 
@@ -315,7 +330,7 @@ const RepoDropDown = ({
   const appFields = useMemo(() => {
     const moreFields = testCaseFields
       .filter(field => !EXPORT_ITEM_FIELDS.some(f => f.value === field.key))
-      .map(field => ({ value: field.key, label: field.name }));
+      .map(field => ({ value: field.key, label: field.name, checked: field.checked }));
     return [...basicFields, ...moreFields];
   }, [testCaseFields, basicFields]);
 
