@@ -330,7 +330,13 @@ const RepoDropDown = ({
   const appFields = useMemo(() => {
     const moreFields = testCaseFields
       .filter(field => !EXPORT_ITEM_FIELDS.some(f => f.value === field.key))
-      .map(field => ({ value: field.key, label: field.name, checked: field.checked }));
+      .map(field => ({
+        value: field.key,
+        label: field.name,
+        checked: field.checked,
+        required: field.required,
+      }))
+      .sort(a => (a.required ? -1 : 1));
     return [...basicFields, ...moreFields];
   }, [testCaseFields, basicFields]);
 
@@ -412,6 +418,7 @@ const RepoDropDown = ({
                 extraParams={extraParams}
                 exportType={exportType}
                 className={cx('export-modal')}
+                modalTipMessage={t('exportExcel.modal.tip')}
               />
             )}
           </FilterProvider>
