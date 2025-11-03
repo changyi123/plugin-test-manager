@@ -1135,22 +1135,20 @@ const VirtualTree: React.FC<VirtualTreeProps> = ({
               >
                 {hasChildren && (
                   <svg
+                    viewBox="0 0 1024 1024"
+                    focusable="false"
+                    data-icon="caret-down"
                     width="12"
                     height="12"
-                    viewBox="0 0 12 12"
+                    // viewBox="0 0 12 12"
                     style={{
                       transition: 'transform 0.2s ease',
-                      transform: isExpanded ? 'rotate(90deg)' : 'rotate(0deg)',
+                      transform: isExpanded ? 'rotate(0)' : 'rotate(-90deg)',
                     }}
+                    fill="#878C96"
+                    aria-hidden="true"
                   >
-                    <path
-                      d="M4.5 2L8.5 6L4.5 10"
-                      stroke="currentColor"
-                      strokeWidth="1.5"
-                      fill="none"
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                    />
+                    <path d="M840.4 300H183.6c-19.7 0-30.7 20.8-18.5 35l328.4 380.8c9.4 10.9 27.5 10.9 37 0L858.9 335c12.2-14.2 1.2-35-18.5-35z"></path>
                   </svg>
                 )}
               </span>
