@@ -825,6 +825,7 @@ const TestEntityList: React.FC<TestEntityListProps> = ({
       }
       actionRef.current.refresh();
       mutateStatusEvent.emit('refreshExecutionStatus');
+      mutateStatusEvent.emit('refreshExecutionList');
     },
     [mutateStatusEvent, selectedTestPlan?.objectId, statusesConfig, t],
   );
@@ -1086,6 +1087,7 @@ const TestEntityList: React.FC<TestEntityListProps> = ({
                     // 刷新依赖数据
                     actionRef.current.refresh();
                     mutateStatusEvent.emit('refreshExecutionStatus');
+                    mutateStatusEvent.emit('refreshExecutionList');
                   }}
                 >
                   {t('common.run')}
@@ -1244,11 +1246,13 @@ const TestEntityList: React.FC<TestEntityListProps> = ({
           actionRef.current.refresh();
           // mutateTestPlanEvent.emit(selectedTestPlan?.objectId);
           mutateStatusEvent.emit('refreshExecutionStatus');
+          mutateStatusEvent.emit('refreshExecutionList');
         },
         handleFail: e => {
           message.error(e.message);
           // mutateTestPlanEvent.emit(selectedTestPlan?.objectId);
           mutateStatusEvent.emit('refreshExecutionStatus');
+          mutateStatusEvent.emit('refreshExecutionList');
         },
       });
     };

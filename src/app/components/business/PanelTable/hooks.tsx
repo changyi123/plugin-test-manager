@@ -22,7 +22,10 @@ export const usePanelExecutionStatusStats = ({
     const [tempSelectedKeys, setTempSelectedKeys] = useState<string[]>([]);
 
     const groupedStats = useMemo(() => {
-        const selectedTestEntities = allTestEntities.filter(item => 
+        if (!allTestEntities || !allTestEntities?.length) {
+          return;
+        }
+        const selectedTestEntities = allTestEntities?.filter(item => 
           selectedRowKeys.includes(item.id)
         );
         return getSelectedDataStatusStats(selectedTestEntities);

@@ -76,7 +76,7 @@ export const useExecutionStatusStats = ({
     const { data, refresh, loading } = useRequest(
       async () => {
         if (!selectedExecution?.objectId || activeType === 'TestPlan') {
-          return {};
+          return null;
         }
   
         const { list: cases } = await getLinkedTestEntityByQuery({query: {
@@ -99,7 +99,6 @@ export const useExecutionStatusStats = ({
           'runDetail',
         ],
         });
-   
         return cases;
       },
       {
@@ -108,6 +107,9 @@ export const useExecutionStatusStats = ({
     );
 
     const groupedStats = useMemo(() => {
+      if (!data) {
+        return
+      }
       const selectedTestEntities = data?.filter(item => 
         selectedRowKeys?.includes(item.id)
       );
@@ -115,7 +117,7 @@ export const useExecutionStatusStats = ({
     }, [data, selectedRowKeys]);
   
     // 监听状态变更事件
-    mutateStatusEvent.useSubscription(key => {
+    mutateStatusEvent?.useSubscription(key => {
       if (key === 'refreshExecutionList') {
         refresh();
       }
