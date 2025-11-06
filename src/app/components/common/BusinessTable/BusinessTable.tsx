@@ -21,6 +21,7 @@ import ColumnSetting from './ColumnSetting';
 import TableSelection from './TableSelection';
 import type { BusinessTableActionType } from './type';
 import type { EnableCacheEpandedRowKeys, TitleCellOption } from './type';
+import { getAppEnv } from '@/lib/appEnv';
 
 const DEFAULT_PAGE_SIZE = 10;
 const MIN_COLUMN_WIDTH = 120;
@@ -192,6 +193,8 @@ const BusinessTable: React.FC<BusinessTableProps> = props => {
   const ref = useRef(null);
   const size = useSize(ref);
   const { t } = useI18n();
+
+  const isEnableExpandFirstItem = getAppEnv('ENABLE_EXPAND_FIRST_ITEM');
 
   const scrollMemo = useMemo(() => {
     const selectionHeaderHeight = selectionMode ? SELECTION_HEADER_HEIGHT : 0;
@@ -660,7 +663,7 @@ const BusinessTable: React.FC<BusinessTableProps> = props => {
   React.useEffect(() => {
     if (!dataSource?.length) return;
 
-    if (!initialExpandedRef.current) {
+    if (!initialExpandedRef.current && isEnableExpandFirstItem) {
       // 只在初始加载时设置默认展开状态
       setAllExpanded(false);
       setExpandedKeys([dataSource[0]?.[props?.rowKey as string]]);
@@ -764,7 +767,7 @@ const BusinessTable: React.FC<BusinessTableProps> = props => {
                   }
                   setExpandedKeys(expandedRows as any[]);
                   // 保存展开状态到缓存
-                  setCachedExpandedRowKeys(expandedRows as any[])
+                  setCachedExpandedRowKeys(expandedRows as any[]);
                 },
               }
             : undefined

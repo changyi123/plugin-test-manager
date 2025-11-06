@@ -84,7 +84,7 @@ const initializedStatuses = [
 ];
 
 // 获取 parseObject，不存在则创建 (单条数据)
-const getOrCreateParseObject = async (isAppClass, parseClass, attributes) => {
+export const getOrCreateParseObject = async (isAppClass, parseClass, attributes) => {
   const parseData = await getData(isAppClass, parseClass, attributes);
   if (!parseData) {
     const newParseObject = getParseObject(isAppClass, parseClass);
@@ -150,6 +150,16 @@ const initGlobalTestConfig = async () => {
       itemLinkTypeMapping: {
         TestToDefect: itemLinkType?.get('objectId'),
       },
+    });
+  }
+
+  // 开启事项复制时，顺带复制测试用例.
+  if (
+    globalTestConfigData?.enableCloneItemWithPlanCase == null ||
+    globalTestConfigData?.enableCloneItemWithPlanCase === undefined
+  ) {
+    saveGlobalTestConfigData({
+      enableCloneItemWithPlanCase: true,
     });
   }
 

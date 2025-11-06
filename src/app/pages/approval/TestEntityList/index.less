@@ -1,0 +1,33 @@
+.test-entity-list-box {
+  height: 100%;
+  width: 100%;
+
+  .user-field {
+    white-space: nowrap;
+  }
+
+  .run-link {
+    :global {
+      .ant-btn.ant-btn-link {
+        padding-left: 0px !important;
+      }
+    }
+  }
+  .danger {
+    color: #ff4d0d;
+    &.cursor-point {
+      cursor: pointer;
+    }
+  }
+  .batchUpdateExeCases {
+    color: #0c62ff;
+  }
+}
+
+.expandedRowClassName {
+  :global {
+    .ant-table-cell {
+      background-color: #fafbfb !important;
+    }
+  }
+}

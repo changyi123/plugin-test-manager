@@ -231,7 +231,7 @@ export const batchUpdateItemsV2 = async () => {
           },
           headers,
         ),
-      syncFunc: async () => await updateItemsV2(params),
+      syncFunc: async () => await updateItemsV2({ ...params, items: propItems }),
     });
   } catch (err) {
     return buildResponse(err);

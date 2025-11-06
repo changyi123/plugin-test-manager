@@ -61,7 +61,7 @@ const DEFAULT_CONFIG = {
     batchSize: 100,
   },
   DELETE_V1: {
-    batchSize: 10,
+    batchSize: 50,  // 从10增加到50，提高删除效率
   },
   REMOVE_CASE: {
     batchSize: 100,
@@ -535,14 +535,9 @@ export const createTestRuns = async (params: ProcessJobParams<BatchCreateTestRun
         const caseSnapshot = await getCaseSnapshotType();
         console.info(`batchCreateTestRunV2 caseSnapshotType: ${caseSnapshot?.type}`);
 
-        if (
-          !caseSnapshot ||
-          caseSnapshot?.type === CASESNAPSHOT_TYPE.NO_AUTOBUILDVERSION_NO_SELVERSION
-        ) {
-          return;
-        } else if (caseSnapshot?.type === CASESNAPSHOT_TYPE.AUTO_BUILDVERSION) {
+        if (caseSnapshot?.type === CASESNAPSHOT_TYPE.AUTO_BUILDVERSION) {
           await createCaseSnapshot(needPlanCases);
-        } else {
+        } else if (caseSnapshot?.type === CASESNAPSHOT_TYPE.NO_BUILDVERSION_SELVERSION) {
           await attachSnapshotToRun(needPlanCases);
         }
 
@@ -604,7 +599,7 @@ export const updateItemsV2 = async (props: ProcessJobParams<IBatchUpdateParams>)
   const { processId, retry, items, ...updatePropParams } = props;
   const withProcess = !!processId;
   const result = getResult(processId);
-  result.total = items.length;
+  result.total = items?.length;
   try {
     const updateItems = async items => {
       const updateParams = {
@@ -615,10 +610,10 @@ export const updateItemsV2 = async (props: ProcessJobParams<IBatchUpdateParams>)
 
       try {
         await batchUpdateItemsV2(updateParams);
-        result.success += items.length;
+        result.success += items?.length;
       } catch (e) {
         result.message.push(getErrorMessage(e));
-        result.fail += items.length;
+        result.fail += items?.length;
         result.items = result.items.concat(items);
         throw e;
       }

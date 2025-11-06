@@ -274,6 +274,7 @@ module.exports = (cliEnv = {}, argv) => {
           include: [
             // path.resolve(__dirname, '../../proxima-share-components/dist'),
             path.resolve(__dirname, '../node_modules/@giteeteam/apps-team-components/dist'),
+            // path.resolve(__dirname, '../node_modules/.pnpm'),
           ],
           use: [
             classNamesConfig,

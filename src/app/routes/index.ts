@@ -79,6 +79,11 @@ const routes = [
     component: React.lazy(() => import('../pages/reportView')),
     exact: true,
   },
+  {
+    path: '/approval',
+    component: React.lazy(() => import(/* webpackChunkName: "route_plan" */ '../pages/approval')),
+    exact: true,
+  },
 ];
 
 export default routes;

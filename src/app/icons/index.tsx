@@ -20,7 +20,7 @@ export {
   ReloadOutlined,
   PlusCircleTwoTone,
   MinusCircleTwoTone,
-  CaretRightOutlined
+  CaretRightOutlined,
 } from '@ant-design/icons';
 
 export * from './customIcon';

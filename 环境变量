@@ -1,0 +1,35 @@
+{
+	"alias": {
+		"repository": "分组"
+	},
+	"PIPE_TOKEN": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VySWQiOiIxIiwiZGlzcGxheU5hbWUiOiJvc2MtYWRtaW4iLCJuaWNrTmFtZSI6Im9zYy1hZG1pbiJ9.xnxeJb0rFavy921iyqe3milDiRkNVVLz_Zdw8fTDPTw",
+	"PIPE_SECRET": "148d978aabb4439ea0131562c9e3b5ed",
+	"FEATURE_FLAGS": [
+		"ENABLE_TEST_REPORT",
+		"ENABLE_OFFLINE_TEST_REPORT",
+		"ENABLE_MORE_CONFIG",
+		"ENABLE_REPOSITORY_TABLE_STEP"
+	],
+	"PIPE_BASE_URL": "http://giteetest.rd.cfca.work",
+	"AUTOMATION_TOKEN": "a:5342414fbd5b66363156fb08",
+	"TEST_REPORT_VERSION": 1,
+	"ENABLE_TEST_APPROVAL": "true",
+	"ENABLED_CASE_SNAPSHOT": false,
+	"PROXIMA_PAGE_BASE_URL": "http://gitee.rd.cfca.work/_team",
+	"VALIDATE_WEB_TRIGGERS": [
+		{
+			"url": "http://gitee-proxima-core:1337/api/app/${applicationId}/test_manager/webhooks/validate-duplicate-name",
+			"method": "POST"
+		}
+	],
+	"APPROVAL_ITEM_TYPE_KEY": "caseReview",
+	"AUTOMATION_JDK_VERSIONS": [
+		"8"
+	],
+	"AUTOMATION_MAVEN_VERSIONS": [
+		"3.6.3",
+		"test"
+	],
+	"AUTOMATION_CODE_PLATFORM_TOKEN": "MGI0NGZhZWItZDc4Yy00ODhkLWEzYTktNmUzMjI2M2FlZDNi",
+	"AUTOMATION_CODE_PLATFORM_DOMAIN": "http://giteetest.rd.cfca.work"
+}

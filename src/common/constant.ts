@@ -71,6 +71,8 @@ export enum TestType {
   TestDefect = 'TestDefect', // 避免大量ts报错
   /** 测试报告 */
   Report = 'TestReport',
+  /** 测试评审 */
+  Approval = 'TestApproval',
 }
 
 // 拓展的测试报告条件
@@ -136,6 +138,7 @@ export const TestFiledKeyMapping = {
   testPlans: 'r_test_manager_testPlans',
   testExecutions: 'r_test_manager_testExecutions',
   testDefects: 'r_test_manager_testDefects',
+  testApprovals: 'r_test_manager_testApprovals',
 
   // 以下字段以字符串形式存入，存入前需要 stringify，返回需要 parse
   detail: 'r_test_manager_detail',

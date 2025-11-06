@@ -1,0 +1,135 @@
+.test-plan-container {
+  // height: ~'calc(100% - 110px)';
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+
+  .plan-header {
+    display: flex;
+    flex-direction: column;
+
+    .plan-header-body {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 12px 24px;
+    }
+    .plan-header-slot {
+      border-top: 1px solid #dadde3;
+    }
+
+    .header-left {
+      display: flex;
+      align-items: center;
+      font-size: 18px;
+      font-weight: 500;
+      color: #1e2a3d;
+      line-height: 26px;
+
+      .icon {
+        margin-right: 8px;
+      }
+    }
+
+    .header-right {
+      display: flex;
+      align-items: center;
+    }
+  }
+
+  .table-rate {
+    display: flex;
+    align-items: center;
+
+    .status {
+      width: ~'calc(100% - 60px)';
+    }
+
+    .rate {
+      margin-left: 12px;
+      min-width: 40px;
+    }
+  }
+
+  :global {
+    .test-plan-title-box {
+      display: flex;
+      align-items: center;
+      cursor: pointer;
+      .plan-name {
+        max-width: ~'calc(100% - 55px)';
+        overflow: hidden;
+        text-overflow: ellipsis;
+        display: -webkit-box;
+        -webkit-box-orient: vertical;
+        word-break: break-all;
+        -webkit-line-clamp: 1;
+      }
+      &:hover {
+        color: #0c62ff;
+        .plan-table-title-menu {
+          display: inline-block;
+          color: #848c9f;
+
+          &:hover {
+            color: #0c62ff;
+          }
+        }
+      }
+
+      .plan-table-title-menu {
+        display: none;
+        margin-top: -12px;
+        height: 20px;
+        width: 20px;
+        border-radius: 4px;
+        font-size: 20px;
+      }
+    }
+  }
+
+  .plan-table-title {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+
+    &:hover {
+      .plan-table-title-right {
+        display: block;
+      }
+    }
+
+    .plan-table-title-left {
+      flex: 0.9;
+
+      .test-plan-title {
+        cursor: pointer;
+        margin-left: 8px;
+
+        &:hover {
+          color: #0c62ff;
+        }
+      }
+    }
+
+    .plan-table-title-right {
+      display: none;
+      flex: 0.1;
+    }
+  }
+}
+
+:global {
+  .ant-tooltip .ant-tooltip-content .ant-tooltip-inner {
+    .test-plan-title-box .icon,
+    .test-plan-title-box .plan-table-title-menu {
+      display: none;
+    }
+  }
+}
+
+:root {
+  .test-manager-filter {
+    padding: 16px 24px 0 24px;
+  }
+}

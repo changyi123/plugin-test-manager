@@ -1,0 +1,197 @@
+# 自动化用例同步 - Manifest声明配置
+# 本文件展示需要在 manifest.yml 中添加的配置
+
+# 1. 添加Webhook接收触发器
+modules:
+  webtrigger:
+    # 自动化用例同步 - Webhook接收
+    - key: code-commit-webhook
+      function: code-commit-webhook-function
+      description: 接收代码仓库提交事件，触发自动化用例同步
+    
+    # 自动化用例同步 - 手动触发
+    - key: automation-manual-sync
+      function: automation-manual-sync-function
+      description: 手动触发自动化用例全量同步
+    
+    # 自动化用例同步 - 重试失败记录
+    - key: automation-sync-retry
+      function: automation-sync-retry-function
+      description: 重试失败的同步记录
+
+# 2. 声明数据库表
+tables:
+  # Webhook队列表
+  - className: AutomationWebhookQueue
+    fields:
+      webhookUuid:
+        type: String
+        description: webhook事件uuid
+      repositoryId:
+        type: String
+        description: 仓库ID
+      repositoryName:
+        type: String
+        description: 仓库名称
+      branchName:
+        type: String
+        description: 分支名称
+      commitIds:
+        type: Array
+        description: commit id数组
+      payload:
+        type: Object
+        description: 完整的webhook payload
+      status:
+        type: String
+        description: 处理状态 pending/processing/completed/failed
+      retryCount:
+        type: Number
+        description: 重试次数
+      processedTime:
+        type: Date
+        description: 处理时间
+      createdBy:
+        type: Pointer
+        targetClass: _User
+      updatedBy:
+        type: Pointer
+        targetClass: _User
+    indexes:
+      - name: idx_webhook_status
+        fields:
+          - status
+      - name: idx_webhook_created
+        fields:
+          - createdAt
+
+  # 同步记录表
+  - className: AutomationSyncLog
+    fields:
+      webhookQueueId:
+        type: String
+        description: 关联的webhook队列ID
+      repositoryId:
+        type: String
+        description: 仓库ID
+      repositoryName:
+        type: String
+        description: 仓库名称
+      commitId:
+        type: String
+        description: commit ID
+      branchName:
+        type: String
+        description: 分支名称
+      syncStatus:
+        type: String
+        description: 同步状态 success/failed/partial
+      processedFiles:
+        type: Number
+        description: 处理文件数
+      createdCases:
+        type: Number
+        description: 创建用例数
+      updatedCases:
+        type: Number
+        description: 更新用例数
+      skippedCases:
+        type: Number
+        description: 跳过用例数
+      failedCases:
+        type: Number
+        description: 失败用例数
+      errorDetails:
+        type: Object
+        description: 详细错误信息
+      syncStartTime:
+        type: Date
+        description: 同步开始时间
+      syncEndTime:
+        type: Date
+        description: 同步结束时间
+      createdBy:
+        type: Pointer
+        targetClass: _User
+      updatedBy:
+        type: Pointer
+        targetClass: _User
+    indexes:
+      - name: idx_sync_repository
+        fields:
+          - repositoryId
+      - name: idx_sync_status
+        fields:
+          - syncStatus
+
+# 3. 声明自定义字段（需要添加到fields部分）
+# 注意：这部分需要集成到现有的fields配置中
+fields:
+  TestDetail:
+    # 自动化用例相关字段
+    - key: automationCaseId
+      name: 自动化用例唯一标识
+      type: text
+      description: 对应代码中的@TestId注解值
+      required: false
+      unique: true  # 确保唯一性
+      
+    - key: automationFilePath
+      name: 自动化代码路径
+      type: text
+      description: 用例对应的代码文件路径
+      required: false
+      
+    - key: automationRepository
+      name: 自动化代码仓库
+      type: text
+      description: 用例所在的代码仓库名称
+      required: false
+      
+    - key: automationClassName
+      name: 自动化测试类名
+      type: text
+      description: 用例对应的测试类名
+      required: false
+      
+    - key: automationMethodName
+      name: 自动化测试方法名
+      type: text
+      description: 用例对应的测试方法名
+      required: false
+      
+    - key: automationLastCommit
+      name: 最后同步CommitId
+      type: text
+      description: 最后一次同步的commit ID
+      required: false
+      
+    - key: automationLastSyncTime
+      name: 最后同步时间
+      type: datetime
+      description: 最后一次同步的时间
+      required: false
+      
+    - key: automationFramework
+      name: 自动化测试框架
+      type: text
+      description: 使用的测试框架（JUnit/TestNG等）
+      required: false
+
+# 4. 添加定时任务（用于处理队列）
+jobs:
+  - key: process-webhook-queue
+    function: process-webhook-queue-function
+    schedule: "*/30 * * * * *"  # 每30秒执行一次
+    description: 处理webhook队列中的待处理事件
+
+# 5. 添加环境变量配置（在实际部署时配置）
+# 这部分通常在部署配置中设置，不在manifest.yml中
+env:
+  CODE_PLATFORM_BASE_URL: https://dce1-dev.gitee.work/api/v8
+  CODE_PLATFORM_TOKEN: ${CODE_PLATFORM_TOKEN}
+  CODE_PLATFORM_ENTERPRISE: DCE3
+  SYNC_BRANCH: master  # 可配置，默认master
+  SYNC_QUEUE_SIZE: 5
+  SYNC_RETRY_MAX: 3
+  SYNC_TIMEOUT: 120000

@@ -8,6 +8,7 @@ import { withPageGuard } from '@/lib/guards/page';
 import useI18n from '@/lib/hooks/useI18n';
 import DefectManageConfig from '@/pages/config/MoreConfig/DefectManageConfig';
 
+import ApprovalConfig from './ApprovalConfig';
 import DataProvider from './DataProvider';
 import DefectMapping from './DefectMapping';
 import ExecuteTestRunAction from './ExecuteTestRunAction';
@@ -15,6 +16,7 @@ import { useDataContext } from './hooks';
 import cx from './index.less';
 import IsolatedTestType from './IsolatedTestType';
 import ItemTypeMapping from './ItemTypeMapping';
+import AutomationQueueMonitor from './MoreConfig/AutomationQueueMonitor';
 import FieldSettings from './MoreConfig/FieldSettings';
 import GeneralSettings from './MoreConfig/GeneralSettings';
 import IsolatedSystem from './MoreConfig/IsolatedSystem';
@@ -63,6 +65,13 @@ const MoreConfigPages = [
     description: 'defectManageConfig',
     isGlobalConfig: true,
   },
+  {
+    key: 'AutomationQueueMonitor',
+    title: 'automationQueueMonitor',
+    component: AutomationQueueMonitor,
+    description: 'automationQueueMonitor',
+    isGlobalConfig: true,
+  },
 ];
 
 const ConfigPages = [
@@ -98,11 +107,18 @@ const ConfigPages = [
     component: ExecuteTestRunAction,
     description: 'executeTestRunAction',
   },
-  {
+  !getAppEnv('HIDDEN_TABLE_FIELD_CONFIG') && {
     key: 'TableFields',
     title: 'tableFields',
     component: TableFields,
     description: 'tableFields',
+  },
+  {
+    key: 'ApprovalConfig',
+    title: 'approvalConfig',
+    component: ApprovalConfig,
+    description: 'approvalConfig',
+    isGlobalConfig: true,
   },
   {
     key: 'TestConfigInitialization',

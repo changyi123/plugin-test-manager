@@ -5,13 +5,18 @@
     "TestPlan": "Test Plan",
     "testExecution": "Test Execution",
     "testRun": "Test Run",
-    "testDefect": "Test Defect"
+    "testDefect": "Test Defect",
+    "testApproval": "Test Approval"
   },
   "testRunAuth": {
     "cannotAssignedTestCase": "Cannot execute assigned to others test cases",
     "cannotExecuteTestCase": "The current test case is not assigned to an executor and cannot be executed"
   },
   "common": {
+    "insertItIntoTheTop": "Insert into the top",
+    "insertItIntoTheBottom": "Insert into the bottom",
+    "asChildNode": "As child node",
+    "insertNodeInner": "Insert into node inner",
     "snapshot": "Snapshot",
     "createPermissionTip": "Please contact the administrator to check the type mapping of the workspace, or enable",
     "haveDelete": "deleted",
@@ -64,7 +69,6 @@
     "deleteFail": "Failed to delete",
     "actionSuccess": " Successful operation",
     "actionFail": "Operation failed",
-
     "overview": "Test Overview",
     "testCase": "Test case",
     "testCaseSet": "Test Suite",
@@ -74,6 +78,7 @@
     "testDefect": "Test defect",
     "testRepository": "Test case repository",
     "testCaseRepository": "Cases repository",
+    "testApproval": "Test approval",
     "designee": "Designee",
     "assignee": "Assignee",
     "testExecutor": "The latest executor",
@@ -83,7 +88,10 @@
     "testReport": "Test report",
     "exportReportFail": "Failed to export test report",
     "pleaseSelectType": "Please choose the type",
-    "tableTotal": ["Total", "Data"],
+    "tableTotal": [
+      "Total",
+      "Data"
+    ],
     "testManagerConfig": "Test management config",
     "moreConfig": "More configuration",
     "more": "More",
@@ -302,6 +310,9 @@
         "radioBlackLabel": "Workflow states for use cases that are not allowed to be planned",
         "radioWhiteLabel": "Workflow states for use cases that are allowed to be planned",
         "testersCannotExecuteOtherCases": "Testers may not execute others test cases",
+        "testCaseStatusLimist": "Use case bulk operation limits",
+        "worksapceTestCaseStatusLimistNumber": "The number of execution states of a single-space batch change of use cases",
+        "pleaseEnterCaseNumber": "Enter the number of use case statuses",
         "unassignedCaseCannotBeExecuted": "Unassigned test cases cannot be executed",
         "defaultCaseRange": "The default planning scope for the test case"
       },
@@ -410,6 +421,8 @@
         "title": "Test Management Configuration Initialization",
         "description": "Enabling configuration initialization will modify the association mapping of the built-in matter types in the test management to the built-in matter types.",
         "switchLabel": "Enable Configuration Initialization",
+        "cloneItemWithTestPlanCase": "Copy the test plan while planning the original use cases",
+        "cloneItemWithTestPlanCaseTip": "When copying a test plan, the test tasks under it will be copied, and the original test cases will be planned into the corresponding test plan and test tasks",
         "switchSnapshotLabel": "Automatically take snapshots when planning cases for executions",
         "builtInItemTypeHasBeenModified": "Built-in matter types have been modified.",
         "messageSuccess": "Test management configuration initialization successful.",
@@ -421,6 +434,27 @@
         "enableCaseExeUpdate": "Can the use cases for task execution be updated",
         "restrictiveConditions": "Restrictive conditions",
         "restrictiveConditionsPlaceholder": "Please enter restrictive conditions"
+      },
+      "automationQueueMonitor": {
+        "title": "Automation Queue Monitor",
+        "description": "Monitor automation queue status, including Webhook queue and execution records",
+        "tab": {
+          "webhook": "Webhook Queue",
+          "execution": "Execution Monitor"
+        },
+        "webhook": {
+          "placeholder": "No Webhook queue data"
+        },
+        "execution": {
+          "placeholder": "No execution monitor data"
+        }
+      },
+      "approvalConfig": {
+        "title": "Approval configuration",
+        "description": "Approval configuration",
+        "actionDisabledItemStatuses": "Operation disabled item status",
+        "itemApprovalStatus": "Review item approval status",
+        "caseApprovalStatus": "Case item approval status"
       },
       "testCaseRemoveDuplicates": {
         "title": "Test case deduplication",
@@ -447,7 +481,6 @@
           "next": "Next",
           "finish": "Save"
         },
-
         "steps": {
           "basic": "Basic Information",
           "template": "Interface Configuration",
@@ -495,7 +528,6 @@
             "version": "Selected Version",
             "workspace": "Selected Workspace",
             "currentWorkspace": "Current Workspace",
-
             "TestCase": "All Test Cases",
             "TestRun": "All Test Runs",
             "TestDefect": "All Defects"
@@ -536,7 +568,6 @@
         "next": "Next",
         "finish": "Save"
       },
-
       "steps": {
         "basic": "Basic Information",
         "template": "Interface Configuration",
@@ -574,7 +605,6 @@
           "workspace": "Selected Workspace",
           "currentWorkspace": "Current Workspace",
           "customDataSource": "Custom Data Source",
-
           "TestCase": "All Test Cases",
           "TestRun": "All Test Runs",
           "TestDefect": "All Defects",
@@ -638,8 +668,12 @@
           "notSelectMessage": "No test case selected",
           "createTestRunSuccessMessage": "Test case execution created successfully",
           "caseToPlanSuccessMessage": "The test case has been successfully added to the test plan",
+          "caseToApprovalSuccessMessage": "The test case has been successfully added to the test approval",
           "caseSelectModelTitle": "Select a planned test case",
-          "createTestExecutionSuccessMessage": ["Test execution task", "created successfully"],
+          "createTestExecutionSuccessMessage": [
+            "Test execution task",
+            "created successfully"
+          ],
           "createTestExecutionFailMessage": "Test execution of task new failure"
         }
       },
@@ -667,6 +701,8 @@
         "addItemTips": "No item add permission at the moment, please check the item operation permission configuration or contact the administrator",
         "noCanUpdateRunStateTips": "The selected test execution cannot change execution status",
         "updateRunStateTips": "Selected test execution status updated successfully",
+        "updateRunStateAndLimitTips": "If the number of updates exceeds {{number}}, the previous update of {{number}} has been successful.",
+        "connectAdmin": "If you have any questions, please contact the administrator",
         "updateDesigneeStateTips": "The selected test executor has been successfully updated",
         "notUpdateDesignee": "Cannot change executor of test case",
         "updateDesignee": "Change executor",
@@ -716,7 +752,11 @@
           "test case",
           "Created successfully"
         ],
-        "buttonName": ["Create Module", "Collapse all", "More"],
+        "buttonName": [
+          "Create Module",
+          "Collapse all",
+          "More"
+        ],
         "dropCaseTips": [
           "Test case moved successfully",
           "Limit 8 levels, dragging is not allowed after more than 8 levels"
@@ -813,7 +853,10 @@
         },
         "minder": {
           "dataError": "Data error",
-          "nameRepeat": ["Save fail, modules", "with the same module name"],
+          "nameRepeat": [
+            "Save fail, modules",
+            "with the same module name"
+          ],
           "overMaxLevelModulePath": "The module has exceeded the maximum level limit, please modify it before saving",
           "updateDataSuccess": "Data updated successfully",
           "saveFail": "Save failed",
@@ -898,10 +941,30 @@
         "hint": "Saving data, please wait",
         "stats": {
           "label": "Data Statistics:",
-          "count": ["Total", "cases"]
+          "count": [
+            "Total",
+            "cases"
+          ]
         },
         "success": "Imported successfully",
         "redirectRepositoryPage": "Redirect to repository page"
+      }
+    },
+    "approval": {
+      "title": "Approval",
+      "create": "Create approval",
+      "view": "View approval",
+      "approval": "Approval",
+      "addApprovalSuccess": "Approval created successfully",
+      "columns": {
+        "approvalTitle": "Approval name",
+        "approvalCases": "Approval cases"
+      },
+      "action": {
+        "approval": "Approve",
+        "addCase": "Add case",
+        "addingCase": "Add case in progress",
+        "disabledMessage": "Current approval status does not support operation"
       }
     }
   },
@@ -923,11 +986,21 @@
           "testStepTips": ["Current test case Inheritance", "Test Cases"],
           "multipleStates": "There are multiple states,",
           "uncheckStates": "You can uncheck the following states"
+          "testStepTips": [
+            "Current test case Inheritance",
+            "Test Cases"
+          ]
         },
         "testPlanPanel": {
-          "menuList": ["Existing test plan", "New test plan"],
+          "menuList": [
+            "Existing test plan",
+            "New test plan"
+          ],
           "addCaseSuccessMessage": "The current test case is added to the test plan",
-          "addPlanSuccessMessage": ["Test plan", "Created successfully"],
+          "addPlanSuccessMessage": [
+            "Test plan",
+            "Created successfully"
+          ],
           "deleteCaseSuccessMessage": "The current test case is removed from the test plan",
           "planStatus": "Test plan status",
           "planCount": "Number of test cases",
@@ -961,7 +1034,10 @@
       },
       "testPlan": {
         "testDetailPanel": {
-          "modelTitle": ["New test execution task (selected", "article test case)"],
+          "modelTitle": [
+            "New test execution task (selected",
+            "article test case)"
+          ],
           "addCaseToPlanSuccess": "test cases added to the test plan",
           "addCaseToPlanSuccessTips": [
             "Test cases have been added to the test plan",
@@ -1024,7 +1100,12 @@
         "defectStatusAnalysis": "Defect status analysis",
         "defectSeverityTable": "Defect severity statistics table",
         "severity": "Severity",
-        "severityValue": ["Serious", "Generally", "Small", "Suggestion"],
+        "severityValue": [
+          "Serious",
+          "Generally",
+          "Small",
+          "Suggestion"
+        ],
         "defectCount": "Number of defects",
         "defectChart": "Defect convergence trend graph",
         "none": "No",
@@ -1040,7 +1121,10 @@
           "Defect owner distribution"
         ],
         "testRunStatist": "Test case execution statistics",
-        "testRunChartName": ["Execution pass rate", "Test case priority distribution"],
+        "testRunChartName": [
+          "Execution pass rate",
+          "Test case priority distribution"
+        ],
         "huishangWorkflowMessage": [
           "No test case associated",
           "No test execution task",
@@ -1078,7 +1162,10 @@
   "components": {
     "business": {
       "panelTable": {
-        "selectConfirmTips": ["Current operation will", " selected data, continue operation?"],
+        "selectConfirmTips": [
+          "Current operation will",
+          " selected data, continue operation?"
+        ],
         "itemDeleted": "Item has been deleted",
         "newRunStatus": "Latest Execution status",
         "select": "Selected"
@@ -1159,7 +1246,10 @@
         "defectList": {
           "notLintDefect": "The current test execution has no associated defects",
           "noPermission": "The current user have not permission",
-          "removeTips": ["Please step in", "Remove the defect"],
+          "removeTips": [
+            "Please step in",
+            "Remove the defect"
+          ],
           "deleteButtonTips": "The current operation deletes the association with the defect, do you want to continue?",
           "global": "Global",
           "step": "Step "
@@ -1184,7 +1274,10 @@
           "runNext": "Execute the next",
           "autoNext": "Auto switch to the next article",
           "autoNextTips": "When the test execution status changes to pass, automatically switch to the next test execution",
-          "panelTitle": ["Preconditions", "Test execution details"]
+          "panelTitle": [
+            "Preconditions",
+            "Test execution details"
+          ]
         },
         "testStep": {
           "noSteps": "The current testRun not have test case steps",
@@ -1217,7 +1310,12 @@
         "moreItemsSuffix": " and {{count}} more"
       },
       "testStep": {
-        "stepField": ["Step", "Expected", "Data", "Data"],
+        "stepField": [
+          "Step",
+          "Expected",
+          "Data",
+          "Data"
+        ],
         "hasCircularInheritance": "The test case: [{{testCaseName}}] has a circular inheritance",
         "notInheritCase": "Cannot inherit this test case",
         "modelTitle": "Please select inheritance test case",
@@ -1226,7 +1324,10 @@
         "pleaseInput": "Please enter",
         "switchNext": "Alt + Enter toggle next column",
         "caseInherit": "Test case Inheritance",
-        "stepTotal": ["Total", "Steps"],
+        "stepTotal": [
+          "Total",
+          "Steps"
+        ],
         "copyStep": " Copy steps",
         "copyStepTips": "The current action will copy the test case steps, do you want to continue? ",
         "deleteStep": "Delete step",
@@ -1235,7 +1336,10 @@
     },
     "common": {
       "businessTable": {
-        "columnSetting": ["Test management Fields", "Item Field"],
+        "columnSetting": [
+          "Test management Fields",
+          "Item Field"
+        ],
         "setHeader": "Table head configuration",
         "tableSetting": "Set columns",
         "headerSetting": "Table header settings",
@@ -1336,6 +1440,11 @@
       "executor": "osc-admin",
       "precondition": "Description of preconditions",
       "executionCount": "Enter a number, default is 1"
+    }
+  },
+  "exportExcel": {
+    "modal": {
+      "tip": "Support the export of all fields within the system and custom export fields, and set the sorting of exported fields"
     }
   }
 }

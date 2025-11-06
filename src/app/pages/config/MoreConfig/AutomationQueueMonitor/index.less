@@ -1,0 +1,114 @@
+.automation-queue-monitor {
+  height: 100%;
+  padding: 24px;
+  
+  // 统计卡片样式
+  .ant-card {
+    .ant-statistic {
+      .ant-statistic-content {
+        display: flex;
+        align-items: flex-start;
+        gap: 12px;
+        
+        .ant-statistic-content-value {
+          color: #1890ff;
+          font-weight: 600;
+        }
+      }
+    }
+  }
+  
+  .ant-tabs {
+    height: calc(100% - 120px); // 减去统计卡片的高度
+    
+    .ant-tabs-content-holder {
+      height: calc(100% - 44px);
+      
+      .ant-tabs-tabpane {
+        height: 100%;
+        overflow: auto;
+        padding: 0; // 移除默认padding，由子组件控制
+      }
+    }
+  }
+  
+  // 表格状态标签样式
+  .ant-tag {
+    margin: 0;
+    border-radius: 4px;
+    font-size: 12px;
+    line-height: 20px;
+    padding: 0 8px;
+  }
+  
+  // 工具栏样式
+  .toolbar {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 16px;
+    padding: 12px 16px;
+    background: #fafafa;
+    border-radius: 6px;
+    
+    .toolbar-left {
+      display: flex;
+      gap: 12px;
+      align-items: center;
+    }
+    
+    .toolbar-right {
+      display: flex;
+      gap: 8px;
+      align-items: center;
+    }
+  }
+  
+  // 表格容器样式
+  .table-container {
+    .ant-table {
+      .ant-table-thead > tr > th {
+        background: #f5f5f5;
+        font-weight: 600;
+        color: #262626;
+      }
+      
+      .ant-table-tbody > tr:hover > td {
+        background: #f0f9ff;
+      }
+      
+      // 错误信息样式
+      .error-message {
+        color: #ff4d4f;
+        font-size: 12px;
+        max-width: 200px;
+        word-break: break-all;
+      }
+      
+      // 链接按钮样式
+      .ant-btn-link {
+        padding: 0;
+        height: auto;
+        line-height: 1.4;
+        
+        &:hover {
+          color: #40a9ff;
+        }
+      }
+    }
+  }
+  
+  // 空状态样式
+  .ant-empty {
+    margin: 40px 0;
+    
+    .ant-empty-description {
+      color: #8c8c8c;
+    }
+  }
+  
+  // 加载状态样式
+  .ant-spin-container {
+    min-height: 200px;
+  }
+}

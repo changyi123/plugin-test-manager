@@ -20,7 +20,9 @@ export const TestEntitySelectorProvider: React.FC<{
 export const useTestEntitySelectorContext = () => {
   const context = useContext(TestEntitySelectorContext);
   if (context === undefined) {
-    throw new Error('useTestEntitySelectorContext must be used within a TestEntitySelectorProvider');
+    throw new Error(
+      'useTestEntitySelectorContext must be used within a TestEntitySelectorProvider',
+    );
   }
   return context;
 };

@@ -60,7 +60,8 @@ const Test = () => {
 
   const selectorModalRef = React.useRef<SelectorActionType>();
   const testRunModalActionRef = React.useRef<TestRunModalActionType>();
-
+  const canActionTestTaskLimit = globalTestConfig?.canActionTestTaskLimit;
+  const actionTestTaskLimitQuantity = globalTestConfig?.actionTestTaskLimitQuantity;
   // useListener('updateItemList', async props => {
   //   if (props?.type === 'create') return;
   //   if (props?.type === 'delete') {
@@ -444,8 +445,12 @@ const Test = () => {
       console.info('--selectedRowKeys', status, selectedRowKeys);
 
       // 可执行的测试执行 id
-      const canExecuteTestRunIds = await getCanExecuteTestRunIdSequence(selectedRowKeys);
-
+      let canExecuteTestRunIds = await getCanExecuteTestRunIdSequence(selectedRowKeys);
+      let isOver = false;
+      if (canActionTestTaskLimit && Number(canExecuteTestRunIds?.length) > Number(actionTestTaskLimitQuantity)) {
+        canExecuteTestRunIds = canExecuteTestRunIds.slice(0, actionTestTaskLimitQuantity);
+        isOver = true;
+      }
       // 没有可执行的测试执行时直接返回
       if (!canExecuteTestRunIds.length) {
         message.error(t('page.plan.testEntityList.noCanUpdateRunStateTips'));
@@ -461,9 +466,16 @@ const Test = () => {
       await updateItemsWithProcess({
         ...updateParams,
         handleSuccess: () => {
-          notification.success({
-            message: t('page.plan.testEntityList.updateRunStateTips'),
-          });
+          if (isOver) {
+            notification.success({
+              message: t('page.plan.testEntityList.updateRunStateAndLimitTips', { number: actionTestTaskLimitQuantity }),
+              description: t('page.plan.testEntityList.connectAdmin'),  
+            });
+          } else {
+            notification.success({
+              message: t('page.plan.testEntityList.updateRunStateTips'),
+            });
+          }
           refreshDepData();
         },
         handleFail: e => {

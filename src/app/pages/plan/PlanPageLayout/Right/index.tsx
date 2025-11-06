@@ -28,6 +28,7 @@ import {
   TestType,
 } from '@/lib/constants';
 import { useBaseAction } from '@/lib/hooks/useContext';
+import { useTestConfig } from '@/lib/hooks/useContext';
 import useI18n from '@/lib/hooks/useI18n';
 import RepoDropDown from '@/pages/repository/RepoDropDown';
 
@@ -35,7 +36,6 @@ import { usePageContext } from '../../hook';
 import TestEntityList from '../../TestEntityList';
 import ExecutionStatus from '../ExecutionStatus';
 import { useSetTableHeight } from './hooks';
-import { useTestConfig } from '@/lib/hooks/useContext';
 import cx from './index.less';
 
 interface RightProps {
@@ -295,7 +295,9 @@ const Right: React.FC<RightProps> = props => {
           onSearch={setSearchParams}
           className={cx('plan-page-layout-search')}
           extendFields={filterSearchExtendFieldsProps}
-          fields={getFilterFields([].concat(SystemFieldKeys, testCaseFieldKeys, 'r_test_manager_isCaseUpdate'))}
+          fields={getFilterFields(
+            [].concat(SystemFieldKeys, testCaseFieldKeys, 'r_test_manager_isCaseUpdate'),
+          )}
           testType={TestType.Case}
           storageKey={activeType === 'TestPlan' ? 'testPlan' : 'testExecution'}
         />
@@ -314,7 +316,10 @@ const Right: React.FC<RightProps> = props => {
           title={t('page.plan.planPageLayout.right.caseSelectModelTitle')}
           showDefaultRange
           testType={TestType.Case}
-          enableCaseVersion={[CASESNAPSHOT_TYPE.NO_BUILDVERSION_SELVERSION].includes(config?.caseSnapshot?.type) && activeType === 'TestExecution'}
+          enableCaseVersion={
+            [CASESNAPSHOT_TYPE.NO_BUILDVERSION_SELVERSION].includes(config?.caseSnapshot?.type) &&
+            activeType === 'TestExecution'
+          }
           actionRef={testEntitySelectorRef}
           afterClose={() => refreshTreeAndScopeTestCase?.()}
           ignoreTestEntityIds={activeType === 'TestPlan' ? planLinkCaseIds : runLinkCaseIds}

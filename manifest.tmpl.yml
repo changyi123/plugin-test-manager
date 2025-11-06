@@ -2,8 +2,15 @@ app:
   key: test_manager
   uuid: bf73e61c-e15a-4461-a1f7-f940c2009332
   name: test_manager
-  version: "4.38.69"
+  version: "4.38.671"
 modules:
+  scheduledTrigger:
+    - key: automation-queue-processor
+      function: automation-queue-processor-function
+      cronTime: "0 */2 * * * *"
+    - key: pipe-callback-queue-processor
+      function: pipe-callback-queue-processor-function
+      cronTime: "0 */2 * * * *"
   webtrigger:
     # TODO: Debug 使用，生产环境禁止调用下面的 trigger
     # ---------------------------------------------
@@ -47,6 +54,36 @@ modules:
     # CFCA测试用例重名校验接口
     - key: check-duplicate-case
       function: check-duplicate-case-function
+    # 自动化测试webhook接收接口
+    - key: api-automation-webhook
+      function: automation-webhook-function
+    # 自动化执行触发接口
+    - key: api-automation-execute
+      function: automation-execute-function
+    # Pipe自动化执行回调接口
+    - key: pipeAutomationCallback
+      function: pipe-automation-callback-function
+    # 队列监控API
+    - key: api-queue-stats
+      function: api-queue-stats-function
+    - key: api-queue-webhook-list
+      function: api-queue-webhook-list-function
+    - key: api-queue-execution-list
+      function: api-queue-execution-list-function
+    - key: api-queue-callback-list
+      function: api-queue-callback-list-function
+    - key: api-queue-callback-mark-failed
+      function: api-queue-callback-mark-failed-function
+    - key: api-queue-callback-reset-pending
+      function: api-queue-callback-reset-pending-function
+    - key: api-queue-webhook-retry
+      function: api-queue-webhook-retry-function
+    - key: api-queue-execution-retry
+      function: api-queue-execution-retry-function
+    - key: api-queue-details
+      function: api-queue-details-function
+    - key: api-queue-file-stats
+      function: api-queue-file-stats-function
       # 查询实体数据
     - key: api-query-test-entity
       function: api-query-test-entity-function
@@ -58,6 +95,9 @@ modules:
       function: api-query-case-run-record-function
     - key: api-query-run-records
       function: api-query-run-records-function
+    # 查询测试计划相关数据
+    - key: api-query-plan-related-data
+      function: api-query-plan-related-data-function
     # 批量操作（删除，更新，创建测试执行）
     - key: api-batch-delete
       function: api-batch-delete-function
@@ -218,6 +258,18 @@ modules:
         - gei:proxima:item:beforeCreate
       function: item-before-create-trigger-function
       async: false
+    - key: item-after-create-trigger
+      function: item-after-create-function
+      events:
+        - gei:proxima:item:created
+      async: true
+      timeout: 500000
+    - key: item-after-async-create-trigger
+      function: item-async-after-create-function
+      events:
+        - gei:proxima:item:created
+      async: true
+      timeout: 500000
     - key: item-before-update-trigger
       events:
         - gei:proxima:item:beforeUpdate
@@ -247,6 +299,10 @@ modules:
         - proxima:app:install
         - proxima:app:upgrade
       function: auditLog-action-catogory-install-function
+    - key: item-after-save-trigger
+      events:
+        - gei:proxima:item:updated
+      function: item-after-save-for-approval
 
   function:
     - key: gitee-menus-function
@@ -259,6 +315,12 @@ modules:
       handler: trigger.deleteTestLink
     - key: item-before-create-trigger-function
       handler: trigger.handleBeforeCreate
+    - key: item-after-create-function
+      handler: trigger.handleAfterCreate
+      timeout: 300000
+    - key: item-async-after-create-function
+      handler: trigger.handleAsyncAfterCreate
+      timeout: 300000
     - key: item-before-update-trigger-function
       handler: trigger.handleBeforeUpdate
     - key: item-created-trigger-function
@@ -277,6 +339,8 @@ modules:
       handler: trigger.workspaceCreated
     - key: workspace-bind-trigger-function
       handler: trigger.workspaceBind
+    - key: item-after-save-for-approval
+      handler: trigger.itemAfterSaveForApproval
       # 5 分钟超时时长
       timeout: 300000
     - key: huishang-script-function
@@ -304,6 +368,57 @@ modules:
     - key: check-duplicate-case-function
       handler: web.checkDuplicateCase
       timeout: 90000
+    # 自动化测试webhook函数
+    - key: automation-webhook-function
+      handler: api.automationWebhook
+      timeout: 60000
+    # 自动化执行触发函数
+    - key: automation-execute-function
+      handler: api.executeAutomation
+      timeout: 60000
+    # Pipe自动化执行回调函数
+    - key: pipe-automation-callback-function
+      handler: api.pipeAutomationCallback
+      timeout: 30000
+    # 自动化测试队列处理器函数
+    - key: automation-queue-processor-function
+      handler: modules/automation/queueProcessor.processAutomationQueue
+      timeout: 1200000
+    # Pipe回调队列处理器函数
+    - key: pipe-callback-queue-processor-function
+      handler: job.processPipeCallbackQueue
+      timeout: 1200000
+    # 队列监控API函数
+    - key: api-queue-stats-function
+      handler: api.getQueueStats
+      timeout: 30000
+    - key: api-queue-webhook-list-function
+      handler: api.queryWebhookQueue
+      timeout: 30000
+    - key: api-queue-execution-list-function
+      handler: api.queryExecutionRecords
+      timeout: 30000
+    - key: api-queue-callback-list-function
+      handler: api.queryPipeCallbackQueue
+      timeout: 30000
+    - key: api-queue-callback-mark-failed-function
+      handler: api.markPipeCallbackFailed
+      timeout: 30000
+    - key: api-queue-callback-reset-pending-function
+      handler: api.resetPipeCallbackToPending
+      timeout: 30000
+    - key: api-queue-webhook-retry-function
+      handler: api.retryWebhookQueueItem
+      timeout: 30000
+    - key: api-queue-execution-retry-function
+      handler: api.retryExecutionRecord
+      timeout: 30000
+    - key: api-queue-details-function
+      handler: api.getQueueDetails
+      timeout: 30000
+    - key: api-queue-file-stats-function
+      handler: api.getQueueFileStats
+      timeout: 30000
       # api backend Query
     - key: api-query-test-entity-function
       handler: query.queryTestEntity
@@ -316,6 +431,8 @@ modules:
       handler: api.queryCaseRunRecords
     - key: api-query-run-records-function
       handler: api.queryRunRecords
+    - key: api-query-plan-related-data-function
+      handler: api.queryPlanRelatedData
     - key: auditLog-action-catogory-install-function
       handler: trigger.installAuditLog
 
@@ -480,6 +597,8 @@ modules:
 
     - key: api-generate-offline-report-function
       handler: api.generateOfflineReport
+      # 5 分钟超时时长
+      timeout: 300000
 
     - key: extension-report-shenwan-function
       handler: api.shenwanTestReportInfo
@@ -758,6 +877,23 @@ modules:
       undeletable: true
       locked: true
       description: 测试管理内置字段-测试报告的数据源配置（勿删改）
+    - key: automation_status
+      name: 自动化执行状态
+      description: 自动化测试执行状态，执行中时不允许重复触发
+      fieldType: Dropdown
+      data:
+        customData:
+          - label: 待执行
+            value: pending
+          - label: 执行中
+            value: running
+          - label: 成功
+            value: success
+          - label: 失败
+            value: failed
+      undeletable: true
+      locked: false
+    
   customField:
       # 描述关联关系的配置（使用事项关联不需要处理）
     - key: linkType
@@ -903,6 +1039,102 @@ modules:
       property:
         mode: multiple
         showDataNumber: Y
+    
+    # 自动化测试集成字段 - 10个核心字段
+    - key: atm_test_id
+      name: 用例唯一标识
+      type: Text
+      undeletable: true
+      locked: true
+      description: 对应代码中的@TestId注解值，用于精确匹配
+    
+    - key: atm_file_path
+      name: 文件路径
+      type: Text
+      undeletable: true
+      description: 测试文件在代码仓库中的相对路径
+    
+    - key: atm_class_name
+      name: 测试类名
+      type: Text
+      undeletable: true
+      description: 包含该测试方法的Java类名
+    
+    - key: atm_method_name
+      name: 测试方法名
+      type: Text
+      undeletable: true
+      description: 具体的测试方法名称
+    
+    - key: atm_module_path
+      name: 模块路径
+      type: Text
+      undeletable: true
+      description: 用例所属的测试模块路径
+    
+    - key: atm_commit_id
+      name: 提交ID
+      type: Text
+      undeletable: true
+      description: 最近一次同步时的Git提交ID
+    
+    - key: atm_start_line
+      name: 起始行号
+      type: Text
+      undeletable: true
+      description: 测试方法在文件中的起始行号
+    
+    - key: atm_end_line
+      name: 结束行号
+      type: Text
+      undeletable: true
+      description: 测试方法在文件中的结束行号
+    
+    - key: atm_framework
+      name: 测试框架
+      type: Text
+      undeletable: true
+      description: 从配置文件中获取的测试框架类型，如JUnit、TestNG等
+    
+    - key: atm_framework_version
+      name: 框架版本
+      type: Text
+      undeletable: true
+      description: 测试框架的版本号，如4.0、7.1.0等
+    
+    - key: atm_last_sync
+      name: 最后同步时间
+      type: Text
+      undeletable: true
+      description: 最后一次自动同步的时间戳，ISO格式
+    
+    # Git集成相关字段 - 3个扩展字段
+    - key: atm_git_clone_url
+      name: Git克隆地址
+      type: Text
+      undeletable: true
+      description: Git仓库的SSH克隆地址，用于Pipe流水线拉取代码
+    
+    - key: atm_git_branch
+      name: Git分支
+      type: Text
+      undeletable: true
+      description: 测试用例所属的Git分支名称
+    
+    - key: atm_git_path
+      name: Git路径
+      type: Text
+      undeletable: true
+      description: 仓库在Git平台中的完整路径，如 owner/repo
+    - key: testApprovals
+      name: 测试评审
+      type: DataQuote
+      undeletable: true
+      locked: true
+      readonly: true
+      description: 测试管理内置字段-测试评审
+      property:
+        showDataNumber: Y
   customItemType:
     - key: test_manager_detail
       name: 测试用例
@@ -986,6 +1218,23 @@ modules:
       name: 测试报告
       icon: /icons/Issue_Doc.svg
       description: 测试管理类型-测试报告
+      displayConditions:
+        displayModules:
+          adminPage:
+            - automation
+            - itemType
+            - hierarchy
+            - linkType
+            - screenScheme
+            - workflowScheme
+            - fieldBehavior
+          plugin:
+            - testManager
+        displayContext: test_manager
+    - key: test_manager_approval
+      name: 测试评审
+      icon: /icons/Issue_Plan.svg
+      description: 测试管理类型-测试评审
       displayConditions:
         displayModules:
           adminPage:
@@ -1328,3 +1577,371 @@ resources:
     path: ./fields/build/test-object
   - key: test_reference
     path: ./fields/build/test-reference
+
+storage:
+  entities:
+    - name: AutomationWebhookQueue
+      attributes:
+        webhookUuid:
+          type: String
+          required: true
+        repositoryId:
+          type: String
+          required: true
+        repositoryName:
+          type: String
+          required: true
+        branchName:
+          type: String
+          required: true
+        commitIds:
+          type: String
+          required: true
+        workspaceKey:
+          type: String
+          required: true
+        payload:
+          type: String
+        # Git相关字段
+        gitCloneUrl:
+          type: String
+        gitBranch:
+          type: String
+        gitPath:
+          type: String
+        status:
+          type: String
+          required: true
+          defaultValue: "pending"
+        retryCount:
+          type: Float
+          defaultValue: 0
+        processedTime:
+          type: Date
+      indexes:
+        - status
+        - createdAt
+        - status,retryCount
+    - name: AutomationSyncLog
+      attributes:
+        webhookQueueId:
+          type: String
+          required: true
+        repositoryId:
+          type: String
+          required: true
+        repositoryName:
+          type: String
+          required: true
+        commitId:
+          type: String
+          required: true
+        branchName:
+          type: String
+          required: true
+        syncStatus:
+          type: String
+          required: true
+        processedFiles:
+          type: Float
+          defaultValue: 0
+        createdCases:
+          type: Float
+          defaultValue: 0
+        updatedCases:
+          type: Float
+          defaultValue: 0
+        skippedCases:
+          type: Float
+          defaultValue: 0
+        failedCases:
+          type: Float
+          defaultValue: 0
+        errorDetails:
+          type: String
+        syncStartTime:
+          type: Date
+          required: true
+        syncEndTime:
+          type: Date
+      indexes:
+        - repositoryId
+        - syncStatus
+        - createdAt
+    - name: AutomationCaseMapping
+      attributes:
+        caseId:
+          type: String
+          required: true
+        automationCaseId:
+          type: String
+          required: true
+        repositoryId:
+          type: String
+          required: true
+        repositoryName:
+          type: String
+          required: true
+        filePath:
+          type: String
+          required: true
+        testClassName:
+          type: String
+        testMethodName:
+          type: String
+          required: true
+        testingFramework:
+          type: String
+        branchName:
+          type: String
+          required: true
+        moduleId:
+          type: String
+          required: true
+        modulePath:
+          type: String
+          required: true
+        lastCommitId:
+          type: String
+        lastSyncTime:
+          type: Date
+        isActive:
+          type: Boolean
+          defaultValue: true
+      indexes:
+        - name: unique_automation_case_id
+          fields:
+            - automationCaseId
+          unique: true
+        - repositoryId
+        - caseId
+    - name: AutomationExecutionRecord
+      attributes:
+        executionId:
+          type: String
+          required: true
+        buildId:
+          type: String
+        testExecutionIds:
+          type: String
+          required: true
+        testCaseMapping:
+          type: String
+        mavenVersion:
+          type: String
+          required: true
+        jdkVersion:
+          type: String
+          required: true
+        status:
+          type: String
+          required: true
+        triggerTime:
+          type: Date
+          required: true
+        completeTime:
+          type: Date
+        triggerUser:
+          type: String
+          required: true
+        workspaceKey:
+          type: String
+        pipeJumpUrl:
+          type: String
+        pipeLogUrl:
+          type: String
+        reportUrl:
+          type: String
+        reportLogUrl:
+          type: String
+        errorMessage:
+          type: String
+        totalCount:
+          type: Float
+          defaultValue: 0
+        successCount:
+          type: Float
+          defaultValue: 0
+        failedCount:
+          type: Float
+          defaultValue: 0
+        skippedCount:
+          type: Float
+          defaultValue: 0
+      indexes:
+        - name: unique_execution_id
+          fields:
+            - executionId
+          unique: true
+        - workspaceKey
+        - buildId
+        - status
+        - triggerTime
+    - name: PipeCallbackQueue
+      attributes:
+        buildId:
+          type: String
+          required: true
+        callbackData:
+          type: String
+          required: true
+        status:
+          type: String
+          required: true
+          defaultValue: "pending"
+        retryCount:
+          type: Float
+          defaultValue: 0
+        processedTime:
+          type: Date
+      indexes:
+        - status
+        - createdAt
+        - status,retryCount
+    - name: QueueProcessingStatistics
+      attributes:
+        queueId:
+          type: String
+          required: true
+        totalFiles:
+          type: Float
+          defaultValue: 0
+        processedFiles:
+          type: Float
+          defaultValue: 0
+        identifiedCases:
+          type: Float
+          defaultValue: 0
+        pendingOperations:
+          type: Float
+          defaultValue: 0
+        completedOperations:
+          type: Float
+          defaultValue: 0
+        successfulCases:
+          type: Float
+          defaultValue: 0
+        failedCases:
+          type: Float
+          defaultValue: 0
+        skippedCases:
+          type: Float
+          defaultValue: 0
+        currentCommit:
+          type: String
+        currentFile:
+          type: String
+        currentStep:
+          type: String
+        lastUpdateTime:
+          type: Date
+      indexes:
+        - name: unique_queue_id
+          fields:
+            - queueId
+          unique: true
+        - lastUpdateTime
+    - name: FileProcessingLog
+      attributes:
+        queueId:
+          type: String
+          required: true
+        commitId:
+          type: String
+          required: true
+        fileName:
+          type: String
+          required: true
+        shouldProcess:
+          type: Boolean
+          defaultValue: false
+        operationsGenerated:
+          type: Float
+        processingTime:
+          type: Float
+        timestamp:
+          type: Date
+          required: true
+        errorMessage:
+          type: String
+      indexes:
+        - queueId
+        - queueId,commitId
+        - timestamp
+    - name: CaseGenerationLog
+      attributes:
+        queueId:
+          type: String
+          required: true
+        fileName:
+          type: String
+          required: true
+        operationsGenerated:
+          type: Float
+          required: true
+        operationTypes:
+          type: String
+        timestamp:
+          type: Date
+          required: true
+      indexes:
+        - queueId
+        - queueId,fileName
+        - timestamp
+    - name: CaseFailureLog
+      attributes:
+        queueId:
+          type: String
+          required: true
+        caseId:
+          type: String
+        caseName:
+          type: String
+        itemKey:
+          type: String
+        failureReason:
+          type: String
+          required: true
+        failureTime:
+          type: Date
+          required: true
+        operationType:
+          type: String
+          required: true
+        filePath:
+          type: String
+          required: true
+        errorCode:
+          type: String
+      indexes:
+        - queueId
+        - queueId,operationType
+        - failureTime
+    - name: OperationStatistics
+      attributes:
+        queueId:
+          type: String
+          required: true
+        createOperations:
+          type: Float
+          defaultValue: 0
+        updateOperations:
+          type: Float
+          defaultValue: 0
+        deleteOperations:
+          type: Float
+          defaultValue: 0
+        queryOperations:
+          type: Float
+          defaultValue: 0
+        totalOperations:
+          type: Float
+          defaultValue: 0
+        uniqueTestCases:
+          type: Float
+          defaultValue: 0
+        timestamp:
+          type: Date
+          required: true
+      indexes:
+        - queueId

@@ -34,7 +34,7 @@ interface TestDetailsSelectorListProps {
   validateCaseStatus?: boolean;
   enableCaseVersion?: boolean;
   versionMapKeySelected?: Record<string, string>;
-  setVersionMapKeySelected?: any
+  setVersionMapKeySelected?: any;
 }
 
 const TestDetailsSelectorList: React.FC<TestDetailsSelectorListProps> = ({
@@ -49,9 +49,9 @@ const TestDetailsSelectorList: React.FC<TestDetailsSelectorListProps> = ({
   isPlanForTestSet = false,
   selectors: selector,
   validateCaseStatus = false,
-  enableCaseVersion=false,
+  enableCaseVersion = false,
   versionMapKeySelected,
-  setVersionMapKeySelected
+  setVersionMapKeySelected,
 }) => {
   const { t } = useI18n();
   const [showType, setShowType] = useState('all');
@@ -160,7 +160,7 @@ const TestDetailsSelectorList: React.FC<TestDetailsSelectorListProps> = ({
         ...baseQueryOptions,
         offset: (current - 1) * 100,
         limit: 100,
-        select: ['id', 'name', 'status', 'key',isPlanForTestSet ? 'testSet' : ''].filter(Boolean),
+        select: ['id', 'name', 'status', 'key', isPlanForTestSet ? 'testSet' : ''].filter(Boolean),
         // field: ['version'],
         sortByRepositoryIds: allNodeKeys,
       });
@@ -260,7 +260,7 @@ const TestDetailsSelectorList: React.FC<TestDetailsSelectorListProps> = ({
     },
   );
 
-  const { list: testCaseList, total = 0 } = testCaseData ?? {}; 
+  const { list: testCaseList, total = 0 } = testCaseData ?? {};
   const { getEnableToPlan } = useCasePlanRule(validateCaseStatus);
   const disabledIdsSet = useMemo(() => {
     return new Set<string>(

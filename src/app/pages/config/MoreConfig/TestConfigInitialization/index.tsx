@@ -1,6 +1,7 @@
+import { InfoCircleOutlined } from '@ant-design/icons';
 import { useMutation } from '@tanstack/react-query';
 import { useMemoizedFn } from 'ahooks';
-import { Button, Form, message, Switch, Radio } from 'antd';
+import { Button, Form, message, Radio, Switch, Tooltip } from 'antd';
 import React from 'react';
 import { useTranslation } from 'react-i18next';
 
@@ -19,6 +20,7 @@ let builtinItemTypes = null;
 const FormFieldKey = {
   enableItemTypeAutoBind: 'enableItemTypeAutoBind',
   initialItemTypeMapping: 'initialItemTypeMapping',
+  enableCloneItemWithPlanCase: 'enableCloneItemWithPlanCase',
   caseSnapshot: {
     type: 'type',
     enableCaseExeUpdate: 'enableCaseExeUpdate',
@@ -35,6 +37,7 @@ const TestConfigInitialization = () => {
 
   const form = Form.useForm()[0];
   const enableItemTypeAutoBind = Form.useWatch(FormFieldKey.enableItemTypeAutoBind, form);
+  const enableCloneItemWithPlanCase = Form.useWatch(FormFieldKey.enableCloneItemWithPlanCase, form);
   const caseSnapshotType = Form.useWatch(['caseSnapshot', 'type'], form);
 
   React.useEffect(() => {
@@ -42,6 +45,7 @@ const TestConfigInitialization = () => {
     const formData = {
       enableItemTypeAutoBind: extra.enableItemTypeAutoBind,
       initialItemTypeMapping: extra.initialItemTypeMapping,
+      enableCloneItemWithPlanCase: extra.enableCloneItemWithPlanCase,
       caseSnapshot: extra.caseSnapshot,
     };
 
@@ -64,7 +68,7 @@ const TestConfigInitialization = () => {
 
       // 更新全局配置
       await updateGlobalConfig({
-        extra: Object.assign({}, values),
+        extra: { ...globalConfig.extra, ...values },
       });
       await refreshGlobalConfig();
       message.success(scopeT('messageSuccess'));
@@ -73,14 +77,26 @@ const TestConfigInitialization = () => {
 
   return (
     <Form form={form} onFinish={handleSubmit} className={cx('container')}>
+      <Form.Item
+        label={
+          <div>
+            {scopeT('cloneItemWithTestPlanCase')}
+            <Tooltip title={scopeT('cloneItemWithTestPlanCaseTip')}>
+              <InfoCircleOutlined className={cx('tip-info')} />
+            </Tooltip>
+          </div>
+        }
+        name={FormFieldKey.enableCloneItemWithPlanCase}
+        valuePropName="checked"
+      >
+        <Switch checked={enableCloneItemWithPlanCase} />
+      </Form.Item>
       {getAppEnv('ENABLED_CASE_SNAPSHOT') && (
         <Form.Item
           label={<div>{scopeT('switchSnapshotLabel')}</div>}
           name={['caseSnapshot', 'type']}
         >
-          <Radio.Group
-            options={caseSnapshotOpt(t)}
-          />
+          <Radio.Group options={caseSnapshotOpt(t)} />
         </Form.Item>
       )}
       {[CASESNAPSHOT_TYPE.NO_BUILDVERSION_SELVERSION].includes(caseSnapshotType) && (
@@ -89,7 +105,7 @@ const TestConfigInitialization = () => {
           name={['caseSnapshot', 'enableCaseExeUpdate']}
           valuePropName="checked"
         >
-          <Switch/>
+          <Switch />
         </Form.Item>
       )}
       <Form.Item
