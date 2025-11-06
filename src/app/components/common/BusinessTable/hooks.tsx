@@ -89,14 +89,7 @@ export const useExecutionStatusStats = ({
         select: [
           'id',
           'referenceCase',
-          'referenceCaseSnapshot',
-          'designee',
-          'executor',
-          'sortIndex',
-          'executeCount',
-          'executeTime',
           'status',
-          'runDetail',
         ],
         });
         return cases;
