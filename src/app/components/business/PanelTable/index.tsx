@@ -9,6 +9,7 @@ import useI18n from '@/lib/hooks/useI18n';
 import { getRootContainer, hasArrayItem } from '@/lib/utils/helper';
 
 import cx from './index.less';
+import { usePanelExecutionStatusStats } from './hooks';
 
 export type ActionType = { refresh: () => void; selectedRowKeys?: string[] };
 
@@ -24,6 +25,8 @@ type PanelTableProps = TableProps<any> & {
     onClick: (selectedRowKeys) => void;
   }>;
   onSuccess?: (data, mutate) => void;
+  activeType?: string;
+  allTestEntities?: any[];
 };
 
 const PanelTable: React.FC<PanelTableProps> = props => {
@@ -36,14 +39,16 @@ const PanelTable: React.FC<PanelTableProps> = props => {
     allSelectableRowKeys,
     scroll,
     onSuccess,
+    allTestEntities,
+    activeType,
     ...restTableProps
   } = props;
   // 全量的 row 数据
   const allRowDataRef = React.useRef([]);
   const { t } = useI18n();
-
   const [selectedRowKeys, setSelectedRowKeys] = useSafeState([]);
   const [batchSelect, setBatchSelect] = useSafeState(false);
+  const { renderStatusText } = usePanelExecutionStatusStats({ allTestEntities, selectedRowKeys, setSelectedRowKeys,});
 
   const { tableProps, refresh, mutate } = useAntdTable(
     ({ current, pageSize }) => {
@@ -185,6 +190,12 @@ const PanelTable: React.FC<PanelTableProps> = props => {
                 {t('components.business.panelTable.select')}
                 <span className={cx('select-num')}>{selectedRowKeys.length}</span>
                 {t('common.item', { count: selectedRowKeys.length })}
+                {selectedRowKeys && selectedRowKeys?.length > 0 && activeType === 'testExecution' ? (
+                  <>
+                  <span className={cx('comma')}>，</span>
+                  {renderStatusText()}
+                  </>
+                ) : null}
               </div>
             </>
           ) : null}

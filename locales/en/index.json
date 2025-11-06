@@ -141,7 +141,8 @@
     "stepStatusNoMatch": "Step status does not match",
     "descriptionRequire": "You must enter a result description first",
     "objectNotFound": "The data has been deleted, please refresh the page",
-    "versionTip": "This panel is currently not supported in historical versions"
+    "versionTip": "This panel is currently not supported in historical versions",
+    "viewDistribution": "View distribution"
   },
   "report": {
     "overViewData": {
@@ -982,6 +983,9 @@
         "testDetailPanel": {
           "detailTips": "Can't get",
           "refreshButton": "Reload",
+          "testStepTips": ["Current test case Inheritance", "Test Cases"],
+          "multipleStates": "There are multiple states,",
+          "uncheckStates": "You can uncheck the following states"
           "testStepTips": [
             "Current test case Inheritance",
             "Test Cases"

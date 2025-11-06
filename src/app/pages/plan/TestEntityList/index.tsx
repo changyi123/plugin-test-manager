@@ -835,6 +835,7 @@ const TestEntityList: React.FC<TestEntityListProps> = ({
       }
       actionRef.current.refresh();
       mutateStatusEvent.emit('refreshExecutionStatus');
+      mutateStatusEvent.emit('refreshExecutionList');
     },
     [mutateStatusEvent, selectedTestPlan?.objectId, statusesConfig, t],
   );
@@ -893,6 +894,7 @@ const TestEntityList: React.FC<TestEntityListProps> = ({
               actionRef.current?.refresh();
             }, 500);
             mutateStatusEvent.emit('refreshExecutionStatus');
+            mutateStatusEvent.emit('refreshExecutionList');
             notification.success({
               message: `${testRunIds.length} ${t('page.plan.testEntityList.deleteRunMessage')}`,
             });
@@ -1149,6 +1151,7 @@ const TestEntityList: React.FC<TestEntityListProps> = ({
                     // 刷新依赖数据
                     actionRef.current.refresh();
                     mutateStatusEvent.emit('refreshExecutionStatus');
+                    mutateStatusEvent.emit('refreshExecutionList');
                   }}
                 >
                   {t('common.run')}
@@ -1320,11 +1323,13 @@ const TestEntityList: React.FC<TestEntityListProps> = ({
           actionRef.current.refresh();
           // mutateTestPlanEvent.emit(selectedTestPlan?.objectId);
           mutateStatusEvent.emit('refreshExecutionStatus');
+          mutateStatusEvent.emit('refreshExecutionList');
         },
         handleFail: e => {
           message.error(e.message);
           // mutateTestPlanEvent.emit(selectedTestPlan?.objectId);
           mutateStatusEvent.emit('refreshExecutionStatus');
+          mutateStatusEvent.emit('refreshExecutionList');
         },
       });
     };
@@ -1558,6 +1563,7 @@ const TestEntityList: React.FC<TestEntityListProps> = ({
           name={`${workspaceKey}_AllTestEntity`}
           actionRef={actionRef}
           loading={loading}
+          selectedExecution={selectedExecution}
           getDataSource={testPlanTableDataGetter}
           onHasRowSelected={setHasRowSelected}
           allSelectableRowKeys={allPlanRowKeys}
@@ -1592,6 +1598,7 @@ const TestEntityList: React.FC<TestEntityListProps> = ({
             testType: TestType.Case,
             restoreWithDefaultColumnKey: true,
           }}
+          activeType={activeType}
           useColumnSetting
           defaultColumnKey={[
             'runStatus',
@@ -1619,6 +1626,7 @@ const TestEntityList: React.FC<TestEntityListProps> = ({
           name={`${workspaceKey}_TestExecutionList`}
           actionRef={actionRef}
           loading={loading}
+          selectedExecution={selectedExecution}
           getDataSource={executionTableDataGetter}
           onHasRowSelected={setHasRowSelected}
           allSelectableRowKeys={runRowKeys}

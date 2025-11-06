@@ -124,6 +124,8 @@ type BusinessTableProps = TableProps<any> &
     ignoreInit?: boolean;
     getContainer?: any;
     enableCacheEpandedRowKeys?: EnableCacheEpandedRowKeys;
+    activeType?: string;
+    selectedExecution?: Record<string, any>;
   };
 
 const BusinessTable: React.FC<BusinessTableProps> = props => {
@@ -157,6 +159,8 @@ const BusinessTable: React.FC<BusinessTableProps> = props => {
     ignoreInit,
     getContainer,
     enableCacheEpandedRowKeys = 'disable',
+    activeType,
+    selectedExecution,
     ...restTableProps
   } = props;
 
@@ -487,6 +491,8 @@ const BusinessTable: React.FC<BusinessTableProps> = props => {
       <div className={`${cx('selection-header')} selection-header-box`}>
         <TableSelection
           onClose={handleClose}
+          setSelectedRowKeys={setSelectedRowKeys}
+          setCheckedRowKeys={setCheckedRowKeys}
           tableExpandable={Boolean(expandable)}
           disableSelectAll={disableTableSelectAll}
           checkboxProps={{
@@ -495,6 +501,9 @@ const BusinessTable: React.FC<BusinessTableProps> = props => {
             onChange: e => handleCheck(e.target.checked),
             indeterminate: allRowSelectionIndeterminate,
           }}
+          activeType={activeType}
+          selectedRowKeys={selectedRowKeys}
+          selectedExecution={selectedExecution}
           selectNum={selectNum}
           actions={selectionActionNodes ?? []}
         />

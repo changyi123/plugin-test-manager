@@ -149,7 +149,8 @@
     "objectNotFound": "该数据已被删除，请刷新页面",
     "versionTip": "该面板在历史版本下暂不支持",
     "batchRemoveByTestSet": "用例集维度批量移除",
-    "batchRemoveByTestSetTitle": "按照用例集维度批量移除用例"
+    "batchRemoveByTestSetTitle": "按照用例集维度批量移除用例",
+    "viewDistribution": "查看分布"
   },
   "report": {
     "overViewData": {
@@ -958,6 +959,9 @@
         "testDetailPanel": {
           "detailTips": "获取不了",
           "refreshButton": "重新加载",
+          "testStepTips": ["当前用例继承", "个用例"],
+          "multipleStates": "存在多类状态，",
+          "uncheckStates": "可取消勾选下列状态"
           "testStepTips": [
             "当前用例继承",
             "个用例"
