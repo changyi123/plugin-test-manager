@@ -116,10 +116,10 @@ const requestPerfMaPlan = async name => {
 };
 
 /** 覆盖率平台coverRate */
-const requestCoverRate = async (versionName) => {
+const requestCoverRate = async versionName => {
   try {
     const requestInfo = {
-      path:  `/openapi/getCovInfoByVersion?versionName=${versionName}`,
+      path: `/openapi/getCovInfoByVersion?versionName=${versionName}`,
       method: 'get',
     } as const;
 

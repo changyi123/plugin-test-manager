@@ -1,9 +1,10 @@
 import { useMemoizedFn, useMount } from 'ahooks';
-import { Button, Input, message, Radio, Switch } from 'antd';
+import { Button, Input, InputNumber, message, Radio, Switch } from 'antd';
 import { pick } from 'lodash';
 import { components } from 'proxima-sdk';
 import React, { useState } from 'react';
 
+import { updateGlobalConfig } from '@/lib/api/common';
 import {
   getStatusByWorkspaceAndItemType,
   getWorkspaceRoleMembers,
@@ -34,8 +35,15 @@ const DefaultTestRunAction = {
   iql: '',
 };
 
+const DefaultGlobalRunAction = {
+  // 测试任务下批量更新状态数量限制
+  canActionTestTaskLimit: false,
+  // 限制数量
+  actionTestTaskLimitQuantity: null,
+};
+
 const DefaultCaseSnapshot = {
-  type: CASESNAPSHOT_TYPE.NO_BUILDVERSION_SELVERSION,
+  type: CASESNAPSHOT_TYPE.NO_AUTOBUILDVERSION_NO_SELVERSION,
   enableCaseExeUpdate: true,
   restrictiveConditions: '', // 更改用例版本的iql限制条件
 };
@@ -123,16 +131,21 @@ const getUsefulUserInfo = user => {
 
 const ExecuteTestRunAction = () => {
   const { t } = useI18n();
-  const { workspace } = useDataContext();
+  const { globalConfig, refreshGlobalConfig, workspace } = useDataContext();
 
   const testConfig = useCurrentTestConfig(workspace?.key);
   const [testRunAction, setTestRunAction] = React.useState(DefaultTestRunAction);
+  const [globalRunAction, setGlobalRunAction] = useState(DefaultGlobalRunAction);
   const [caseSnapshot, setCaseSnapshot] = useState<CaseSnapshot>(DefaultCaseSnapshot);
 
   React.useEffect(() => {
     setTestRunAction(testConfig?.get('testRunAction') ?? DefaultTestRunAction);
     setCaseSnapshot(testConfig?.get('caseSnapshot') ?? DefaultCaseSnapshot);
   }, [testConfig]);
+
+  React.useEffect(() => {
+    setGlobalRunAction(globalConfig?.extra ?? DefaultTestRunAction);
+  }, [globalConfig]);
 
   const verifyIQL = async iql => {
     try {
@@ -157,6 +170,21 @@ const ExecuteTestRunAction = () => {
       });
       message.success(t('common.saveSuccess'));
     }
+  };
+
+  const updateLimitCase = async (key, value: any) => {
+    let values = { [key]: value };
+    if (key == 'canActionTestTaskLimit' && value === true) {
+      if (!globalRunAction.actionTestTaskLimitQuantity) {
+        message.info(t('page.config.executeTestRunAction.pleaseEnterCaseNumber'));
+        values = { [key]: !value };
+        return;
+      }
+    }
+    await updateGlobalConfig({
+      extra: Object.assign({}, values),
+    });
+    await refreshGlobalConfig();
   };
 
   const buildConfigChange = key => {
@@ -290,23 +318,24 @@ const ExecuteTestRunAction = () => {
           />
         </div>
       )}
-      {[CASESNAPSHOT_TYPE.NO_BUILDVERSION_SELVERSION].includes(caseSnapshot?.type) && (
-        <div className={cx('section')}>
-          <h3>{t('page.config.testConfigInitialization.enableCaseExeUpdate')}</h3>
-          <Switch
-            checked={!!caseSnapshot?.enableCaseExeUpdate}
-            onChange={v => {
-              setCaseSnapshot(prev => ({
-                ...prev,
-                enableCaseExeUpdate: v,
-                restrictiveConditions: v ? prev.restrictiveConditions : '', // 关闭时清空
-              }));
-            }}
-          />
-        </div>
-      )}
+      {getAppEnv('ENABLED_CASE_SNAPSHOT') &&
+        [CASESNAPSHOT_TYPE.NO_BUILDVERSION_SELVERSION].includes(caseSnapshot?.type) && (
+          <div className={cx('section')}>
+            <h3>{t('page.config.testConfigInitialization.enableCaseExeUpdate')}</h3>
+            <Switch
+              checked={!!caseSnapshot?.enableCaseExeUpdate}
+              onChange={v => {
+                setCaseSnapshot(prev => ({
+                  ...prev,
+                  enableCaseExeUpdate: v,
+                  restrictiveConditions: v ? prev.restrictiveConditions : '', // 关闭时清空
+                }));
+              }}
+            />
+          </div>
+        )}
 
-      {caseSnapshot?.enableCaseExeUpdate && (
+      {getAppEnv('ENABLED_CASE_SNAPSHOT') && caseSnapshot?.enableCaseExeUpdate && (
         <div className={cx('section')}>
           <h3>{t('page.config.testConfigInitialization.restrictiveConditions')}</h3>
           <Input
@@ -325,6 +354,20 @@ const ExecuteTestRunAction = () => {
       <Button type="primary" className={cx('action')} onClick={handleSave}>
         {t('common.save')}
       </Button>
+      <h3 className={cx('limit-title')}>
+        {t('page.config.executeTestRunAction.testCaseStatusLimist')}
+        <span className={cx('global-config')}>全局配置</span>
+      </h3>
+      <div className={cx('section', 'last-section')}>
+      <span className={cx('section-label')}>
+        {t('page.config.executeTestRunAction.worksapceTestCaseStatusLimistNumber')}：
+      </span>
+      <InputNumber className={cx('section-inputNumber')} value={globalRunAction?.actionTestTaskLimitQuantity} min={1} precision={0} onChange={(value) => updateLimitCase('actionTestTaskLimitQuantity', value)} />
+      <Switch
+        checked={globalRunAction?.canActionTestTaskLimit}
+        onChange={(value) => updateLimitCase('canActionTestTaskLimit', value)}
+      />
+      </div>
     </div>
   );
 };

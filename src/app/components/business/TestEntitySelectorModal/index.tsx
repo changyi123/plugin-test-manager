@@ -104,7 +104,7 @@ const TestEntitySelector: React.FC<TestEntitySelectorProps> = props => {
   // 测试类型名
   const testTypeName = t(`common.${TestTypeNameMapping[testType]}`);
 
-  const [versionMapKeySelected, setVersionMapKeySelected] = React.useState({})
+  const [versionMapKeySelected, setVersionMapKeySelected] = React.useState({});
 
   const [modelProps, setModelProps] = useSafeState<ModelProps | undefined>(undefined);
 
@@ -277,6 +277,7 @@ const TestEntitySelector: React.FC<TestEntitySelectorProps> = props => {
 
   React.useImperativeHandle(actionRef, () => ({
     async open(params) {
+      console.log('open', params);
       if (params?.selectValue) {
         setSelectValue(params?.selectValue ?? []);
       }
@@ -344,12 +345,17 @@ const TestEntitySelector: React.FC<TestEntitySelectorProps> = props => {
 
       selectedData = needFillValue ? filledValue : selectValue;
     }
-
+    console.log('handleOkButtonClick', selectedData);
     typeof props.onSelect === 'function' && props.onSelect(selectedData);
-    eventBusRef.current.dispatch(AddExistedTestEventType, { selectedData, treeType, planId, caseVersion: versionMapKeySelected });
+    eventBusRef.current.dispatch(AddExistedTestEventType, {
+      selectedData,
+      treeType,
+      planId,
+      caseVersion: versionMapKeySelected,
+    });
     setSelectValue(isSingleMode ? undefined : []);
     setVisible(false);
-    setVersionMapKeySelected({})
+    setVersionMapKeySelected({});
   }, [
     selectedTestDetails,
     testType,

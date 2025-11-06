@@ -1,0 +1,1480 @@
+import { AppKey } from '../../../common/constant';
+import { iqlSearch } from '../../lib/coreApi';
+import { getItemCreateRequiredAttrs } from '../../lib/item';
+import { getCommitDiff, getFileContent, scanDirectoryForJavaFiles } from './codeApi';
+import { javaParser } from './parser';
+import { findBestPathMapping } from './pathMappingEnhanced';
+import { updateCaseGenerationProgress, logFileProcessing, updateCurrentFileProgress } from './queueStatistics';
+
+/**
+ * T5.8: 用例操作生成引擎
+ * 对接T4.7-T4.9的文件级闭环决策结果，生成具体的用例操作对象
+ */
+
+// 用例操作对象 - T5.8的输出
+export interface CaseOperation {
+  // 基础标识
+  operationType: 'CREATE' | 'UPDATE' | 'DELETE' | 'MIGRATE';
+  testId: string;
+  methodName: string;
+  className: string;
+  filePath: string;
+
+  // 用例数据（CREATE/UPDATE需要）
+  caseData?: {
+    caseName: string; // 用例名称 = className + "." + methodName
+    caseDesc: string; // 用例描述（从注释提取）
+    modulePath: string; // 模块路径（来自config.mappings）
+    sourceInfo: {
+      filePath: string;
+      startLine: number;
+      endLine: number;
+      commitId: string;
+    };
+  };
+
+  // 历史用例信息（UPDATE/DELETE/MIGRATE需要）
+  existingCaseInfo?: {
+    caseId: string; // 现有用例ID
+    testId: string; // 用例唯一标识
+    name: string; // 用例名称
+    oldClassName?: string; // 旧类名，用于类名变更场景
+    [key: string]: any; // 其他字段
+  };
+
+  // 类名变更标记
+  classNameChanged?: boolean;
+
+  // 模块迁移信息（MIGRATE需要）
+  moduleChange?: {
+    oldModulePath: string;
+    newModulePath: string;
+    reason: string; // 迁移原因：重命名/配置变更
+  };
+}
+
+// 文件决策结果接口（来自T4.7-T4.9）
+export interface FileDecisionResult {
+  filePath: string;
+  oldFilePath?: string; // 重命名场景中的旧路径，用于查询历史用例
+  decision:
+    | 'create_all'
+    | 'delete_all'
+    | 'operation_a'
+    | 'operation_b'
+    | 'ignore'
+    | 'merged_path_rename'
+    | 'merged_module_change'
+    | 'config_path_rename'
+    | 'config_module_change'
+    | 'config_mapping_added'
+    | 'config_mapping_removed'
+    | 'config_mapping_removed_smart';
+  operations: any[];
+  reason: string;
+  deletedModule?: string; // 删除映射时的被删除模块，用于智能分析
+  analysisHint?: string; // 分析提示信息
+}
+
+// 提交上下文信息
+export interface CommitContext {
+  repositoryId: string;
+  commitId: string;
+  branchName: string;
+  workspaceKey: string; // 工作空间key，从 webhook.project.program_uuid 获取
+  // Git相关信息
+  gitCloneUrl?: string; // payload.project.git_ssh_url
+  gitBranch?: string; // payload.ref (processed as branch)
+  gitPath?: string; // payload.project.full_path
+  // 测试框架信息
+  testingFramework?: string; // 从config.testingFramework获取，如 "JUnit4.0" 或 "TestNG7.1.0"
+  // 统计相关
+  queueId?: string; // 队列ID，用于统计追踪
+}
+
+// 历史用例信息
+export interface HistoryCaseInfo {
+  caseId: string;
+  testId: string;
+  methodName: string;
+  className: string;
+  modulePath: string;
+  filePath: string;
+}
+
+/**
+ * T5.8主入口：处理文件决策结果，生成用例操作列表
+ */
+export async function processDecisionResults(
+  fileDecisions: FileDecisionResult[],
+  config: any,
+  commitContext: CommitContext,
+): Promise<CaseOperation[]> {
+  console.log(`[DEBUG] ================= processDecisionResults START =================`);
+  console.log(`[DEBUG] fileDecisions数量: ${fileDecisions.length}`);
+  console.log(`[DEBUG] 第一个决策:`, JSON.stringify(fileDecisions[0], null, 2));
+  console.log(`[T5.8] 🚀 开始处理 ${fileDecisions.length} 个文件决策`);
+  const operations: CaseOperation[] = [];
+
+  for (const fileDecision of fileDecisions) {
+    console.log(`[T5.8] 处理文件决策: ${fileDecision.filePath} -> ${fileDecision.decision}`);
+
+    let fileOperations: CaseOperation[] = [];
+
+    try {
+      switch (fileDecision.decision) {
+        case 'create_all':
+          fileOperations = await generateCreateAllOperations(fileDecision, config, commitContext);
+          break;
+
+        case 'delete_all':
+          fileOperations = await generateDeleteAllOperations(fileDecision, config, commitContext);
+          break;
+
+        case 'operation_a': // 涉及模块变更
+          fileOperations = await generateOperationAOperations(fileDecision, config, commitContext);
+          break;
+
+        case 'operation_b': // 正常更新
+          fileOperations = await generateOperationBOperations(fileDecision, config, commitContext);
+          break;
+
+        // 配置文件协调处理的决策类型
+        case 'merged_path_rename':
+        case 'merged_module_change':
+        case 'config_path_rename':
+        case 'config_module_change':
+        case 'config_mapping_added':
+        case 'config_mapping_removed':
+        case 'config_mapping_removed_smart':
+          console.log(`[T5.8] 进入配置协调处理分支: ${fileDecision.decision}`);
+          fileOperations = await generateConfigCoordinationOperations(
+            fileDecision,
+            config,
+            commitContext,
+          );
+          console.log(`[T5.8] 配置协调处理完成，生成 ${fileOperations.length} 个操作`);
+          break;
+
+        case 'ignore':
+          console.log(`[T5.8] 忽略文件: ${fileDecision.reason}`);
+          continue;
+
+        default:
+          console.warn(`[T5.8] 未知决策类型: ${fileDecision.decision}`);
+          continue;
+      }
+
+      operations.push(...fileOperations);
+      console.log(`[T5.8] 文件 ${fileDecision.filePath} 生成 ${fileOperations.length} 个用例操作`);
+
+      // 插入用例生成统计
+      if (commitContext.queueId && fileOperations.length > 0) {
+        await updateCaseGenerationProgress(
+          commitContext.queueId,
+          fileDecision.filePath,
+          fileOperations,
+        );
+      }
+    } catch (error) {
+      console.error(`[T5.8] 处理文件 ${fileDecision.filePath} 失败:`, error);
+      // 继续处理其他文件
+    }
+  }
+
+  // 统计日志
+  const stats = {
+    CREATE: operations.filter(op => op.operationType === 'CREATE').length,
+    UPDATE: operations.filter(op => op.operationType === 'UPDATE').length,
+    DELETE: operations.filter(op => op.operationType === 'DELETE').length,
+    MIGRATE: operations.filter(op => op.operationType === 'MIGRATE').length,
+  };
+
+  console.log(
+    `[T5.8] 生成用例操作汇总: CREATE(${stats.CREATE}) UPDATE(${stats.UPDATE}) DELETE(${stats.DELETE}) MIGRATE(${stats.MIGRATE})`,
+  );
+  console.log(`[DEBUG] ================= processDecisionResults END =================`);
+  console.log(`[DEBUG] 最终返回操作数量: ${operations.length}`);
+
+  return operations;
+}
+
+/**
+ * 处理create_all决策：新增文件或目录的所有测试方法
+ */
+async function generateCreateAllOperations(
+  fileDecision: FileDecisionResult,
+  config: any,
+  commitContext: CommitContext,
+): Promise<CaseOperation[]> {
+  console.log(`[T7.6] 处理create_all: ${fileDecision.filePath}`);
+
+  // 检查是否为目录级别的映射 (path不以.java结尾，通常是目录)
+  const isDirectoryMapping = !fileDecision.filePath.endsWith('.java');
+
+  let filesToProcess: string[] = [];
+
+  if (isDirectoryMapping) {
+    console.log(`[T7.6] 检测到目录级映射: ${fileDecision.filePath}，开始扫描目录下的Java文件`);
+    filesToProcess = await scanDirectoryForJavaFiles(
+      commitContext.repositoryId,
+      fileDecision.filePath,
+      commitContext.branchName,
+    );
+    console.log(`[T7.6] 目录扫描结果: 找到 ${filesToProcess.length} 个Java文件`);
+    
+    // 过滤掉已经被其他更具体的映射覆盖的文件
+    if (config.mappings) {
+      const originalCount = filesToProcess.length;
+      filesToProcess = filesToProcess.filter(filePath => {
+        // 检查是否有更具体的映射（即映射路径就是这个文件）
+        const hasSpecificMapping = Object.keys(config.mappings).some(mappingPath => {
+          // 如果有精确匹配这个文件的映射，且不是当前正在处理的目录映射，则排除
+          return mappingPath === filePath && mappingPath !== fileDecision.filePath;
+        });
+        
+        if (hasSpecificMapping) {
+          console.log(`[T7.6] 文件 ${filePath} 已有更具体的映射，跳过`);
+        }
+        return !hasSpecificMapping;
+      });
+      
+      if (originalCount !== filesToProcess.length) {
+        console.log(`[T7.6] 过滤后剩余 ${filesToProcess.length} 个文件需要处理（排除了 ${originalCount - filesToProcess.length} 个已有具体映射的文件）`);
+      }
+    }
+  } else {
+    console.log(`[T7.6] 文件级映射: ${fileDecision.filePath}`);
+    filesToProcess = [fileDecision.filePath];
+  }
+
+  const allOperations: CaseOperation[] = [];
+
+  // 2. 处理每个文件
+  for (let index = 0; index < filesToProcess.length; index++) {
+    const filePath = filesToProcess[index];
+    const fileName = filePath.split('/').pop() || filePath;
+    console.log(`[T7.6] 处理文件 ${index + 1}/${filesToProcess.length}: ${filePath}`);
+    
+    // 更新文件级进度监控
+    if (commitContext.queueId) {
+      await updateCurrentFileProgress(
+        commitContext.queueId,
+        fileName,
+        index + 1,
+        filesToProcess.length,
+      );
+    }
+
+    // 获取文件内容并解析
+    const fileStartTime = Date.now();
+    const fileContent = await getFileContent(
+      commitContext.repositoryId,
+      filePath,
+      commitContext.branchName,
+    );
+    if (!fileContent) {
+      console.warn(`[T7.6] 无法获取文件内容: ${filePath}`);
+      
+      // 记录文件处理失败日志
+      if (commitContext.queueId) {
+        await logFileProcessing(
+          commitContext.queueId,
+          commitContext.commitId,
+          fileName,
+          false, // shouldProcess: false (获取内容失败)
+          Date.now() - fileStartTime,
+          '无法获取文件内容'
+        );
+      }
+      continue;
+    }
+
+    console.log(`[T7.6] 开始解析文件内容，长度: ${fileContent.length} 字符`);
+
+    const className = javaParser.extractClassName(fileContent);
+    const testMethods = javaParser.parseTestMethods(fileContent);
+    const modulePath = findBestPathMapping(fileDecision.filePath, config.mappings); // 使用原始决策路径查找模块
+
+    console.log(`[T7.6] 解析结果: 类名=${className}, 测试方法数=${testMethods.length}`);
+    console.log(`[T7.6] 配置映射查询: ${fileDecision.filePath} -> ${modulePath}`);
+
+    if (!modulePath) {
+      console.warn(`[T7.6] 文件无模块映射: ${fileDecision.filePath}`);
+      continue;
+    }
+
+    console.log(
+      `[T5.8] 解析完成: 文件=${filePath}, 类=${className}, 方法数=${testMethods.length}, 模块=${modulePath}`,
+    );
+
+    // 为每个测试方法生成CREATE操作
+    if (testMethods.length === 0) {
+      console.log(`[T7.6] 文件中没有找到测试方法: ${filePath}`);
+    }
+
+    for (const method of testMethods) {
+      console.log(`[T7.6] 处理测试方法: ${method.methodName}, testId: ${method.testId}`);
+      const caseDesc = await extractCaseDescription(fileContent, method.startLine);
+
+      allOperations.push({
+        operationType: 'CREATE',
+        testId: method.testId,
+        methodName: method.methodName,
+        className: className || 'UnknownClass',
+        filePath: filePath, // 使用实际文件路径，不是目录路径
+        caseData: {
+          caseName: `${className}.${method.methodName}`,
+          caseDesc: caseDesc || `测试用例: ${method.testId}`,
+          modulePath: modulePath,
+          sourceInfo: {
+            filePath: filePath, // 使用实际文件路径
+            startLine: method.startLine,
+            endLine: method.endLine,
+            commitId: commitContext.commitId,
+          },
+        },
+      });
+
+      console.log(
+        `[T7.6] 生成CREATE操作: ${method.testId} -> ${className}.${method.methodName} (来自文件: ${filePath})`,
+      );
+    }
+    
+    // 统计当前文件生成的操作
+    const fileOperations = allOperations.filter(op => op.filePath === filePath);
+    
+    // 记录文件处理成功日志
+    if (commitContext.queueId) {
+      await logFileProcessing(
+        commitContext.queueId,
+        commitContext.commitId,
+        fileName,
+        testMethods.length > 0, // shouldProcess: 有测试方法时为true
+        Date.now() - fileStartTime,
+        testMethods.length === 0 ? '文件中没有测试方法' : undefined
+      );
+      
+      // 记录用例生成进度（针对每个具体文件）
+      if (fileOperations.length > 0) {
+        await updateCaseGenerationProgress(
+          commitContext.queueId,
+          fileName, // 使用文件名而不是完整路径
+          fileOperations,
+        );
+      }
+    }
+  }
+
+  console.log(
+    `[T5.8] create_all: ${fileDecision.filePath} 共处理 ${filesToProcess.length} 个文件，生成 ${allOperations.length} 个CREATE操作`,
+  );
+  return allOperations;
+}
+
+/**
+ * 处理delete_all决策：删除文件的所有历史用例
+ */
+async function generateDeleteAllOperations(
+  fileDecision: FileDecisionResult,
+  config: any,
+  commitContext: CommitContext,
+): Promise<CaseOperation[]> {
+  console.log(`[T5.8] 处理delete_all: ${fileDecision.filePath}`);
+
+  // 对于重命名场景，优先使用旧路径查询历史用例
+  const queryPath = fileDecision.oldFilePath || fileDecision.filePath;
+  console.log(
+    `[T5.8] 查询历史用例路径: ${queryPath} ${
+      fileDecision.oldFilePath ? '(使用旧路径)' : '(使用当前路径)'
+    }`,
+  );
+
+  // 获取事项类型key，用于过滤条件防止误删
+  let itemTypeKey: string | undefined;
+  if (commitContext.workspaceKey) {
+    try {
+      const requiredAttrs = await getItemCreateRequiredAttrs({ key: commitContext.workspaceKey });
+      itemTypeKey = requiredAttrs.itemType?.key;
+      console.log(`[T5.8] 获取到事项类型Key: ${itemTypeKey}`);
+    } catch (error) {
+      console.error(`[T5.8] 获取工作空间配置失败:`, error);
+    }
+  }
+
+  // 获取该文件的所有历史用例，添加工作空间和事项类型过滤条件防止误删
+  const historyCases = await getHistoryCasesForFile(
+    queryPath,
+    commitContext.workspaceKey,
+    itemTypeKey,
+  );
+  const operations: CaseOperation[] = [];
+
+  for (const [testId, historyCase] of historyCases) {
+    operations.push({
+      operationType: 'DELETE',
+      testId: testId,
+      methodName: historyCase.methodName,
+      className: historyCase.className,
+      filePath: fileDecision.filePath,
+      existingCaseInfo: {
+        caseId: historyCase.caseId,
+        testId: testId,
+        name: historyCase.methodName,
+        currentModulePath: historyCase.modulePath,
+      },
+    });
+  }
+
+  console.log(`[T5.8] delete_all: ${fileDecision.filePath} 生成 ${operations.length} 个DELETE操作`);
+  return operations;
+}
+
+/**
+ * 处理operation_b决策：正常文件更新（增量同步）
+ */
+async function generateOperationBOperations(
+  fileDecision: FileDecisionResult,
+  config: any,
+  commitContext: CommitContext,
+): Promise<CaseOperation[]> {
+  console.log(`[T5.8] 处理operation_b: ${fileDecision.filePath}`);
+
+  // 1. 获取当前文件内容和历史映射
+  const fileContent = await getFileContent(
+    commitContext.repositoryId,
+    fileDecision.filePath,
+    commitContext.branchName,
+  );
+  if (!fileContent) {
+    console.warn(`[T7.6] 无法获取文件内容: ${fileDecision.filePath}`);
+    return [];
+  }
+
+  const className = javaParser.extractClassName(fileContent);
+  const currentMethods = javaParser.parseTestMethods(fileContent);
+  const modulePath = findBestPathMapping(fileDecision.filePath, config.mappings);
+
+  if (!modulePath) {
+    console.warn(`[T7.6] 文件无模块映射: ${fileDecision.filePath}`);
+    return [];
+  }
+
+  // 2. 获取历史用例信息（用于检测类名变更）
+  const historyCases = await getHistoryCasesForFile(
+    fileDecision.filePath,
+    commitContext.workspaceKey,
+  );
+
+  // 3. 分析受影响的方法（通过diff）
+  const affectedMethods = await getAffectedMethodsFromDiff(
+    commitContext.repositoryId,
+    commitContext.commitId,
+    fileDecision.filePath,
+    currentMethods,
+  );
+
+  // 4. 分析diff中的@TestId变化和类名变更（优化版本：一次分析获取所有信息）
+  const { addedTestIds, removedTestIds, classNameChanged, oldClassName, newClassName } =
+    await analyzeTestIdChangesInDiff(
+      commitContext.repositoryId,
+      commitContext.commitId,
+      fileDecision.filePath,
+    );
+
+  // 类名变更标记（从diff中直接获取，无需额外查询历史用例）
+  const hasClassNameChanged = classNameChanged;
+
+  const operations: CaseOperation[] = [];
+
+  console.log(
+    `[T5.8] operation_b分析: 当前方法=${currentMethods.length}, 受影响方法=${affectedMethods.length}`,
+  );
+  console.log(
+    `[T5.8] diff分析: 新增TestId=${addedTestIds.length}, 删除TestId=${removedTestIds.length}`,
+  );
+  if (hasClassNameChanged && oldClassName && newClassName) {
+    console.log(`[T5.8] 类名变更检测: ${oldClassName} -> ${newClassName}`);
+  } else {
+    console.log(`[T5.8] 类名变更检测: 未检测到类名变更`);
+  }
+
+  // 4. 处理每个当前方法
+  for (const method of currentMethods) {
+    const isAffected = affectedMethods.some(m => m.testId === method.testId);
+    const isNewlyAdded = addedTestIds.includes(method.testId);
+    const existsInHistory = historyCases.has(method.testId);
+
+    if (isNewlyAdded) {
+      // diff中新增的@TestId → CREATE
+      const caseDesc = await extractCaseDescription(fileContent, method.startLine);
+
+      console.log(`[T5.8] ${method.testId}: diff中新增@TestId -> CREATE`);
+
+      operations.push({
+        operationType: 'CREATE',
+        testId: method.testId,
+        methodName: method.methodName,
+        className: className || 'UnknownClass',
+        filePath: fileDecision.filePath,
+        caseData: {
+          caseName: `${className}.${method.methodName}`,
+          caseDesc: caseDesc || `测试用例: ${method.testId}`,
+          modulePath: modulePath,
+          sourceInfo: {
+            filePath: fileDecision.filePath,
+            startLine: method.startLine,
+            endLine: method.endLine,
+            commitId: commitContext.commitId,
+          },
+        },
+      });
+    } else if (isAffected || (hasClassNameChanged && existsInHistory)) {
+      // 已存在但受影响的方法 OR 类名变更的已存在方法 → UPDATE
+      const caseDesc = await extractCaseDescription(fileContent, method.startLine);
+      const historyCase = historyCases.get(method.testId);
+
+      const updateReason = [];
+      if (isAffected) updateReason.push('方法受diff影响');
+      if (hasClassNameChanged && existsInHistory) {
+        // 使用diff中解析出的类名信息
+        const displayOldName = oldClassName || historyCase?.className || 'Unknown';
+        const displayNewName = newClassName || className || 'Unknown';
+        updateReason.push(`类名变更(${displayOldName} -> ${displayNewName})`);
+      }
+
+      console.log(`[T5.8] ${method.testId}: ${updateReason.join(' + ')} -> UPDATE`);
+
+      operations.push({
+        operationType: 'UPDATE',
+        testId: method.testId,
+        methodName: method.methodName,
+        className: className || 'UnknownClass',
+        filePath: fileDecision.filePath,
+        caseData: {
+          caseName: `${className}.${method.methodName}`,
+          caseDesc: caseDesc || `测试用例: ${method.testId}`,
+          modulePath: modulePath,
+          sourceInfo: {
+            filePath: fileDecision.filePath,
+            startLine: method.startLine,
+            endLine: method.endLine,
+            commitId: commitContext.commitId,
+          },
+        },
+        existingCaseInfo: {
+          caseId: historyCase?.caseId || 'TBD',
+          testId: method.testId,
+          name: `${className}.${method.methodName}`,
+          currentModulePath: modulePath,
+          oldClassName: oldClassName || historyCase?.className, // 优先使用diff中的旧类名
+        },
+        classNameChanged: hasClassNameChanged && existsInHistory, // 标记类名是否变更
+      });
+    }
+    // 未受影响且非新增的方法不需要操作
+  }
+
+  // 5. 处理删除的@TestId
+  for (const removedTestId of removedTestIds) {
+    console.log(`[T5.8] ${removedTestId}: diff中删除@TestId -> DELETE`);
+
+    operations.push({
+      operationType: 'DELETE',
+      testId: removedTestId,
+      methodName: 'Unknown',
+      className: className || 'UnknownClass',
+      filePath: fileDecision.filePath,
+      existingCaseInfo: {
+        caseId: 'TBD', // Will be enriched by caseOperationExecutor
+        testId: removedTestId,
+        name: 'Unknown',
+        currentModulePath: modulePath,
+      },
+    });
+  }
+
+  console.log(`[T5.8] operation_b: ${fileDecision.filePath} 生成 ${operations.length} 个操作`);
+  return operations;
+}
+
+/**
+ * 处理operation_a决策：涉及模块变更的操作
+ */
+async function generateOperationAOperations(
+  fileDecision: FileDecisionResult,
+  config: any,
+  commitContext: CommitContext,
+): Promise<CaseOperation[]> {
+  console.log(`[T5.8] 处理operation_a: ${fileDecision.filePath}`);
+
+  // operation_a通常涉及模块路径变更，先按operation_b处理，然后增加MIGRATE操作
+  const baseOperations = await generateOperationBOperations(fileDecision, config, commitContext);
+
+  // 检查是否有模块路径变更需要MIGRATE操作
+  const newModulePath = findBestPathMapping(fileDecision.filePath, config.mappings);
+
+  for (const operation of baseOperations) {
+    if (operation.operationType === 'UPDATE' && operation.existingCaseInfo) {
+      const oldModulePath = operation.existingCaseInfo.currentModulePath;
+
+      if (oldModulePath && newModulePath && oldModulePath !== newModulePath) {
+        // 转换为MIGRATE操作
+        operation.operationType = 'MIGRATE';
+        operation.moduleChange = {
+          oldModulePath: oldModulePath,
+          newModulePath: newModulePath,
+          reason: '文件重命名导致模块路径变更',
+        };
+      }
+    }
+  }
+
+  console.log(`[T5.8] operation_a: ${fileDecision.filePath} 生成 ${baseOperations.length} 个操作`);
+  return baseOperations;
+}
+
+/**
+ * 处理配置文件协调相关的决策
+ */
+async function generateConfigCoordinationOperations(
+  fileDecision: FileDecisionResult,
+  config: any,
+  commitContext: CommitContext,
+): Promise<CaseOperation[]> {
+  console.log(`[T5.8] 处理配置协调: ${fileDecision.decision} -> ${fileDecision.filePath}`);
+  console.log(`[T5.8] 配置协调决策详情:`, JSON.stringify(fileDecision, null, 2));
+
+  // 配置协调操作通常涉及复杂的MIGRATE和批量操作
+  // 先简化实现，后续根据具体需求完善
+  const operations: CaseOperation[] = [];
+
+  switch (fileDecision.decision) {
+    case 'config_path_rename':
+    case 'merged_path_rename':
+      // 路径重命名：更新文件路径，保持模块路径不变
+      const historyCases = await getHistoryCasesForFile(
+        fileDecision.filePath,
+        commitContext.workspaceKey,
+      );
+      for (const [testId, historyCase] of historyCases) {
+        operations.push({
+          operationType: 'MIGRATE',
+          testId: testId,
+          methodName: historyCase.methodName,
+          className: historyCase.className,
+          filePath: fileDecision.filePath,
+          existingCaseInfo: {
+            caseId: historyCase.caseId,
+            testId: testId,
+            name: historyCase.methodName,
+            currentModulePath: historyCase.modulePath,
+          },
+          moduleChange: {
+            oldModulePath: historyCase.modulePath,
+            newModulePath: historyCase.modulePath, // 模块路径不变
+            reason: '配置文件中文件路径重命名',
+          },
+        });
+      }
+      break;
+
+    case 'config_mapping_added':
+      // 新增映射：需要智能处理
+      console.log(
+        `[T5.8] config_mapping_added: 智能处理新增映射 ${fileDecision.filePath}`,
+      );
+      
+      // 先检查该路径下的文件是否已经有用例存在
+      // 如果有用例但模块不同，应该是迁移而不是创建
+      return await generateSmartMappingAddedOperations(fileDecision, config, commitContext);
+
+    case 'config_mapping_removed':
+      // 删除映射：智能处理，检查是否有其他映射覆盖
+      return await generateSmartDeleteOperations(fileDecision, config, commitContext);
+
+    case 'config_mapping_removed_smart':
+      // 智能删除映射：检查是否有其他映射覆盖
+      console.log(`[T5.8] config_mapping_removed_smart: 开始智能分析删除影响`);
+      console.log(
+        `[T5.8] 删除路径: ${fileDecision.filePath}, 删除模块: ${fileDecision.deletedModule}`,
+      );
+      return await generateSmartDeleteOperations(fileDecision, config, commitContext);
+
+    case 'config_module_change':
+    case 'merged_module_change':
+      // 模块路径变更：将现有用例迁移到新模块路径
+      return await generateModuleChangeOperations(fileDecision, config, commitContext);
+
+    // 其他复杂场景待实现
+    default:
+      console.log(`[T5.8] 配置协调决策 ${fileDecision.decision} 暂未完全实现`);
+  }
+
+  console.log(`[T5.8] 配置协调: ${fileDecision.filePath} 生成 ${operations.length} 个操作`);
+  return operations;
+}
+
+/**
+ * 处理模块路径变更：生成MIGRATE操作
+ */
+async function generateModuleChangeOperations(
+  fileDecision: FileDecisionResult,
+  config: any,
+  commitContext: CommitContext,
+): Promise<CaseOperation[]> {
+  console.log(`[T5.8] 处理模块变更: ${fileDecision.filePath}`);
+
+  // 1. 获取文件内容并解析测试方法
+  const fileContent = await getFileContent(
+    commitContext.repositoryId,
+    fileDecision.filePath,
+    commitContext.branchName,
+  );
+  if (!fileContent) {
+    console.warn(`[T7.6] 无法获取文件内容: ${fileDecision.filePath}`);
+    return [];
+  }
+
+  const className = javaParser.extractClassName(fileContent);
+  const currentMethods = javaParser.parseTestMethods(fileContent);
+  const newModulePath = findBestPathMapping(fileDecision.filePath, config.mappings);
+
+  if (!newModulePath) {
+    console.warn(`[T7.6] 文件无模块映射: ${fileDecision.filePath}`);
+    return [];
+  }
+
+  console.log(`[T5.8] 模块变更: ${fileDecision.filePath} -> ${newModulePath}`);
+  console.log(`[T5.8] 找到 ${currentMethods.length} 个测试方法，需要生成MIGRATE操作`);
+
+  const operations: CaseOperation[] = [];
+
+  // 2. 查询历史用例信息
+  const historyCases = await getHistoryCasesForFile(fileDecision.filePath, commitContext.workspaceKey);
+  console.log(`[T5.8] 文件 ${fileDecision.filePath} 查询到 ${historyCases.size} 个历史用例`);
+
+  // 3. 为每个测试方法生成MIGRATE操作
+  for (const method of currentMethods) {
+    const caseDesc = await extractCaseDescription(fileContent, method.startLine);
+
+    // 查找对应的历史用例信息
+    const historyCase = historyCases.get(method.testId);
+    if (!historyCase) {
+      console.warn(`[T5.8] 测试方法 ${method.testId} 没有找到历史用例，跳过MIGRATE操作`);
+      continue;
+    }
+
+    operations.push({
+      operationType: 'MIGRATE',
+      testId: method.testId,
+      methodName: method.methodName,
+      className: className || 'UnknownClass',
+      filePath: fileDecision.filePath,
+      caseData: {
+        caseName: `${className}.${method.methodName}`,
+        caseDesc: caseDesc || `测试用例: ${method.testId}`,
+        modulePath: newModulePath,
+        sourceInfo: {
+          filePath: fileDecision.filePath,
+          startLine: method.startLine,
+          endLine: method.endLine,
+          commitId: commitContext.commitId,
+        },
+      },
+      existingCaseInfo: {
+        caseId: historyCase.caseId,
+        testId: method.testId,
+        name: `${className}.${method.methodName}`,
+        currentModulePath: historyCase.modulePath,
+      },
+      moduleChange: {
+        oldModulePath: historyCase.modulePath,
+        newModulePath: newModulePath,
+        reason: '配置文件中模块路径变更',
+      },
+    });
+  }
+
+  console.log(
+    `[T5.8] config_module_change: ${fileDecision.filePath} 生成 ${operations.length} 个MIGRATE操作`,
+  );
+  return operations;
+}
+
+/**
+ * 获取文件的历史用例映射
+ * 通过IQL查询测试管理系统中与该文件路径关联的用例数据
+ * @param filePath 文件路径
+ * @param workspaceKey 工作空间key，用于过滤条件防止误删
+ * @param itemTypeKey 事项类型key，用于过滤条件防止误删
+ */
+async function getHistoryCasesForFile(
+  filePath: string,
+  workspaceKey?: string,
+  itemTypeKey?: string,
+): Promise<Map<string, HistoryCaseInfo>> {
+  console.log(`[T5.8] 查询文件历史用例: ${filePath}`);
+
+  try {
+    // 使用IQL查询该文件路径对应的所有用例，添加工作空间和类型过滤条件防止误删
+    // 判断是否为目录路径：使用通用的目录判断逻辑
+    const isDirectoryPathFlag = isDirectoryPath(filePath);
+    let iql = isDirectoryPathFlag ? `文件路径 ~ "${filePath}"` : `文件路径 = "${filePath}"`;
+
+    // 添加工作空间过滤条件（使用工作空间key）
+    if (workspaceKey) {
+      iql += ` and workspaceKey = '${workspaceKey}'`;
+    }
+
+    // 添加事项类型过滤条件（使用事项类型key）
+    if (itemTypeKey) {
+      iql += ` and itemTypeKey = '${itemTypeKey}'`;
+    }
+
+    console.log(`[T5.8] 历史用例IQL查询: ${iql}`);
+
+    const result = await iqlSearch({
+      iql,
+      fields: [
+        'id',
+        'name',
+        'values',
+        'r_test_manager_atm_test_id',
+        'r_test_manager_atm_file_path',
+        'r_test_manager_atm_module_path',
+        'r_test_manager_atm_class_name',
+        'r_test_manager_atm_method_name',
+      ],
+      displayContext: AppKey,
+      size: 10000, // 提高查询限制以处理大量用例的情况
+    });
+
+    const historyCases = new Map<string, HistoryCaseInfo>();
+
+    if (result?.payload?.items) {
+      console.log(`[T5.8] 找到 ${result.payload.items.length} 个历史用例`);
+
+      result.payload.items.forEach((item: any) => {
+        // 尝试从多个位置获取testId
+        const testId =
+          item.values?.r_test_manager_atm_test_id ||
+          item.r_test_manager_atm_test_id ||
+          item.r_test_manager_atm_test_id;
+
+        const className =
+          item.values?.r_test_manager_atm_class_name ||
+          item.r_test_manager_atm_class_name ||
+          item.r_test_manager_atm_class_name;
+
+        const methodName =
+          item.values?.r_test_manager_atm_method_name ||
+          item.r_test_manager_atm_method_name ||
+          item.r_test_manager_atm_method_name;
+
+        const modulePath =
+          item.values?.r_test_manager_atm_module_path ||
+          item.r_test_manager_atm_module_path ||
+          item.r_test_manager_atm_module_path;
+
+        if (testId) {
+          historyCases.set(testId, {
+            caseId: item.id,
+            testId: testId,
+            methodName: methodName || 'Unknown',
+            className: className || 'Unknown',
+            modulePath: modulePath || '',
+            filePath: filePath,
+          });
+
+          console.log(`[T5.8] - 历史用例: ${testId} (${item.id}) ${className}.${methodName} 模块:${modulePath || '空'}`);
+        } else {
+          console.warn(`[T5.8] - 用例缺少testId: ${item.id}`);
+        }
+      });
+    } else {
+      console.log(`[T5.8] 该文件没有找到历史用例: ${filePath}`);
+    }
+
+    return historyCases;
+  } catch (error) {
+    console.error(`[T5.8] 查询文件历史用例失败: ${filePath}`, error);
+    return new Map();
+  }
+}
+
+/**
+ * 智能处理删除映射：只删除没有其他映射覆盖的用例
+ */
+async function generateSmartDeleteOperations(
+  fileDecision: FileDecisionResult,
+  config: any,
+  commitContext: CommitContext,
+): Promise<CaseOperation[]> {
+  console.log(`[T5.8] 智能处理删除映射: ${fileDecision.filePath}`);
+  
+  const operations: CaseOperation[] = [];
+  const isDirectoryMapping = !fileDecision.filePath.endsWith('.java');
+  
+  if (isDirectoryMapping) {
+    console.log(`[T5.8] 删除目录级映射，需要智能分析`);
+    
+    // 扫描目录下的所有Java文件
+    const allFiles = await scanDirectoryForJavaFiles(
+      commitContext.repositoryId,
+      fileDecision.filePath,
+      commitContext.branchName,
+    );
+    console.log(`[T5.8] 目录下共有 ${allFiles.length} 个Java文件`);
+    
+    // 检查每个文件是否还有其他映射覆盖
+    for (const filePath of allFiles) {
+      // 检查该文件是否还有其他映射
+      const currentMapping = findBestPathMapping(filePath, config.mappings);
+      
+      if (currentMapping) {
+        console.log(`[T5.8] 文件 ${filePath} 还有其他映射覆盖: ${currentMapping}，跳过删除`);
+        
+        // 如果有映射但模块不同，可能需要迁移
+        const historyCases = await getHistoryCasesForFile(filePath, commitContext.workspaceKey);
+        for (const [testId, caseInfo] of historyCases) {
+          if (caseInfo.modulePath !== currentMapping) {
+            console.log(`[T5.8] 用例 ${testId} 需要迁移到新模块: ${caseInfo.modulePath} -> ${currentMapping}`);
+            operations.push({
+              operationType: 'MIGRATE',
+              testId: testId,
+              methodName: caseInfo.methodName,
+              className: caseInfo.className,
+              filePath: filePath,
+              existingCaseInfo: {
+                caseId: caseInfo.caseId,
+                testId: testId,
+                name: caseInfo.methodName,
+                currentModulePath: caseInfo.modulePath,
+              },
+              moduleChange: {
+                oldModulePath: caseInfo.modulePath,
+                newModulePath: currentMapping,
+                reason: '删除目录映射但保留文件映射，迁移到文件映射的模块',
+              },
+            });
+          }
+        }
+      } else {
+        console.log(`[T5.8] 文件 ${filePath} 没有其他映射，删除其用例`);
+        
+        // 没有其他映射覆盖，删除该文件的用例
+        const historyCases = await getHistoryCasesForFile(filePath, commitContext.workspaceKey);
+        for (const [testId, historyCase] of historyCases) {
+          operations.push({
+            operationType: 'DELETE',
+            testId: testId,
+            methodName: historyCase.methodName,
+            className: historyCase.className,
+            filePath: filePath,
+            existingCaseInfo: {
+              caseId: historyCase.caseId,
+              testId: testId,
+              name: historyCase.methodName,
+              currentModulePath: historyCase.modulePath,
+            },
+          });
+        }
+      }
+    }
+  } else {
+    // 文件级映射删除，需要检查是否还有其他映射覆盖
+    console.log(`[T5.8] 删除文件级映射: ${fileDecision.filePath}`);
+    
+    // 检查该文件是否还有其他映射（如目录级映射）
+    const remainingMapping = findBestPathMapping(fileDecision.filePath, config.mappings);
+    
+    if (remainingMapping) {
+      console.log(`[T5.8] 文件 ${fileDecision.filePath} 还有其他映射覆盖: ${remainingMapping}`);
+      
+      // 文件还有其他映射，检查是否需要迁移到新模块
+      const historyCases = await getHistoryCasesForFile(
+        fileDecision.filePath,
+        commitContext.workspaceKey,
+      );
+      
+      for (const [testId, historyCase] of historyCases) {
+        if (historyCase.modulePath !== remainingMapping) {
+          console.log(`[T5.8] 用例 ${testId} 需要迁移: ${historyCase.modulePath} -> ${remainingMapping}`);
+          operations.push({
+            operationType: 'MIGRATE',
+            testId: testId,
+            methodName: historyCase.methodName,
+            className: historyCase.className,
+            filePath: fileDecision.filePath,
+            existingCaseInfo: {
+              caseId: historyCase.caseId,
+              testId: testId,
+              name: historyCase.methodName,
+              currentModulePath: historyCase.modulePath,
+            },
+            moduleChange: {
+              oldModulePath: historyCase.modulePath,
+              newModulePath: remainingMapping,
+              reason: '删除文件级映射但保留目录级映射，迁移到目录映射的模块',
+            },
+          });
+        } else {
+          console.log(`[T5.8] 用例 ${testId} 模块路径相同，无需操作`);
+        }
+      }
+    } else {
+      // 没有其他映射，删除用例
+      console.log(`[T5.8] 文件 ${fileDecision.filePath} 没有其他映射，删除其用例`);
+      const historyCases = await getHistoryCasesForFile(
+        fileDecision.filePath,
+        commitContext.workspaceKey,
+      );
+      
+      for (const [testId, historyCase] of historyCases) {
+        operations.push({
+          operationType: 'DELETE',
+          testId: testId,
+          methodName: historyCase.methodName,
+          className: historyCase.className,
+          filePath: fileDecision.filePath,
+          existingCaseInfo: {
+            caseId: historyCase.caseId,
+            testId: testId,
+            name: historyCase.methodName,
+            currentModulePath: historyCase.modulePath,
+          },
+        });
+      }
+    }
+  }
+  
+  const stats = {
+    DELETE: operations.filter(op => op.operationType === 'DELETE').length,
+    MIGRATE: operations.filter(op => op.operationType === 'MIGRATE').length,
+  };
+  
+  console.log(`[T5.8] 智能删除处理完成: DELETE(${stats.DELETE}) MIGRATE(${stats.MIGRATE})`);
+  return operations;
+}
+
+/**
+ * 智能处理新增映射：检查是否需要迁移而非创建
+ */
+async function generateSmartMappingAddedOperations(
+  fileDecision: FileDecisionResult,
+  config: any,
+  commitContext: CommitContext,
+): Promise<CaseOperation[]> {
+  console.log(`[T5.8] 智能处理新增映射: ${fileDecision.filePath}`);
+  
+  const operations: CaseOperation[] = [];
+  const isDirectoryMapping = !fileDecision.filePath.endsWith('.java');
+  let filesToProcess: string[] = [];
+  
+  // 1. 确定要处理的文件列表
+  if (isDirectoryMapping) {
+    filesToProcess = await scanDirectoryForJavaFiles(
+      commitContext.repositoryId,
+      fileDecision.filePath,
+      commitContext.branchName,
+    );
+    console.log(`[T5.8] 目录映射，扫描到 ${filesToProcess.length} 个Java文件`);
+    
+    // 过滤掉已有更具体映射的文件
+    if (config.mappings) {
+      const originalCount = filesToProcess.length;
+      filesToProcess = filesToProcess.filter(filePath => {
+        const hasSpecificMapping = Object.keys(config.mappings).some(mappingPath => 
+          mappingPath === filePath && mappingPath !== fileDecision.filePath
+        );
+        return !hasSpecificMapping;
+      });
+      
+      if (originalCount !== filesToProcess.length) {
+        console.log(`[T5.8] 过滤后剩余 ${filesToProcess.length} 个文件需要处理`);
+      }
+    }
+  } else {
+    filesToProcess = [fileDecision.filePath];
+  }
+  
+  // 2. 处理每个文件
+  for (const filePath of filesToProcess) {
+    console.log(`[T5.8] 检查文件是否已有用例: ${filePath}`);
+    
+    // 获取该文件的最佳映射（可能是文件级映射或目录级映射）
+    const newModulePath = findBestPathMapping(filePath, config.mappings);
+    if (!newModulePath) {
+      console.warn(`[T5.8] 文件 ${filePath} 没有找到映射配置，跳过`);
+      continue;
+    }
+    
+    console.log(`[T5.8] 文件 ${filePath} 的目标模块: ${newModulePath}`);
+    
+    // 查询该文件是否已有用例
+    const existingCases = await getHistoryCasesForFile(filePath, commitContext.workspaceKey);
+    
+    if (existingCases.size > 0) {
+      console.log(`[T5.8] 文件 ${filePath} 已有 ${existingCases.size} 个用例`);
+      
+      // 检查现有用例的模块路径是否与新映射不同
+      for (const [testId, caseInfo] of existingCases) {
+        const oldModulePath = caseInfo.modulePath || '';
+        
+        console.log(`[T5.8] 用例 ${testId}: 当前模块="${oldModulePath}", 目标模块="${newModulePath}"`);
+        
+        if (oldModulePath !== newModulePath) {
+          console.log(`[T5.8] 用例 ${testId} 需要迁移: ${oldModulePath} -> ${newModulePath}`);
+          
+          // 生成MIGRATE操作
+          operations.push({
+            operationType: 'MIGRATE',
+            testId: testId,
+            methodName: caseInfo.methodName,
+            className: caseInfo.className,
+            filePath: filePath,
+            existingCaseInfo: {
+              caseId: caseInfo.caseId,
+              testId: testId,
+              name: caseInfo.methodName,
+              oldClassName: caseInfo.className,
+              currentModulePath: oldModulePath,
+            },
+            moduleChange: {
+              oldModulePath: oldModulePath,
+              newModulePath: newModulePath,
+              reason: '新增更具体的映射配置，迁移到新模块',
+            },
+          });
+        } else {
+          console.log(`[T5.8] 用例 ${testId} 模块路径相同，无需迁移`);
+        }
+      }
+    } else {
+      // 文件没有现有用例，需要创建新用例
+      console.log(`[T5.8] 文件 ${filePath} 没有现有用例，创建新用例`);
+      
+      try {
+        const fileContent = await getFileContent(
+          commitContext.repositoryId,
+          filePath,
+          commitContext.branchName,
+        );
+        
+        if (!fileContent || !fileContent.trim()) {
+          console.warn(`[T5.8] 文件内容为空: ${filePath}`);
+          continue;
+        }
+        
+        const className = javaParser.extractClassName(fileContent);
+        const testMethods = javaParser.parseTestMethods(fileContent);
+        
+        console.log(`[T5.8] 解析文件: 类名=${className}, 测试方法数=${testMethods.length}`);
+        
+        // 为每个测试方法创建CREATE操作
+        for (const method of testMethods) {
+          const testId = method.testId || `${className}.${method.methodName}`;
+          const caseDesc = await extractCaseDescription(fileContent, method.startLine);
+          
+          operations.push({
+            operationType: 'CREATE',
+            testId: testId,
+            methodName: method.methodName,
+            className: className,
+            filePath: filePath,
+            caseData: {
+              caseName: `${className}.${method.methodName}`,
+              caseDesc: caseDesc || `测试用例: ${testId}`,
+              modulePath: newModulePath,
+              sourceInfo: {
+                filePath: filePath,
+                startLine: method.startLine,
+                endLine: method.endLine,
+                commitId: commitContext.commitId,
+              },
+            },
+          });
+        }
+      } catch (error) {
+        console.error(`[T5.8] 处理文件失败: ${filePath}`, error);
+      }
+    }
+  }
+  
+  const stats = {
+    CREATE: operations.filter(op => op.operationType === 'CREATE').length,
+    MIGRATE: operations.filter(op => op.operationType === 'MIGRATE').length,
+  };
+  
+  console.log(`[T5.8] 智能映射处理完成: CREATE(${stats.CREATE}) MIGRATE(${stats.MIGRATE})`);
+  return operations;
+}
+
+/**
+ * 通过diff分析受影响的测试方法
+ */
+async function getAffectedMethodsFromDiff(
+  repositoryId: string,
+  commitId: string,
+  filePath: string,
+  allMethods: any[],
+) {
+  try {
+    // 获取单个文件的diff（需要实现getFileDiff或类似功能）
+    const diffData = await getCommitDiff(repositoryId, commitId);
+
+    if (!Array.isArray(diffData)) {
+      console.warn(`[T5.8] 无效的diff数据格式`);
+      return [];
+    }
+
+    // 找到目标文件的diff
+    const fileDiff = diffData.find(f => f.new_path === filePath || f.old_path === filePath);
+    if (!fileDiff || !fileDiff.diff) {
+      console.log(`[T5.8] 文件 ${filePath} 无diff内容`);
+      return [];
+    }
+
+    // 使用parser分析受影响的方法
+    const affectedMethods = javaParser.analyzeAffectedMethods(allMethods, fileDiff.diff);
+
+    console.log(
+      `[T5.8] diff分析: ${filePath} 中 ${affectedMethods.length}/${allMethods.length} 个方法受影响`,
+    );
+    return affectedMethods;
+  } catch (error) {
+    console.error(`[T5.8] diff分析失败: ${filePath}`, error);
+    return [];
+  }
+}
+
+/**
+ * 判断一行代码是否被注释
+ */
+function isCommentedLine(line: string): boolean {
+  const trimmedLine = line.trim();
+
+  // 检查单行注释 //
+  if (trimmedLine.startsWith('//')) {
+    return true;
+  }
+
+  // 检查块注释 /* ... */
+  if (trimmedLine.startsWith('/*') || trimmedLine.startsWith('*')) {
+    return true;
+  }
+
+  // 检查行内注释（注释在代码前面）
+  const beforeComment = line.match(/^\s*\/\//);
+  if (beforeComment) {
+    return true;
+  }
+
+  return false;
+}
+
+/**
+ * 分析diff中@TestId的增删变化和类名变更
+ */
+async function analyzeTestIdChangesInDiff(
+  repositoryId: string,
+  commitId: string,
+  filePath: string,
+): Promise<{
+  addedTestIds: string[];
+  removedTestIds: string[];
+  classNameChanged: boolean;
+  oldClassName?: string;
+  newClassName?: string;
+}> {
+  const addedTestIds: string[] = [];
+  const removedTestIds: string[] = [];
+  let classNameChanged = false;
+  let oldClassName: string | undefined;
+  let newClassName: string | undefined;
+
+  try {
+    // 获取diff数据
+    const diffData = await getCommitDiff(repositoryId, commitId);
+    if (!Array.isArray(diffData)) {
+      console.warn(`[T5.8] 无效的diff数据格式`);
+      return { addedTestIds, removedTestIds, classNameChanged };
+    }
+
+    // 找到目标文件的diff
+    const fileDiff = diffData.find(f => f.new_path === filePath || f.old_path === filePath);
+    if (!fileDiff || !fileDiff.diff) {
+      console.log(`[T5.8] 文件 ${filePath} 无diff内容`);
+      return { addedTestIds, removedTestIds, classNameChanged };
+    }
+
+    // 解析diff中的@TestId变化和类名变更
+    const diffLines = fileDiff.diff.split('\n');
+
+    // 类名检测的正则表达式：匹配各种访问修饰符的类声明
+    const classPattern = /^\s*(?:public\s+|private\s+|protected\s+|static\s+)*class\s+(\w+)/;
+
+    for (const line of diffLines) {
+      // 检测@TestId变化
+      if (line.includes('@TestId')) {
+        const testIdMatch = /@TestId\s*\(\s*["']([^"']+)["']\s*\)/.exec(line);
+        if (testIdMatch) {
+          const testId = testIdMatch[1];
+
+          if (line.startsWith('+') && !line.startsWith('+++')) {
+            // 检查是否是注释掉的@TestId
+            const lineContent = line.substring(1).trim(); // 去掉 '+' 符号
+            if (isCommentedLine(lineContent)) {
+              console.log(`[T5.8] 忽略注释掉的@TestId: ${testId}`);
+              continue;
+            }
+            // 新增的@TestId
+            if (!addedTestIds.includes(testId)) {
+              addedTestIds.push(testId);
+              console.log(`[T5.8] 发现新增@TestId: ${testId}`);
+            }
+          } else if (line.startsWith('-') && !line.startsWith('---')) {
+            // 检查被删除的行是否原本就是注释
+            const lineContent = line.substring(1).trim(); // 去掉 '-' 符号
+            if (isCommentedLine(lineContent)) {
+              console.log(`[T5.8] 忽略原本就被注释的@TestId: ${testId}`);
+              continue;
+            }
+            // 删除的@TestId
+            if (!removedTestIds.includes(testId)) {
+              removedTestIds.push(testId);
+              console.log(`[T5.8] 发现删除@TestId: ${testId}`);
+            }
+          }
+        }
+      }
+
+      // 检测类名变更
+      if (line.includes(' class ') && (line.startsWith('+') || line.startsWith('-'))) {
+        const lineContent = line.substring(1).trim(); // 去掉 '+' 或 '-' 符号
+
+        // 忽略注释行
+        if (isCommentedLine(lineContent)) {
+          continue;
+        }
+
+        const classMatch = lineContent.match(classPattern);
+        if (classMatch) {
+          const className = classMatch[1];
+
+          if (line.startsWith('-') && !line.startsWith('---')) {
+            // 删除的类名（旧类名）
+            oldClassName = className;
+            console.log(`[T5.8] 发现删除的类名: ${className}`);
+          } else if (line.startsWith('+') && !line.startsWith('+++')) {
+            // 新增的类名（新类名）
+            newClassName = className;
+            console.log(`[T5.8] 发现新增的类名: ${className}`);
+          }
+
+          // 如果同时有旧类名和新类名，且不相同，则确认类名发生变更
+          if (oldClassName && newClassName && oldClassName !== newClassName) {
+            classNameChanged = true;
+            console.log(`[T5.8] 检测到类名变更: ${oldClassName} -> ${newClassName}`);
+          }
+        }
+      }
+    }
+
+    console.log(
+      `[T5.8] Diff分析完成: TestId变化(+${addedTestIds.length} -${removedTestIds.length}), 类名变更: ${classNameChanged}`,
+    );
+    if (classNameChanged) {
+      console.log(`[T5.8] 类名变更详情: ${oldClassName} -> ${newClassName}`);
+    }
+  } catch (error) {
+    console.error(`[T5.8] 分析Diff变化失败: ${filePath}`, error);
+  }
+
+  return {
+    addedTestIds,
+    removedTestIds,
+    classNameChanged,
+    oldClassName,
+    newClassName,
+  };
+}
+
+/**
+ * 判断路径是否为目录
+ * 目录路径特征：
+ * 1. 以/结尾（明确的目录标识）
+ * 2. 不包含文件扩展名（没有.xxx的形式）
+ */
+function isDirectoryPath(path: string): boolean {
+  // 明确以/结尾的是目录
+  if (path.endsWith('/')) {
+    return true;
+  }
+
+  // 检查是否包含文件扩展名（最后一个.后面是文件扩展名）
+  const lastDotIndex = path.lastIndexOf('.');
+  const lastSlashIndex = path.lastIndexOf('/');
+
+  // 如果没有.，肯定是目录
+  if (lastDotIndex === -1) {
+    return true;
+  }
+
+  // 如果.在最后一个/之前，说明.是在目录名中，不是文件扩展名
+  if (lastSlashIndex > lastDotIndex) {
+    return true;
+  }
+
+  // 如果.在最后一个/之后，检查扩展名长度是否合理（1-10个字符）
+  const extension = path.substring(lastDotIndex + 1);
+  if (extension.length === 0 || extension.length > 10 || extension.includes('/')) {
+    return true; // 不是有效的文件扩展名，认为是目录
+  }
+
+  // 其他情况认为是文件
+  return false;
+}
+
+/**
+ * 从Java代码中提取用例描述（从注释中）
+ */
+async function extractCaseDescription(
+  fileContent: string,
+  startLine: number,
+): Promise<string | null> {
+  try {
+    const lines = fileContent.split('\n');
+
+    // 从@TestId注解向上查找注释
+    for (let i = startLine - 2; i >= Math.max(0, startLine - 10); i--) {
+      const line = lines[i]?.trim();
+      if (!line) continue;
+
+      // 查找单行注释 //
+      if (line.startsWith('//')) {
+        const desc = line.replace(/^\/\/\s*/, '').trim();
+        if (desc && !desc.includes('@')) {
+          return desc;
+        }
+      }
+
+      // 查找多行注释 /** */
+      if (line.includes('/**') || line.includes('*/')) {
+        const desc = line
+          .replace(/\/\*\*?\s*/, '')
+          .replace(/\*\/?\s*/, '')
+          .replace(/^\*\s*/, '')
+          .trim();
+        if (desc && !desc.includes('@')) {
+          return desc;
+        }
+      }
+    }
+  } catch (error) {
+    console.warn(`[T5.8] 提取用例描述失败: ${error}`);
+  }
+
+  return null;
+}

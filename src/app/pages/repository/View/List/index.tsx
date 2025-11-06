@@ -1,7 +1,7 @@
 import { useSDK } from '@giteeteam/plugin-sdk';
 import { useListener } from '@projectproxima/proxima-sdk-js';
 import { useUpdateEffect } from 'ahooks';
-import { Button, notification, Select } from 'antd';
+import { Button, Dropdown, MenuProps, notification, Select } from 'antd';
 import React, { useCallback, useMemo, useRef } from 'react';
 
 import CreatePermission from '@/components/business/Contianer/CreatePermission';
@@ -17,6 +17,7 @@ import { useBaseAction, useTestConfig } from '@/lib/hooks/useContext';
 import useI18n from '@/lib/hooks/useI18n';
 import { logPluginVersion } from '@/lib/utils/helper';
 import { getRepositoryQuery } from '@/lib/utils/tree';
+import { ApprovalEntry } from '@/pages/repository';
 
 import { UNGROUPED_FOLDER_KEY } from '../../constant';
 import RepoDropDown from '../../RepoDropDown';
@@ -38,12 +39,55 @@ const GroupModeSelector = (props: { mode: GroupedMode; onChange: (mode: GroupedM
   );
 };
 
+/** 评审入口 */
+const ApprovalEntryDropdown = ({ setApprovalEntry, createTestApproval }) => {
+  const { t } = useI18n();
+  const items: MenuProps['items'] = [
+    {
+      key: t('page.approval.view'),
+      label: (
+        <a
+          onClick={() => {
+            setApprovalEntry(ApprovalEntry.View);
+          }}
+        >
+          {t('page.approval.view')}
+        </a>
+      ),
+    },
+    {
+      key: t('page.approval.create'),
+      label: (
+        <a
+          onClick={() => {
+            createTestApproval();
+          }}
+        >
+          {t('page.approval.create')}
+        </a>
+      ),
+    },
+  ];
+
+  if (!window.QiankunProps.context?.env?.ENABLE_TEST_APPROVAL) {
+    return null;
+  }
+
+  return (
+    <Dropdown menu={{ items }}>
+      <Button>{t('page.approval.approval')}</Button>
+    </Dropdown>
+  );
+};
+
 logPluginVersion();
 
 const ListView: React.FC<ViewComponentProps> = ({
   selectedNode,
   folderTreeData,
   onFolderTreeChange,
+  setApprovalEntry,
+  createTestApproval,
 }) => {
   const { t } = useI18n();
   const tableActionRef = React.useRef<ActionType>();
@@ -251,6 +295,10 @@ const ListView: React.FC<ViewComponentProps> = ({
         </div>
 
         <div className={cx('actions')}>
+          <ApprovalEntryDropdown
+            setApprovalEntry={setApprovalEntry}
+            createTestApproval={createTestApproval}
+          />
           <GroupModeSelector mode={groupedMode} onChange={mode => setGroupedMode(mode)} />
           <Button onClick={() => toggleSelection()}>
             {tableSelectionVisible ? t('common.cancelAction') : t('common.batchAction')}

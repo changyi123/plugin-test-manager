@@ -5,6 +5,7 @@ import { IBatchCreateParams, IBatchUpdateParams } from 'common/types/api';
 import { itemToTestEntity } from 'common/utils/dataTransfer';
 import { findKey, pick } from 'lodash';
 
+import { featureFlags } from '@/lib/appEnv';
 import {
   BuiltinItemTypeMapping,
   FIELD_TYPE_KEY_MAPPINGS,
@@ -148,11 +149,13 @@ export const getCustomFields = async (keys = [] as string[]) => {
       const isNotAllowRenderFieldType = [
         FIELD_TYPE_KEY_MAPPINGS.File,
         FIELD_TYPE_KEY_MAPPINGS.Annex,
-        FIELD_TYPE_KEY_MAPPINGS.Editor,
+        !featureFlags('ENABLE_SHOW_TEMPLATE_EDITOR_FIELD') && FIELD_TYPE_KEY_MAPPINGS.Editor, // 大商所临时放开这个限制
         FIELD_TYPE_KEY_MAPPINGS.Link,
         FIELD_TYPE_KEY_MAPPINGS.ItemLevel,
         FIELD_TYPE_KEY_MAPPINGS.FieldCollection,
-      ].includes(field?.fieldType?.key);
+      ]
+        .filter(Boolean)
+        .includes(field?.fieldType?.key);
 
       // 以下字段不支持渲染
       const isNotAllowRenderFieldKey = [
@@ -506,5 +509,15 @@ export const search = async (iql, fields = [], size = InfinityLimit, throwError 
   } catch (e) {
     console.info('search fail: ', e.message);
     return throwError ? Promise.reject(e) : [];
+  }
+};
+
+export const getAllStatus = async () => {
+  try {
+    const res = await fetch.$get('/parse/api/status');
+    return res.results;
+  } catch (e) {
+    console.error('getAllStatus fail: ', e.message);
+    return [];
   }
 };

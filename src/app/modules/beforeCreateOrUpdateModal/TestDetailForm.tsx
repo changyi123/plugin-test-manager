@@ -26,7 +26,12 @@ type TestDetailFormProps = {
   onChange?: (values: ValueType) => void;
 };
 
-const TestDetailForm: React.FC<TestDetailFormProps> = ({ onChange, values, extraData, workspaceKey }) => {
+const TestDetailForm: React.FC<TestDetailFormProps> = ({
+  onChange,
+  values,
+  extraData,
+  workspaceKey,
+}) => {
   const { t } = useI18n();
   const valuesRef = React.useRef({} as ValueType);
   const actionRef = React.useRef({} as ActionType);

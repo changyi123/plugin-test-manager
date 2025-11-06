@@ -26,9 +26,10 @@ const Constants = {
     TestPlan: 'test_manager_plan',
     TestCase: 'test_manager_detail',
     TestExecution: 'test_manager_execution',
+    TestApproval: 'test_manager_approval',
   } as const,
 
-  DefaultIsolateTestType: ['TestPlan', 'TestDefect', 'TestDetail', 'TestExecution'],
+  DefaultIsolateTestType: ['TestPlan', 'TestDefect', 'TestDetail', 'TestExecution', 'TestApproval'],
 } as const;
 
 const helper = {

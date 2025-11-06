@@ -32,4 +32,4 @@ export type BusinessTableActionType = {
   dataSource?: any[];
 };
 
-export type EnableCacheEpandedRowKeys = 'enable' | 'disable'
+export type EnableCacheEpandedRowKeys = 'enable' | 'disable';

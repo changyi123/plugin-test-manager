@@ -26,6 +26,10 @@ export const SupportFeatureFlags = {
   ENABLE_OFFLINE_TEST_REPORT: 'ENABLE_OFFLINE_TEST_REPORT',
   /**用例展示模式开关 - 用例的展示效果可以通过开关控制是否在列中展示用例的步骤信息*/
   ENABLE_REPOSITORY_TABLE_STEP: 'ENABLE_REPOSITORY_TABLE_STEP',
+  /** 用例导入模板是否展示富文本类型自定义字段 */
+  ENABLE_SHOW_TEMPLATE_EDITOR_FIELD: 'ENABLE_SHOW_TEMPLATE_EDITOR_FIELD',
+  /** 开启自动化执行功能 */
+  ENABLE_AUTOMATION_EXECUTE: 'ENABLE_AUTOMATION_EXECUTE',
 } as const;
 
 type SupportFeatureFlagKey = keyof typeof SupportFeatureFlags;
@@ -182,6 +186,10 @@ const SupportAppEnv = {
     transformer: value => value,
   },
   ENABLE_EXPAND_FIRST_ITEM: {
+    defaultValue: false,
+    transformer: value => value,
+  },
+  HIDDEN_TABLE_FIELD_CONFIG: {
     defaultValue: false,
     transformer: value => value,
   },

@@ -41,7 +41,7 @@ type TestDetailSelectorProps = {
   validateCaseStatus?: boolean;
   showDefaultRange?: boolean;
   versionMapKeySelected?: Record<string, string>;
-  setVersionMapKeySelected?: any
+  setVersionMapKeySelected?: any;
 };
 
 const tabsList = [
@@ -76,8 +76,10 @@ const TestDetailSelector: React.FC<TestDetailSelectorProps> = props => {
     showDefaultRange,
     enableCaseVersion = false,
     versionMapKeySelected,
-    setVersionMapKeySelected
+    setVersionMapKeySelected,
   } = props;
+
+  console.log('TestDetailSelector', props);
 
   const { testCaseFieldKeys } = useBaseAction();
   const { t } = useI18n();

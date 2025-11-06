@@ -12,7 +12,9 @@ const useGlobalFilterIql = (
   // 基础报表全局筛选关联图表数据信息回显
   useEffect(() => {
     // 获取缓存中的全局筛选器的值
-    const allCacheIqlFilterConds: AllGlobalIqlFilterConds = Cache.getCacheItem(CACHE_KEY.BASE_GLOBAL_SEARCH_IQL_CONDS);
+    const allCacheIqlFilterConds: AllGlobalIqlFilterConds = Cache.getCacheItem(
+      CACHE_KEY.BASE_GLOBAL_SEARCH_IQL_CONDS,
+    );
     if (allCacheIqlFilterConds) {
       // 判断该图表有无相关的全局筛选条件
       const hasRelatedCharts = Object.values(allCacheIqlFilterConds).some(item => {

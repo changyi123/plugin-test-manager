@@ -8,7 +8,7 @@ import cx from './MaxRenderNodeConfirm.less';
 
 const ActionHookMethodKeys = ['onNext', 'onGoBack', 'onCancel'] as const;
 
-type ActionHookMethods = Record<typeof ActionHookMethodKeys[number], () => void>;
+type ActionHookMethods = Record<(typeof ActionHookMethodKeys)[number], () => void>;
 
 const MaxRenderNodeConfirm: React.FC<ActionHookMethods> = props => {
   const { t } = useTranslation('', {
