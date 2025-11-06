@@ -986,10 +986,6 @@
           "testStepTips": ["Current test case Inheritance", "Test Cases"],
           "multipleStates": "There are multiple states,",
           "uncheckStates": "You can uncheck the following states"
-          "testStepTips": [
-            "Current test case Inheritance",
-            "Test Cases"
-          ]
         },
         "testPlanPanel": {
           "menuList": [
