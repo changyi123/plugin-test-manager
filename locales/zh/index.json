@@ -962,10 +962,6 @@
           "testStepTips": ["当前用例继承", "个用例"],
           "multipleStates": "存在多类状态，",
           "uncheckStates": "可取消勾选下列状态"
-          "testStepTips": [
-            "当前用例继承",
-            "个用例"
-          ]
         },
         "testCaseSetPanel": {
           "notSelectMessage": "请先选择用例集合",
