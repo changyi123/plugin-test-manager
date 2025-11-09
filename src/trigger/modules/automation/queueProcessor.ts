@@ -2,7 +2,7 @@ import { storage } from '@giteeteam/apps-api';
 
 import { executeCaseOperations } from './caseOperationExecutor';
 import { getAutomationConfig, getCommitDiff, processFilesWithClosedLoop } from './codeApi';
-import { CommitContext, processDecisionResults } from './operationsGenerator';
+import { CommitContext, processDecisionResults, CaseOperation } from './operationsGenerator';
 import {
   cleanupOldLogs,
   markProcessingFailed,
@@ -126,17 +126,6 @@ async function processSingleRecord(record: any) {
     console.log(`[AutoSync] 处理仓库: ${record.repositoryName}, 分支: ${record.branchName}`);
     console.log(`[AutoSync] 需要处理 ${commitIds.length} 个commit: ${commitIds.join(', ')}`);
 
-    const config = await getAutomationConfig(record.repositoryId, record.branchName);
-
-    if (!config) {
-      console.log('[AutoSync] 未找到配置文件，跳过处理');
-      await storage.entity('AutomationWebhookQueue').set(record.objectId, {
-        status: 'completed',
-        processedTime: new Date(),
-      });
-      return;
-    }
-
     // 累计所有操作，最后统一执行
     const allOperations = [];
 
@@ -151,6 +140,14 @@ async function processSingleRecord(record: any) {
 
       // 更新当前处理的commit和文件数
       await updateCurrentCommit(record.objectId, commitId, diffData.length);
+
+      // 获取当前commit时点的配置文件
+      const config = await getAutomationConfig(record.repositoryId, commitId);
+      
+      if (!config) {
+        console.log(`[AutoSync] commit ${commitId} 未找到配置文件，跳过处理`);
+        continue;
+      }
 
       // 使用T4.7-T4.9闭环逻辑处理文件变更
       const historyMappings = new Map(); // 历史映射数据，由T5.8内部获取
@@ -197,10 +194,17 @@ async function processSingleRecord(record: any) {
 
     // 统一执行所有操作
     if (allOperations.length > 0) {
-      console.log(`[AutoSync] 准备执行 ${allOperations.length} 个用例操作`);
+      console.log(`[AutoSync] 原始操作数: ${allOperations.length} 个用例操作`);
+
+      // 合并冲突操作
+      const mergedOperations = mergeConflictingOperations(allOperations);
+      console.log(`[AutoSync] 合并后操作数: ${mergedOperations.length} 个用例操作`);
 
       // 更新执行开始状态
-      await updateExecutionStart(record.objectId, allOperations.length);
+      await updateExecutionStart(record.objectId, mergedOperations.length);
+
+      // 获取最新配置用于执行上下文
+      const latestConfig = await getAutomationConfig(record.repositoryId, record.branchName);
 
       // 创建执行上下文
       const executionContext: CommitContext = {
@@ -211,13 +215,13 @@ async function processSingleRecord(record: any) {
         gitCloneUrl: record.gitCloneUrl,
         gitBranch: record.gitBranch || record.branchName,
         gitPath: record.gitPath,
-        testingFramework: config.testingFramework || 'JUnit',
+        testingFramework: latestConfig?.testingFramework || 'JUnit',
         queueId: record.objectId,
       };
 
       // 使用T7.6批量执行器执行用例操作
       const executionSummary = await executeCaseOperations(
-        allOperations,
+        mergedOperations,
         executionContext.workspaceKey,
         executionContext, // 传递执行上下文
       );
@@ -300,4 +304,150 @@ async function processSingleRecord(record: any) {
     }
     console.error(`[AutoSync] ===============================================`);
   }
+}
+
+/**
+ * 合并冲突的操作
+ * 解决多个commit对同一testId产生的冲突操作
+ */
+function mergeConflictingOperations(operations: CaseOperation[]): CaseOperation[] {
+  console.log(`[MergeOps] 开始合并操作，原始操作数: ${operations.length}`);
+  
+  // 按testId分组
+  const operationsByTestId = new Map<string, CaseOperation[]>();
+  
+  for (const operation of operations) {
+    const testId = operation.testId;
+    if (!operationsByTestId.has(testId)) {
+      operationsByTestId.set(testId, []);
+    }
+    operationsByTestId.get(testId)!.push(operation);
+  }
+  
+  console.log(`[MergeOps] 发现 ${operationsByTestId.size} 个唯一testId`);
+  
+  const mergedOperations: CaseOperation[] = [];
+  let mergedCount = 0;
+  
+  for (const [testId, ops] of operationsByTestId) {
+    if (ops.length === 1) {
+      // 没有冲突，直接保留
+      mergedOperations.push(ops[0]);
+    } else {
+      // 有冲突，需要合并
+      console.log(`[MergeOps] testId="${testId}" 有 ${ops.length} 个冲突操作，开始合并`);
+      const merged = mergeOperationsForSameTestId(testId, ops);
+      if (merged) {
+        mergedOperations.push(merged);
+        mergedCount += ops.length - 1; // 记录合并掉的操作数
+      }
+    }
+  }
+  
+  console.log(`[MergeOps] 合并完成：${operations.length} → ${mergedOperations.length} (合并了${mergedCount}个操作)`);
+  return mergedOperations;
+}
+
+/**
+ * 合并同一testId的多个操作
+ * 按照commit时间顺序应用合并规则
+ */
+function mergeOperationsForSameTestId(testId: string, operations: CaseOperation[]): CaseOperation | null {
+  if (operations.length === 0) return null;
+  if (operations.length === 1) return operations[0];
+  
+  console.log(`[MergeOps] 合并testId="${testId}"的操作:`, operations.map(op => op.operationType).join(' → '));
+  
+  // 按照时间顺序排序（假设数组已经是按commit顺序）
+  let result = operations[0];
+  
+  for (let i = 1; i < operations.length; i++) {
+    const current = operations[i];
+    result = mergeTwoOperations(result, current);
+    
+    console.log(`[MergeOps]   ${result?.operationType || 'NULL'} + ${current.operationType} → ${result?.operationType || 'NULL'}`);
+    
+    if (!result) {
+      // 操作被完全抵消了
+      break;
+    }
+  }
+  
+  if (result) {
+    console.log(`[MergeOps] testId="${testId}" 最终操作: ${result.operationType}`);
+  } else {
+    console.log(`[MergeOps] testId="${testId}" 操作被完全抵消`);
+  }
+  
+  return result;
+}
+
+/**
+ * 合并两个操作的核心逻辑
+ */
+function mergeTwoOperations(first: CaseOperation, second: CaseOperation): CaseOperation | null {
+  const firstType = first.operationType;
+  const secondType = second.operationType;
+  
+  // 合并规则
+  if (firstType === 'CREATE' && secondType === 'DELETE') {
+    // CREATE + DELETE → 抵消
+    return null;
+  }
+  
+  if (firstType === 'DELETE' && secondType === 'CREATE') {
+    // DELETE + CREATE → UPDATE (使用CREATE的数据，但标记为UPDATE)
+    return {
+      ...second,
+      operationType: 'UPDATE',
+      // 保留CREATE的数据，但作为UPDATE执行
+    };
+  }
+  
+  if (firstType === 'CREATE' && secondType === 'UPDATE') {
+    // CREATE + UPDATE → CREATE (合并数据，保持CREATE)
+    return {
+      ...second, // 使用UPDATE的最新数据
+      operationType: 'CREATE',
+    };
+  }
+  
+  if (firstType === 'UPDATE' && secondType === 'DELETE') {
+    // UPDATE + DELETE → DELETE
+    return second;
+  }
+  
+  if (firstType === 'UPDATE' && secondType === 'UPDATE') {
+    // UPDATE + UPDATE → UPDATE (使用最后的数据)
+    return second;
+  }
+  
+  if (firstType === 'CREATE' && secondType === 'CREATE') {
+    // CREATE + CREATE → CREATE (使用最后的数据)
+    return second;
+  }
+  
+  if (firstType === 'DELETE' && secondType === 'DELETE') {
+    // DELETE + DELETE → DELETE (重复删除，保留一个)
+    return second;
+  }
+  
+  if ((firstType === 'MIGRATE' && secondType === 'DELETE') || 
+      (firstType === 'DELETE' && secondType === 'MIGRATE')) {
+    // MIGRATE + DELETE 或 DELETE + MIGRATE → DELETE
+    return { ...second, operationType: 'DELETE' };
+  }
+  
+  if (firstType === 'MIGRATE' && secondType === 'UPDATE') {
+    // MIGRATE + UPDATE → UPDATE (最新数据)
+    return second;
+  }
+  
+  if (firstType === 'UPDATE' && secondType === 'MIGRATE') {
+    // UPDATE + MIGRATE → MIGRATE (位置变更优先)
+    return second;
+  }
+  
+  // 默认情况：使用第二个操作（时间上更新的）
+  return second;
 }

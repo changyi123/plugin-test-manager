@@ -47,6 +47,53 @@ export async function queryWebhookQueue(params: QueueQueryParams = {}) {
 
     const result = await query.descending('createdAt').skip(skip).limit(limit).find();
 
+    // 为completed状态的队列添加统计数据
+    const enhancedResult = await Promise.all(
+      result.map(async (queue) => {
+        if (queue.status === 'completed') {
+          try {
+            // 查询该队列的AutomationSyncLog统计数据
+            const syncLogs = await storage
+              .entity('AutomationSyncLog')
+              .query()
+              .equalTo('webhookQueueId', queue.objectId)
+              .find();
+
+            // 计算统计数据
+            let successfulCases = 0;
+            let failedCases = 0;
+
+            if (Array.isArray(syncLogs)) {
+              syncLogs.forEach(log => {
+                if (log.syncStatus === 'success') {
+                  successfulCases += 1;
+                } else if (log.syncStatus === 'failed') {
+                  failedCases += 1;
+                }
+              });
+            }
+
+            // 添加统计数据到队列对象
+            return {
+              ...queue,
+              stats: {
+                successfulCases,
+                failedCases,
+                totalCases: successfulCases + failedCases
+              }
+            };
+          } catch (error) {
+            console.error('[QueueMonitor] 获取队列统计失败:', queue.objectId, error);
+            // 如果获取统计失败，返回原队列数据
+            return queue;
+          }
+        }
+        
+        // 非completed状态，直接返回原数据
+        return queue;
+      })
+    );
+
     // 查询总数
     let countQuery = storage.entity('AutomationWebhookQueue').query();
     if (where.status) {
@@ -58,7 +105,7 @@ export async function queryWebhookQueue(params: QueueQueryParams = {}) {
     const total = await countQuery.count();
 
     return buildPaginationResponse({
-      data: result,
+      data: enhancedResult,
       total,
       limit,
       skip,
@@ -493,7 +540,52 @@ export async function getQueueDetails(params: any) {
       caseGenerationLogs = [];
     }
 
-    // 5. 计算汇总统计
+    // 5. 查询AutomationSyncLog 获取详细的同步结果和错误信息
+    let syncLogs = [];
+    try {
+      syncLogs =
+        (await storage
+          .entity('AutomationSyncLog')
+          .query()
+          .equalTo('webhookQueueId', queueId)
+          .descending('createdAt')
+          .find()) || [];
+    } catch (error) {
+      console.error('[QueueMonitor] AutomationSyncLog 查询失败:', error);
+      syncLogs = [];
+    }
+
+    // 6. 从AutomationSyncLog计算更准确的统计信息
+    const syncStats = {
+      totalCreated: 0,
+      totalUpdated: 0,
+      totalDeleted: 0,
+      totalSuccessful: 0,
+      totalFailed: 0,
+      errorDetails: []
+    };
+
+    if (Array.isArray(syncLogs)) {
+      syncLogs.forEach(log => {
+        syncStats.totalCreated += log.createdCases || 0;
+        syncStats.totalUpdated += log.updatedCases || 0;
+        syncStats.totalDeleted += 0; // TODO: 添加删除统计
+        syncStats.totalSuccessful += log.syncStatus === 'success' ? 1 : 0;
+        syncStats.totalFailed += log.syncStatus === 'failed' ? 1 : 0;
+        
+        // 收集错误详情
+        if (log.syncStatus === 'failed' && log.errorDetails) {
+          syncStats.errorDetails.push({
+            testId: log.testId,
+            operationType: log.operationType,
+            error: log.errorDetails,
+            timestamp: log.createdAt
+          });
+        }
+      });
+    }
+
+    // 6. 计算汇总统计
     const summary = {
       totalFiles: Array.isArray(fileProcessingLogs) ? fileProcessingLogs.length : 0,
       processedFiles: Array.isArray(fileProcessingLogs) ? fileProcessingLogs.length : 0,
@@ -513,8 +605,13 @@ export async function getQueueDetails(params: any) {
         (Array.isArray(caseGenerationLogs)
           ? caseGenerationLogs.reduce((sum, log) => sum + (log.operationsGenerated || 0), 0)
           : 0),
-      successfulCases: processingStats?.successfulCases || 0,
-      failedCases: processingStats?.failedCases || 0,
+      // 优先使用AutomationSyncLog的统计数据
+      successfulCases: syncStats.totalCreated + syncStats.totalUpdated || processingStats?.successfulCases || 0,
+      failedCases: syncStats.totalFailed || processingStats?.failedCases || 0,
+      // 添加详细的操作统计
+      createdCases: syncStats.totalCreated,
+      updatedCases: syncStats.totalUpdated,
+      deletedCases: syncStats.totalDeleted,
     };
 
     const result = {
@@ -565,6 +662,27 @@ export async function getQueueDetails(params: any) {
             timestamp: log.timestamp,
           }))
         : [],
+      // 添加AutomationSyncLog信息
+      syncLogs: Array.isArray(syncLogs)
+        ? syncLogs.map(log => ({
+            testId: log.testId,
+            caseId: log.caseId,
+            operationType: log.operationType,
+            syncStatus: log.syncStatus,
+            success: log.success,
+            details: log.details,
+            errorDetails: log.errorDetails,
+            createdCases: log.createdCases,
+            updatedCases: log.updatedCases,
+            failedCases: log.failedCases,
+            timestamp: log.createdAt,
+          }))
+        : [],
+      // 添加错误信息汇总
+      errorSummary: {
+        totalErrors: syncStats.errorDetails.length,
+        errors: syncStats.errorDetails,
+      },
       summary,
     };
 

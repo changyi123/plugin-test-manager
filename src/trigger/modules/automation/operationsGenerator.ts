@@ -219,7 +219,7 @@ async function generateCreateAllOperations(
     filesToProcess = await scanDirectoryForJavaFiles(
       commitContext.repositoryId,
       fileDecision.filePath,
-      commitContext.branchName,
+      commitContext.commitId,
     );
     console.log(`[T7.6] 目录扫描结果: 找到 ${filesToProcess.length} 个Java文件`);
     
@@ -271,7 +271,7 @@ async function generateCreateAllOperations(
     const fileContent = await getFileContent(
       commitContext.repositoryId,
       filePath,
-      commitContext.branchName,
+      commitContext.commitId,
     );
     if (!fileContent) {
       console.warn(`[T7.6] 无法获取文件内容: ${filePath}`);
@@ -444,7 +444,7 @@ async function generateOperationBOperations(
   const fileContent = await getFileContent(
     commitContext.repositoryId,
     fileDecision.filePath,
-    commitContext.branchName,
+    commitContext.commitId,
   );
   if (!fileContent) {
     console.warn(`[T7.6] 无法获取文件内容: ${fileDecision.filePath}`);
@@ -729,7 +729,7 @@ async function generateModuleChangeOperations(
   const fileContent = await getFileContent(
     commitContext.repositoryId,
     fileDecision.filePath,
-    commitContext.branchName,
+    commitContext.commitId,
   );
   if (!fileContent) {
     console.warn(`[T7.6] 无法获取文件内容: ${fileDecision.filePath}`);
@@ -923,7 +923,7 @@ async function generateSmartDeleteOperations(
     const allFiles = await scanDirectoryForJavaFiles(
       commitContext.repositoryId,
       fileDecision.filePath,
-      commitContext.branchName,
+      commitContext.commitId,
     );
     console.log(`[T5.8] 目录下共有 ${allFiles.length} 个Java文件`);
     
@@ -1077,7 +1077,7 @@ async function generateSmartMappingAddedOperations(
     filesToProcess = await scanDirectoryForJavaFiles(
       commitContext.repositoryId,
       fileDecision.filePath,
-      commitContext.branchName,
+      commitContext.commitId,
     );
     console.log(`[T5.8] 目录映射，扫描到 ${filesToProcess.length} 个Java文件`);
     
@@ -1159,7 +1159,7 @@ async function generateSmartMappingAddedOperations(
         const fileContent = await getFileContent(
           commitContext.repositoryId,
           filePath,
-          commitContext.branchName,
+          commitContext.commitId,
         );
         
         if (!fileContent || !fileContent.trim()) {

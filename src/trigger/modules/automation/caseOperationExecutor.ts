@@ -91,7 +91,7 @@ export async function executeCaseOperations(
 
   // 处理DELETE操作
   if (grouped.DELETE.length > 0) {
-    const deleteResults = await executeBatchDelete(grouped.DELETE, workspaceKey);
+    const deleteResults = await executeBatchDelete(grouped.DELETE, workspaceKey, commitContext);
     results.push(...deleteResults);
   }
 
@@ -227,8 +227,12 @@ async function executeBatchCreate(
             testId: operation.testId,
             caseId: createdItem.objectId || createdItem.id,
             success: true,
-            details: `批量创建用例成功: ${operation.caseData.caseName}`,
-            commitId: commitContext?.commitId,
+            details: `并发创建用例: ${operation.caseData.caseName}`,
+            commitId: operation.caseData?.sourceInfo?.commitId || commitContext?.commitId,
+            repositoryId: commitContext?.repositoryId,
+            repositoryName: commitContext?.repositoryName,
+            branchName: commitContext?.gitBranch,
+            webhookQueueId: commitContext?.queueId,
           });
 
           results.push({
@@ -263,8 +267,12 @@ async function executeBatchCreate(
             operationType: 'CREATE',
             testId: failedOperation.testId,
             success: false,
-            error: `批量创建失败: ${error.error || error.message || error}`,
-            commitId: commitContext?.commitId,
+            error: `并发创建失败: ${error}`,
+            commitId: failedOperation.caseData?.sourceInfo?.commitId || commitContext?.commitId,
+            repositoryId: commitContext?.repositoryId,
+            repositoryName: commitContext?.repositoryName,
+            branchName: commitContext?.gitBranch,
+            webhookQueueId: commitContext?.queueId,
           });
 
           results.push({
@@ -334,7 +342,11 @@ async function executeBatchCreate(
           testId: op.testId,
           success: false,
           error: `并发创建失败: ${error}`,
-          commitId: commitContext?.commitId,
+          commitId: op.caseData?.sourceInfo?.commitId || commitContext?.commitId,
+          repositoryId: commitContext?.repositoryId,
+          repositoryName: commitContext?.repositoryName,
+          branchName: commitContext?.gitBranch,
+          webhookQueueId: commitContext?.queueId,
         });
       }),
     );
@@ -381,7 +393,7 @@ async function executeBatchUpdate(
       return {
         objectId: op.existingCaseInfo.caseId,
         updateData: {
-          name: op.operationType === 'MIGRATE' ? `${op.className}.${op.methodName}` : op.caseData.caseName, // 更新用例名称
+          name: op.operationType === 'MIGRATE' ? (op.existingCaseInfo?.name || `${op.className}.${op.methodName}`) : op.caseData.caseName, // 更新用例名称
           values: {
             description: op.operationType === 'MIGRATE' ? `Test case for ${op.className}.${op.methodName}` : op.caseData.caseDesc,
             // 自定义字段 - 所属模块使用repository字段
@@ -478,8 +490,12 @@ async function executeBatchUpdate(
             testId: operation.testId,
             caseId: operation.existingCaseInfo.caseId,
             success: true,
-            details: `批量更新用例成功: ${operation.caseData.caseName}`,
-            commitId: commitContext?.commitId,
+            details: `并发更新用例: ${operation.caseData.caseName}`,
+            commitId: operation.caseData?.sourceInfo?.commitId || commitContext?.commitId,
+            repositoryId: commitContext?.repositoryId,
+            repositoryName: commitContext?.repositoryName,
+            branchName: commitContext?.gitBranch,
+            webhookQueueId: commitContext?.queueId,
           });
 
           results.push({
@@ -500,8 +516,12 @@ async function executeBatchUpdate(
             testId: operation.testId,
             caseId: operation.existingCaseInfo?.caseId,
             success: false,
-            error: `批量更新失败: ${errorMessage}`,
-            commitId: commitContext?.commitId,
+            error: `并发更新失败: ${errorMessage}`,
+            commitId: operation.caseData?.sourceInfo?.commitId || commitContext?.commitId,
+            repositoryId: commitContext?.repositoryId,
+            repositoryName: commitContext?.repositoryName,
+            branchName: commitContext?.gitBranch,
+            webhookQueueId: commitContext?.queueId,
           });
 
           results.push({
@@ -552,8 +572,12 @@ async function executeBatchUpdate(
           testId: op.testId,
           caseId: op.existingCaseInfo?.caseId,
           success: false,
-          error: `执行批量更新失败: ${error}`,
-          commitId: commitContext?.commitId,
+          error: `并发更新失败: ${error}`,
+          commitId: op.caseData?.sourceInfo?.commitId || commitContext?.commitId,
+          repositoryId: commitContext?.repositoryId,
+          repositoryName: commitContext?.repositoryName,
+          branchName: commitContext?.gitBranch,
+          webhookQueueId: commitContext?.queueId,
         });
       }),
     );
@@ -572,6 +596,7 @@ async function executeBatchUpdate(
 async function executeBatchDelete(
   operations: CaseOperation[],
   _workspaceKey?: string,
+  commitContext?: any,
 ): Promise<ExecutionResult[]> {
   console.log(`[AutoSync] 批量删除 ${operations.length} 个用例`);
 
@@ -635,7 +660,11 @@ async function executeBatchDelete(
           success: success,
           details: success ? `成功删除用例: ${op.testId}` : `删除用例失败: ${op.testId}`,
           error: success ? undefined : `用例ID ${caseId} 删除失败`,
-          commitId: '', // DELETE操作通常不需要commitId
+          commitId: op.caseData?.sourceInfo?.commitId || commitContext?.commitId,
+          repositoryId: commitContext?.repositoryId,
+          repositoryName: commitContext?.repositoryName,
+          branchName: commitContext?.gitBranch,
+          webhookQueueId: commitContext?.queueId,
         });
         
         return {
@@ -670,7 +699,11 @@ async function executeBatchDelete(
           success: false,
           error: `批量删除失败: ${error?.message || error}`,
           details: `尝试删除 ${caseIds.length} 个用例时失败`,
-          commitId: '', // DELETE操作通常不需要commitId
+          commitId: op.caseData?.sourceInfo?.commitId || commitContext?.commitId,
+          repositoryId: commitContext?.repositoryId,
+          repositoryName: commitContext?.repositoryName,
+          branchName: commitContext?.gitBranch,
+          webhookQueueId: commitContext?.queueId,
         });
       }),
     );
@@ -1012,9 +1045,14 @@ async function logSyncOperation(logData: {
   success: boolean;
   details?: string;
   error?: string;
-  commitId?: string; // 添加commitId字段
+  commitId?: string;
+  repositoryId?: string;
+  repositoryName?: string;
+  branchName?: string;
+  webhookQueueId?: string;
 }): Promise<void> {
   try {
+    const now = new Date();
     const syncLog = {
       operationType: logData.operationType,
       testId: logData.testId,
@@ -1022,9 +1060,23 @@ async function logSyncOperation(logData: {
       success: logData.success,
       details: logData.details,
       error: logData.error,
-      commitId: logData.commitId || '', // 添加commitId字段，默认为空字符串
-      timestamp: new Date(),
+      timestamp: now,
       syncSource: 'T7.6-批量执行器',
+      // 添加必需字段，使用默认值避免错误
+      webhookQueueId: logData.webhookQueueId || logData.testId || 'manual-sync', // 优先使用webhookQueueId
+      repositoryId: logData.repositoryId || 'unknown',
+      repositoryName: logData.repositoryName || 'unknown',
+      commitId: logData.commitId || 'unknown',
+      branchName: logData.branchName || 'master',
+      syncStatus: logData.success ? 'success' : 'failed',
+      syncStartTime: now, // 添加必需的 syncStartTime
+      syncEndTime: now, // 可选，但为了保持一致性也添加
+      // 添加其他可选但有用的字段
+      processedFiles: 0,
+      createdCases: logData.operationType === 'CREATE' && logData.success ? 1 : 0,
+      updatedCases: logData.operationType === 'UPDATE' && logData.success ? 1 : 0,
+      failedCases: !logData.success ? 1 : 0,
+      errorDetails: logData.error,
     };
 
     await storage.entity('AutomationSyncLog').add(syncLog);

@@ -18,10 +18,17 @@ export async function getCommitDiff(projectId: string, commitId: string) {
       headers: {
         enterprise: enterprise,
         'Private-Token': privateToken,
+        'Accept': 'application/json; charset=utf-8',
       },
+      responseType: 'json',
     });
-    console.log(`[AutoSync] diff为：${JSON.stringify(response)}`);
-    return response;
+    // 确保返回的是response.data，而不是整个response对象
+    const diffData = response.data || response;
+    console.log(`[AutoSync] diff数据类型: ${typeof diffData}, 长度: ${Array.isArray(diffData) ? diffData.length : 'N/A'}`);
+    if (Array.isArray(diffData) && diffData.length > 0) {
+      console.log(`[AutoSync] 第一个文件路径示例: new_path="${diffData[0]?.new_path}", old_path="${diffData[0]?.old_path}"`);
+    }
+    return diffData;
   } catch (error) {
     console.error(`[AutoSync] 获取diff失败 [${commitId}]:`, error);
     throw error;
@@ -373,6 +380,7 @@ function getFileChangeType(file: any): string {
 
 /**
  * 获取文件内容
+ * 获取当前处理的commit时期的commit
  */
 export async function getFileContent(projectId: string, filePath: string, ref = 'master') {
   const { apiBaseUrl, enterprise, privateToken } = getCodePlatformConfig();

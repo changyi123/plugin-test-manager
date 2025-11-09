@@ -31,6 +31,49 @@ const { Option } = Select;
 const WebhookQueue: React.FC = () => {
   const { t } = useI18n();
   const queryClient = useQueryClient();
+
+  // 处理时长格式化函数
+  const formatDuration = (seconds: number): string => {
+    if (seconds < 60) {
+      return `${seconds}秒`;
+    } else if (seconds < 3600) {
+      const minutes = Math.floor(seconds / 60);
+      const remainingSeconds = seconds % 60;
+      return `${minutes}分${remainingSeconds}秒`;
+    } else {
+      const hours = Math.floor(seconds / 3600);
+      const minutes = Math.floor((seconds % 3600) / 60);
+      return `${hours}时${minutes}分`;
+    }
+  };
+
+  // 处理时长计算函数
+  const calculateDuration = (record: AutomationWebhookQueue): string => {
+    if (!record.createdAt) return '-';
+    
+    const startTime = new Date(record.createdAt).getTime();
+    
+    if (record.status === 'processing') {
+      // 进行中：显示实时时长
+      const now = Date.now();
+      const duration = Math.floor((now - startTime) / 1000);
+      return formatDuration(duration);
+    } else if (record.processedAt) {
+      // 已完成/失败且有processedAt：显示实际处理时长
+      const endTime = new Date(record.processedAt).getTime();
+      const duration = Math.floor((endTime - startTime) / 1000);
+      return formatDuration(duration);
+    } else if (record.updatedAt && (record.status === 'completed' || record.status === 'failed')) {
+      // 已完成/失败但没有processedAt：使用updatedAt作为结束时间
+      const endTime = new Date(record.updatedAt).getTime();
+      const duration = Math.floor((endTime - startTime) / 1000);
+      return formatDuration(duration);
+    } else {
+      // pending状态或无法计算
+      return '-';
+    }
+  };
+
   const [statusFilter, setStatusFilter] = useState<string>('');
   const [pagination, setPagination] = useState({
     current: 1,
@@ -129,7 +172,7 @@ const WebhookQueue: React.FC = () => {
     return stepMap[step as keyof typeof stepMap] || step || '未知状态';
   };
 
-  // 获取状态标签
+  // 获取简单状态标签（用于详情页等地方）
   const getStatusTag = (status: string) => {
     const statusConfig = {
       pending: { color: 'orange', text: '待处理' },
@@ -139,6 +182,46 @@ const WebhookQueue: React.FC = () => {
     };
     const config = statusConfig[status] || { color: 'default', text: status };
     return <Tag color={config.color}>{config.text}</Tag>;
+  };
+
+  // 获取详细状态标签（用于列表页）
+  const getDetailedStatusTag = (record: AutomationWebhookQueue) => {
+    const { status, stats } = record;
+    
+    if (status === 'pending') {
+      return <Tag color="orange">待处理</Tag>;
+    }
+    
+    if (status === 'processing') {
+      return <Tag color="blue">处理中</Tag>;
+    }
+    
+    if (status === 'failed') {
+      return <Tag color="red">❌ 处理失败</Tag>;
+    }
+    
+    if (status === 'completed') {
+      // 使用接口返回的统计数据
+      if (!stats) {
+        return <Tag color="green">已完成</Tag>;
+      }
+      
+      const { successfulCases, failedCases, totalCases } = stats;
+      
+      if (totalCases === 0) {
+        return <Tag color="gray">无数据</Tag>;
+      }
+      
+      if (failedCases === 0) {
+        return <Tag color="green">✅ 全部成功</Tag>;
+      } else if (successfulCases === 0) {
+        return <Tag color="red">❌ 全部失败</Tag>;
+      } else {
+        return <Tag color="orange">⚠️ 部分成功</Tag>;
+      }
+    }
+    
+    return <Tag color="default">{status}</Tag>;
   };
 
   // 表格列定义
@@ -173,8 +256,8 @@ const WebhookQueue: React.FC = () => {
       title: '状态',
       dataIndex: 'status',
       key: 'status',
-      width: 100,
-      render: getStatusTag,
+      width: 120,
+      render: (_, record: AutomationWebhookQueue) => getDetailedStatusTag(record),
     },
     {
       title: '重试次数',
@@ -230,8 +313,22 @@ const WebhookQueue: React.FC = () => {
                 e.currentTarget.style.backgroundColor = 'transparent';
               }}
             >
-              <div style={{ color: '#52c41a', fontWeight: 'bold' }}>✅ 已完成</div>
-              <div style={{ fontSize: '12px', color: '#1890ff' }}>点击查看统计</div>
+              {record.stats ? (
+                <div>
+                  <div style={{ fontSize: '12px', fontWeight: 'bold' }}>
+                    <span style={{ color: '#52c41a' }}>成功: {record.stats.successfulCases}</span>
+                  </div>
+                  <div style={{ fontSize: '12px', fontWeight: 'bold' }}>
+                    <span style={{ color: '#ff4d4f' }}>失败: {record.stats.failedCases}</span>
+                  </div>
+                  <div style={{ fontSize: '11px', color: '#1890ff' }}>点击查看详情</div>
+                </div>
+              ) : (
+                <div>
+                  <div style={{ color: '#52c41a', fontWeight: 'bold' }}>✅ 已完成</div>
+                  <div style={{ fontSize: '11px', color: '#1890ff' }}>点击查看详情</div>
+                </div>
+              )}
             </div>
           );
         }
@@ -354,52 +451,20 @@ const WebhookQueue: React.FC = () => {
       title: '处理时长',
       key: 'duration',
       width: 100,
+      align: 'center' as const,
       render: (_, record: AutomationWebhookQueue) => {
-        if (record.status === 'processing') {
-          const startTime = new Date(record.updatedAt || record.createdAt).getTime();
-          const now = Date.now();
-          const duration = Math.floor((now - startTime) / 1000);
-          const minutes = Math.floor(duration / 60);
-          const seconds = duration % 60;
+        const duration = calculateDuration(record);
+        // 为processing状态添加颜色提示
+        if (record.status === 'processing' && duration !== '-') {
+          const seconds = Math.floor((Date.now() - new Date(record.createdAt!).getTime()) / 1000);
           return (
-            <span style={{ color: duration > 600 ? 'red' : 'orange' }}>
-              {minutes > 0 ? `${minutes}分${seconds}秒` : `${seconds}秒`}
+            <span style={{ color: seconds > 600 ? '#ff4d4f' : '#fa8c16' }}>
+              {duration}
             </span>
           );
-        } else if (record.processedAt && record.createdAt) {
-          const startTime = new Date(record.createdAt).getTime();
-          const endTime = new Date(record.processedAt).getTime();
-          const duration = Math.floor((endTime - startTime) / 1000);
-          const minutes = Math.floor(duration / 60);
-          const seconds = duration % 60;
-          return `${minutes > 0 ? `${minutes}分${seconds}秒` : `${seconds}秒`}`;
         }
-        return '-';
+        return duration;
       },
-    },
-    {
-      title: '处理时间',
-      dataIndex: 'processedAt',
-      key: 'processedAt',
-      width: 160,
-      render: (date: string) => (date ? new Date(date).toLocaleString() : '-'),
-    },
-    {
-      title: '错误信息',
-      dataIndex: 'errorMessage',
-      key: 'errorMessage',
-      width: 200,
-      ellipsis: {
-        showTitle: false,
-      },
-      render: (text: string) =>
-        text ? (
-          <Tooltip title={text}>
-            <span style={{ color: 'red' }}>{text}</span>
-          </Tooltip>
-        ) : (
-          '-'
-        ),
     },
     {
       title: '操作',
@@ -642,6 +707,8 @@ const WebhookQueue: React.FC = () => {
                         stats.updateOperations += log.operationsGenerated;
                       else if (upperType === 'DELETE')
                         stats.deleteOperations += log.operationsGenerated;
+                      else if (upperType === 'MIGRATE')
+                        stats.updateOperations += log.operationsGenerated; // MIGRATE算作UPDATE
                     });
                     stats.totalOperations += log.operationsGenerated;
                     stats.uniqueFiles.add(log.fileName);
@@ -720,6 +787,8 @@ const WebhookQueue: React.FC = () => {
                             stats.updateOperations += log.operationsGenerated;
                           else if (upperType === 'DELETE')
                             stats.deleteOperations += log.operationsGenerated;
+                          else if (upperType === 'MIGRATE')
+                            stats.updateOperations += log.operationsGenerated; // MIGRATE算作UPDATE
                         });
                       });
                       return stats;
@@ -782,10 +851,10 @@ const WebhookQueue: React.FC = () => {
                 );
               })()}
 
-            {/* 错误信息 */}
+            {/* 队列错误信息 */}
             {queueDetails.queueInfo?.errorMessage && (
               <div style={{ marginTop: 16 }}>
-                <h4>错误信息</h4>
+                <h4>队列错误信息</h4>
                 <div
                   style={{
                     background: '#fff2f0',
@@ -797,6 +866,96 @@ const WebhookQueue: React.FC = () => {
                 >
                   {queueDetails.queueInfo?.errorMessage}
                 </div>
+              </div>
+            )}
+
+            {/* 同步操作错误详情 */}
+            {queueDetails.errorSummary && queueDetails.errorSummary.totalErrors > 0 && (
+              <div style={{ marginTop: 16 }}>
+                <h4 style={{ color: '#ff4d4f' }}>操作失败详情 ({queueDetails.errorSummary.totalErrors} 个失败)</h4>
+                <div style={{ maxHeight: 300, overflowY: 'auto' }}>
+                  {queueDetails.errorSummary.errors.map((error: any, index: number) => (
+                    <div
+                      key={index}
+                      style={{
+                        background: '#fff2f0',
+                        border: '1px solid #ffccc7',
+                        borderRadius: 4,
+                        padding: 12,
+                        marginBottom: 8,
+                      }}
+                    >
+                      <div style={{ fontWeight: 'bold', color: '#cf1322' }}>
+                        {error.operationType} 操作失败 - 测试用例: {error.testId}
+                      </div>
+                      <div style={{ marginTop: 4, color: '#8c8c8c', fontSize: '12px' }}>
+                        时间: {new Date(error.timestamp).toLocaleString()}
+                      </div>
+                      <div style={{ marginTop: 4, color: '#262626' }}>
+                        错误原因: {error.error}
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
+
+            {/* 同步日志详情 */}
+            {queueDetails.syncLogs && queueDetails.syncLogs.length > 0 && (
+              <div style={{ marginTop: 16 }}>
+                <h4>同步操作日志 ({queueDetails.syncLogs.length} 条)</h4>
+                <Table
+                  size="small"
+                  dataSource={queueDetails.syncLogs}
+                  rowKey={(record: any) => `${record.testId}-${record.timestamp}`}
+                  pagination={{ pageSize: 10 }}
+                  columns={[
+                    {
+                      title: '测试用例ID',
+                      dataIndex: 'testId',
+                      key: 'testId',
+                      width: 200,
+                      ellipsis: true,
+                    },
+                    {
+                      title: '操作类型',
+                      dataIndex: 'operationType',
+                      key: 'operationType',
+                      width: 80,
+                      render: (value: string) => (
+                        <Tag color={value === 'CREATE' ? 'green' : value === 'UPDATE' ? 'blue' : value === 'DELETE' ? 'red' : 'orange'}>
+                          {value}
+                        </Tag>
+                      ),
+                    },
+                    {
+                      title: '状态',
+                      dataIndex: 'syncStatus',
+                      key: 'syncStatus',
+                      width: 80,
+                      render: (value: string) => (
+                        <Tag color={value === 'success' ? 'green' : 'red'}>
+                          {value === 'success' ? '成功' : '失败'}
+                        </Tag>
+                      ),
+                    },
+                    {
+                      title: '错误信息',
+                      dataIndex: 'errorDetails',
+                      key: 'errorDetails',
+                      width: 200,
+                      ellipsis: true,
+                      render: (value: string) => value || '-',
+                    },
+                    {
+                      title: '时间',
+                      dataIndex: 'timestamp',
+                      key: 'timestamp',
+                      width: 160,
+                      render: (value: string) => new Date(value).toLocaleString(),
+                    },
+                  ]}
+                />
               </div>
             )}
 
