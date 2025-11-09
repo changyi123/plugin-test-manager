@@ -136,6 +136,7 @@ const Right: React.FC<RightProps> = props => {
         handleSuccess: async () => {
           await refreshTreeAndScopeTestCase();
           mutateStatusEvent.emit('refreshExecutionStatus');
+          mutateStatusEvent.emit('refreshExecutionList');
           setLoading(false);
           notification.success({
             message: t('page.plan.planPageLayout.right.createTestRunSuccessMessage'),

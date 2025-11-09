@@ -21,6 +21,7 @@ import ColumnSetting from './ColumnSetting';
 import TableSelection from './TableSelection';
 import type { BusinessTableActionType } from './type';
 import type { EnableCacheEpandedRowKeys, TitleCellOption } from './type';
+import { getAppEnv } from '@/lib/appEnv';
 
 const DEFAULT_PAGE_SIZE = 10;
 const MIN_COLUMN_WIDTH = 120;
@@ -123,6 +124,8 @@ type BusinessTableProps = TableProps<any> &
     ignoreInit?: boolean;
     getContainer?: any;
     enableCacheEpandedRowKeys?: EnableCacheEpandedRowKeys;
+    activeType?: string;
+    selectedExecution?: Record<string, any>;
   };
 
 const BusinessTable: React.FC<BusinessTableProps> = props => {
@@ -156,6 +159,8 @@ const BusinessTable: React.FC<BusinessTableProps> = props => {
     ignoreInit,
     getContainer,
     enableCacheEpandedRowKeys = 'disable',
+    activeType,
+    selectedExecution,
     ...restTableProps
   } = props;
 
@@ -188,6 +193,8 @@ const BusinessTable: React.FC<BusinessTableProps> = props => {
   const ref = useRef(null);
   const size = useSize(ref);
   const { t } = useI18n();
+
+  const isEnableExpandFirstItem = getAppEnv('ENABLE_EXPAND_FIRST_ITEM');
 
   const scrollMemo = useMemo(() => {
     const selectionHeaderHeight = selectionMode ? SELECTION_HEADER_HEIGHT : 0;
@@ -484,6 +491,8 @@ const BusinessTable: React.FC<BusinessTableProps> = props => {
       <div className={`${cx('selection-header')} selection-header-box`}>
         <TableSelection
           onClose={handleClose}
+          setSelectedRowKeys={setSelectedRowKeys}
+          setCheckedRowKeys={setCheckedRowKeys}
           tableExpandable={Boolean(expandable)}
           disableSelectAll={disableTableSelectAll}
           checkboxProps={{
@@ -492,6 +501,9 @@ const BusinessTable: React.FC<BusinessTableProps> = props => {
             onChange: e => handleCheck(e.target.checked),
             indeterminate: allRowSelectionIndeterminate,
           }}
+          activeType={activeType}
+          selectedRowKeys={selectedRowKeys}
+          selectedExecution={selectedExecution}
           selectNum={selectNum}
           actions={selectionActionNodes ?? []}
         />
@@ -651,7 +663,7 @@ const BusinessTable: React.FC<BusinessTableProps> = props => {
   React.useEffect(() => {
     if (!dataSource?.length) return;
 
-    if (!initialExpandedRef.current) {
+    if (!initialExpandedRef.current && isEnableExpandFirstItem) {
       // 只在初始加载时设置默认展开状态
       setAllExpanded(false);
       setExpandedKeys([dataSource[0]?.[props?.rowKey as string]]);

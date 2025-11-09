@@ -1,11 +1,13 @@
-import { Checkbox, Tooltip } from 'antd';
+import { Button, Checkbox, Dropdown, Modal, Spin, Tooltip } from 'antd';
 import { CheckboxProps } from 'antd/lib/checkbox';
 import { noop } from 'lodash';
-import React from 'react';
+import React, { useEffect, useState } from 'react';
 
 import useI18n from '@/lib/hooks/useI18n';
 
 import cx from './TableSelection.less';
+import { useExecutionStatusStats } from './hooks';
+import statusesConfig from '@/pages/config/statuses.config';
 
 type TableSelectionProps = {
   selectNum?: number;
@@ -14,6 +16,12 @@ type TableSelectionProps = {
   tableExpandable?: boolean;
   actions: React.ReactNode[];
   checkboxProps?: CheckboxProps;
+  activeType?: string;
+  selectedRowKeys?: string[];
+  selectedExecution?: Record<string, any>;
+  setSelectedRowKeys?: React.Dispatch<React.SetStateAction<string[]>>;
+  setCheckedRowKeys?: (val?: string[]) => void
+  
 };
 
 const TableSelection: React.FC<TableSelectionProps> = ({
@@ -23,8 +31,24 @@ const TableSelection: React.FC<TableSelectionProps> = ({
   onClose = noop,
   disableSelectAll = false,
   tableExpandable = false,
+  activeType,
+  selectedRowKeys,
+  selectedExecution,
+  setSelectedRowKeys,
+  setCheckedRowKeys,
 }) => {
   const { t } = useI18n();
+
+  const {
+    renderStatusText
+  } = useExecutionStatusStats({ 
+    selectedExecution,
+    selectedRowKeys,
+    activeType,
+    setSelectedRowKeys,
+    setCheckedRowKeys,
+  });
+
   return (
     <div className={cx('table-selection', tableExpandable && 'table-expandable')}>
       {disableSelectAll ? null : (
@@ -42,6 +66,12 @@ const TableSelection: React.FC<TableSelectionProps> = ({
         {t('common.checked')}
         <span className={cx('num')}>{selectNum ?? 0}</span>
         {t('common.item', { count: selectNum ?? 0 })}
+        {selectNum && selectNum > 0 && activeType !== 'TestPlan' ? (
+            <>
+              <span className={cx('comma')}>，</span>
+              {renderStatusText()}
+            </>
+          ) : null}
       </span>
       <span className={cx('line')} />
 

@@ -482,10 +482,38 @@ export const exportReport = async (params: {
   });
 };
 
+export const searchBehaviorFields = async (data: {
+  keys: string[];
+  propertyNames: string[];
+  fieldType?: boolean;
+  workspace?: string;
+  itemTypeKey?: string;
+}) => {
+  const itemType = await getItemTypeByKey(data.itemTypeKey ?? '');
+  if (!itemType) {
+    return [];
+  }
+  return await fetch
+    .$get('/parse/api/fields/behaviors', {
+      params: {
+        keys: data.keys,
+        fieldType: data.fieldType,
+        infinity: true,
+        context: {
+          itemTypeId: itemType?.objectId,
+          workspace: data.workspace,
+        },
+      },
+    })
+    .then(result => result.payload);
+};
+
 export const searchFields = async (params: {
   keys: string[];
   propertyNames: string[];
   fieldType?: boolean;
+  workspace?: string;
+  itemTypeKey?: string;
 }) => {
   return await fetch
     .$get('/parse/api/fields/search', {

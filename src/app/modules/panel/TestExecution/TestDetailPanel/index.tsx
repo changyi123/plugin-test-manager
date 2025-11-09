@@ -511,6 +511,8 @@ const Test = () => {
         )}
         actionRef={tableActionRef}
         allSelectableRowKeys={allTestRunIds}
+        allTestEntities={allTestEntities}
+        activeType={'testExecution'}
         actionMenuList={[
           {
             key: 'changeStatus',
