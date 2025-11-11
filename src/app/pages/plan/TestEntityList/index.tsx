@@ -259,7 +259,7 @@ const TestEntityList: React.FC<TestEntityListProps> = ({
           linkType: TestLinkType.CaseLinkPlan,
           sourceIds: [selectedTestPlan.objectId],
           destinationType: TestType.Case,
-          fields: [].concat(SystemFieldKeys, testCaseFieldKeys ?? []),
+          fields: [].concat(SystemFieldKeys, testCaseFieldKeys ?? [], ['r_test_manager_atm_test_id']),
           selector,
         });
 
@@ -349,7 +349,7 @@ const TestEntityList: React.FC<TestEntityListProps> = ({
         id: [...runCaseMap.keys()],
         ...repository,
       },
-      fields: caseFieldKeys ?? [],
+      fields: (caseFieldKeys ?? []).concat(['r_test_manager_atm_test_id']),
       selector,
       ...queryParams,
     });
@@ -416,7 +416,7 @@ const TestEntityList: React.FC<TestEntityListProps> = ({
         // id: runLinkCaseIds,
         ...repository,
       },
-      fields: caseFieldKeys ?? [],
+      fields: (caseFieldKeys ?? []).concat(['r_test_manager_atm_test_id']),
       selector,
       ...queryParams,
     };
@@ -550,7 +550,7 @@ const TestEntityList: React.FC<TestEntityListProps> = ({
       )
         return EmptyListData;
 
-      const caseFieldKeys = [].concat(SystemFieldKeys, testCaseFieldKeys ?? []);
+      const caseFieldKeys = [].concat(SystemFieldKeys, testCaseFieldKeys ?? [], ['r_test_manager_atm_test_id']);
       const [systemSelectors, customSelector] = selectors;
       const filterCaseSelector = omit(customSelector, [
         TestRunDesigneeModel,
@@ -582,7 +582,7 @@ const TestEntityList: React.FC<TestEntityListProps> = ({
         executionId: selectedExecution.objectId,
         selector: [systemSelectors, filterCaseSelector],
         queryParams,
-        caseFieldKeys: caseFieldKeys.concat(['itemId']),
+        caseFieldKeys: caseFieldKeys.concat(['itemId', 'r_test_manager_atm_test_id']),
         selectNode,
         showType,
       });
@@ -854,6 +854,7 @@ const TestEntityList: React.FC<TestEntityListProps> = ({
 
   // 单条自动化执行处理函数
   const handleSingleAutomationExecute = useMemoizedFn((executionId: string) => {
+    console.log('[TestEntityList] handleSingleAutomationExecute called with executionId:', executionId);
     setSingleExecutionId(executionId);
     setAutomationModalVisible(true);
   });
@@ -1112,10 +1113,19 @@ const TestEntityList: React.FC<TestEntityListProps> = ({
         render(_, record) {
           const { result: enabled, message } = canExecuteTestRun(record.designee);
 
+          // 调试日志：检查用例数据
+          console.log('[TestEntityList] 渲染操作列，record:', record);
+          console.log('[TestEntityList] record.values:', record.values);
+          console.log('[TestEntityList] r_test_manager_atm_test_id:', record.values?.r_test_manager_atm_test_id);
+          
           // 更多操作下拉菜单
+          const hasAutomationTestId = record.values?.r_test_manager_atm_test_id;
+          console.log('[TestEntityList] hasAutomationTestId:', hasAutomationTestId);
+          console.log('[TestEntityList] isAutomationExecuteEnabled:', isAutomationExecuteEnabled);
+          
           const moreActionsMenu = (
             <Menu>
-              {isAutomationExecuteEnabled && (
+              {isAutomationExecuteEnabled && hasAutomationTestId && (
                 <Menu.Item
                   key="automation"
                   icon={<PlayCircleOutlined />}

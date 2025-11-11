@@ -401,6 +401,20 @@ const TestManagerProvider: React.FC<RepositoryDataProviderProps> = ({
         query: {
           id: itemId,
         },
+        fields: [
+          // 添加自动化测试字段 - 使用prefixed版本
+          'r_test_manager_atm_test_id',
+          'r_test_manager_atm_class_name', 
+          'r_test_manager_atm_method_name',
+          'r_test_manager_atm_file_path',
+          'r_test_manager_atm_framework',
+          'r_test_manager_atm_module_path',
+          'r_test_manager_atm_git_clone_url',
+          'r_test_manager_atm_git_branch',
+          'r_test_manager_atm_git_path',
+          'r_test_manager_atm_git_commit_id',
+          'r_test_manager_atm_git_commit_message'
+        ],
       });
 
       // 判断是否是测试实体

@@ -73,6 +73,8 @@ export enum TestType {
   Report = 'TestReport',
   /** 测试评审 */
   Approval = 'TestApproval',
+  /** 自动化信息 */
+  Automation = 'TestAutomation',
 }
 
 // 拓展的测试报告条件

@@ -291,18 +291,15 @@ export async function queryWebhookQueue(
 
     const result = await fetch.$post(apiPath, params);
 
-    if (result.success) {
-      // 解析嵌套的数据结构
-      if (result.data?.data?.list) {
-        return {
-          success: true,
-          data: result.data.data.list.data || [],
-          total: result.data.data.list.total || 0,
-          limit: result.data.data.list.limit || 20,
-          skip: result.data.data.list.skip || 0,
-        };
-      }
-      return result;
+    if (result.success && result.data?.data?.list) {
+      // 解析实际API返回的嵌套数据结构
+      return {
+        success: true,
+        data: result.data.data.list.data || [],
+        total: result.data.data.list.total || 0,
+        limit: result.data.data.list.limit || 20,
+        skip: result.data.data.list.skip || 0,
+      };
     } else {
       throw new Error(result.error?.message || '查询Webhook队列失败');
     }
@@ -333,18 +330,15 @@ export async function queryExecutionRecords(
 
     const result = await fetch.$post(apiPath, params);
 
-    if (result.success) {
-      // 解析嵌套的数据结构
-      if (result.data?.data?.list) {
-        return {
-          success: true,
-          data: result.data.data.list.data || [],
-          total: result.data.data.list.total || 0,
-          limit: result.data.data.list.limit || 20,
-          skip: result.data.data.list.skip || 0,
-        };
-      }
-      return result;
+    if (result.success && result.data?.data?.list) {
+      // 解析实际API返回的嵌套数据结构
+      return {
+        success: true,
+        data: result.data.data.list.data || [],
+        total: result.data.data.list.total || 0,
+        limit: result.data.data.list.limit || 20,
+        skip: result.data.data.list.skip || 0,
+      };
     } else {
       throw new Error(result.error?.message || '查询执行记录失败');
     }
@@ -375,18 +369,15 @@ export async function queryPipeCallbackQueue(
 
     const result = await fetch.$post(apiPath, params);
 
-    if (result.success) {
-      // 解析嵌套的数据结构
-      if (result.data?.data?.list) {
-        return {
-          success: true,
-          data: result.data.data.list.data || [],
-          total: result.data.data.list.total || 0,
-          limit: result.data.data.list.limit || 20,
-          skip: result.data.data.list.skip || 0,
-        };
-      }
-      return result;
+    if (result.success && result.data?.data?.list) {
+      // 解析实际API返回的嵌套数据结构
+      return {
+        success: true,
+        data: result.data.data.list.data || [],
+        total: result.data.data.list.total || 0,
+        limit: result.data.data.list.limit || 20,
+        skip: result.data.data.list.skip || 0,
+      };
     } else {
       throw new Error(result.error?.message || '查询Pipe回调队列失败');
     }
@@ -588,6 +579,30 @@ export interface QueueDetailedStats {
     operationTypes: string;
     timestamp: Date;
   }>;
+  // 新增字段：同步日志
+  syncLogs?: Array<{
+    testId: string;
+    caseId?: string;
+    operationType: string;
+    syncStatus: string;
+    success?: boolean;
+    details?: string;
+    errorDetails?: string;
+    createdCases?: number;
+    updatedCases?: number;
+    failedCases?: number;
+    timestamp: string;
+  }>;
+  // 新增字段：错误信息汇总
+  errorSummary?: {
+    totalErrors: number;
+    errors: Array<{
+      testId: string;
+      operationType: string;
+      error: string;
+      timestamp: string;
+    }>;
+  };
   summary: {
     totalFiles: number;
     processedFiles: number;
@@ -595,6 +610,9 @@ export interface QueueDetailedStats {
     identifiedCases: number;
     successfulCases: number;
     failedCases: number;
+    createdCases?: number;
+    updatedCases?: number;
+    deletedCases?: number;
   };
 }
 
@@ -617,16 +635,9 @@ export async function getQueueDetails(queueId: string): Promise<QueueDetailedSta
 
     const result = await fetch.$post(apiPath, { queueId });
 
-    if (result.success) {
-      // Handle nested data structure - data is at result.data.data.data
-      if (result.data?.data?.data) {
-        return result.data.data.data;
-      }
-      // Fallback for other structures
-      if (result.data?.data) {
-        return result.data.data;
-      }
-      return result.data;
+    if (result.success && result.data?.data) {
+      // 解析实际API返回的嵌套数据结构
+      return result.data.data.data || result.data.data;
     } else {
       throw new Error(result.error?.message || '查询队列详情失败');
     }
@@ -665,7 +676,7 @@ export async function getFileProcessingStats(queueId: string): Promise<{
     const result = await fetch.$post(apiPath, { queueId });
 
     if (result.success) {
-      return result.data;
+      return result.data?.data || result.data;
     } else {
       throw new Error(result.error?.message || '查询文件处理统计失败');
     }

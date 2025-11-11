@@ -18,6 +18,13 @@ export interface AutomationWebhookQueue {
   errorMessage?: string; // 错误信息
   createdAt?: Date; // 创建时间
   updatedAt?: Date; // 更新时间
+  
+  // 统计数据（仅在completed状态时由后端API附加）
+  stats?: {
+    successfulCases: number;
+    failedCases: number;
+    totalCases: number;
+  };
 }
 
 // 自动化执行状态枚举
@@ -55,6 +62,7 @@ export interface AutomationExecutionRecord {
   triggerUser: string; // 触发用户
   workspaceKey: string; // 工作空间key
   errorMessage?: string; // 错误信息
+  recordType?: 'summary' | 'batch'; // 记录类型：summary=主汇总记录，batch=批次记录
   // 执行统计
   totalCount: number; // 总执行数
   successCount: number; // 成功数

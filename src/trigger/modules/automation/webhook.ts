@@ -169,8 +169,16 @@ export async function callPipeWebHook(
     caseCount: number;
     repoKey: string;
   };
+  skippedTestCases?: Array<{
+    batchIndex: number;
+    caseIndex: number;
+    reason: string;
+    testCase: any;
+  }>;
 }> {
   console.log('[Pipe] 开始调用Pipe WebHook，测试用例数量:', params.testCases.length);
+  console.log(`\n[TOTAL_COUNT] ========== 总体数量统计 ==========`);
+  console.log(`[TOTAL_COUNT] 总输入用例数: ${params.testCases.length}`);
 
   try {
     const pipeConfig = getPipeConfig();
@@ -211,6 +219,18 @@ export async function callPipeWebHook(
     console.log('[Pipe] 分组结果，共', repoGroups.size, '个仓库分支组合');
 
     const results = [];
+    const skippedTestCases: Array<{
+      batchIndex: number;
+      caseIndex: number;
+      reason: string;
+      testCase: any;
+    }> = [];
+    const duplicateTestCases: Array<{
+      batchIndex: number;
+      testId: string;
+      oldData: any;
+      newData: any;
+    }> = [];
 
     // 遍历每个仓库分支组合
     for (const [repoKey, groupTestCases] of repoGroups) {
@@ -244,13 +264,111 @@ export async function callPipeWebHook(
 
       for (let i = 0; i < batches.length; i++) {
         const batch = batches[i];
-        const caseList = buildCaseListString(batch);
+        
+        console.log(`\n[BATCH_COUNT] ========== 批次 ${i + 1}/${batches.length} 数量统计 ==========`);
+        console.log(`[BATCH_COUNT] 原始批次大小: ${batch.length} 个用例`);
+        
+        // 🚀 先构建映射关系，然后基于映射关系构建CASE_LIST
+        const batchTestCaseMapping: Record<string, any> = {};
+        const validTestCases: any[] = [];
+        const batchSkippedCases: any[] = [];
+        
+        batch.forEach((testCase, idx) => {
+          const executionData = {
+            testExecutionId: testCase.testExecutionId || testCase.executionId,
+            caseId: testCase.caseId,
+            caseName: testCase.caseName,
+            repository: testCase.repository,
+            filePath: testCase.filePath,
+            className: testCase.className,
+            methodName: testCase.methodName,
+            testId: testCase.testId,
+          };
 
-        console.log(
-          `[Pipe] 批次 ${i + 1}/${batches.length}，用例数量: ${batch.length}，CASE_LIST长度: ${
-            caseList.length
-          }`,
-        );
+          if (testCase.testId) {
+            // 检查是否有重复的testId
+            if (batchTestCaseMapping[testCase.testId]) {
+              console.warn(`[BATCH_COUNT] ⚠️ 批次 ${i + 1} 发现重复的testId: ${testCase.testId}`);
+              console.warn(`[BATCH_COUNT]   - 旧数据: caseId=${batchTestCaseMapping[testCase.testId].caseId}, executionId=${batchTestCaseMapping[testCase.testId].testExecutionId}`);
+              console.warn(`[BATCH_COUNT]   - 新数据: caseId=${executionData.caseId}, executionId=${executionData.testExecutionId}`);
+              
+              // 记录重复的用例
+              duplicateTestCases.push({
+                batchIndex: i + 1,
+                testId: testCase.testId,
+                oldData: {
+                  caseId: batchTestCaseMapping[testCase.testId].caseId,
+                  executionId: batchTestCaseMapping[testCase.testId].testExecutionId,
+                  caseName: batchTestCaseMapping[testCase.testId].caseName
+                },
+                newData: {
+                  caseId: executionData.caseId,
+                  executionId: executionData.testExecutionId,
+                  caseName: executionData.caseName
+                }
+              });
+            }
+            batchTestCaseMapping[testCase.testId] = executionData;
+            validTestCases.push(testCase);
+          } else {
+            // 如果testId为空，使用fallback方案
+            const fallbackKey = `${testCase.className}#${testCase.methodName}`;
+            if (fallbackKey !== '#' && testCase.className && testCase.methodName) {
+              // 检查是否有重复的fallback key
+              if (batchTestCaseMapping[fallbackKey]) {
+                console.warn(`[BATCH_COUNT] ⚠️ 批次 ${i + 1} 发现重复的fallback key: ${fallbackKey}`);
+                console.warn(`[BATCH_COUNT]   - 旧数据: caseId=${batchTestCaseMapping[fallbackKey].caseId}, executionId=${batchTestCaseMapping[fallbackKey].testExecutionId}`);
+                console.warn(`[BATCH_COUNT]   - 新数据: caseId=${executionData.caseId}, executionId=${executionData.testExecutionId}`);
+              }
+              batchTestCaseMapping[fallbackKey] = executionData;
+              validTestCases.push(testCase);
+              console.log(`[BATCH_COUNT] 批次 ${i + 1} 使用fallback key: ${fallbackKey}`);
+            } else {
+              // 记录跳过的测试用例
+              batchSkippedCases.push(testCase);
+              skippedTestCases.push({
+                batchIndex: i + 1,
+                caseIndex: idx + 1,
+                reason: `缺少testId且无法生成有效的className#methodName (className: "${testCase.className}", methodName: "${testCase.methodName}")`,
+                testCase: {
+                  testExecutionId: testCase.testExecutionId,
+                  caseId: testCase.caseId,
+                  caseName: testCase.caseName,
+                  className: testCase.className,
+                  methodName: testCase.methodName,
+                  testId: testCase.testId,
+                }
+              });
+              console.warn(`[Pipe] 批次 ${i + 1} 跳过第 ${idx + 1} 个测试用例，原因：缺少有效标识`);
+            }
+          }
+        });
+        
+        // 🚀 基于有效的测试用例构建CASE_LIST
+        const caseList = buildCaseListString(validTestCases);
+
+        // 批次数量统计汇总
+        console.log(`[BATCH_COUNT] ===== 批次 ${i + 1} 统计结果 =====`);
+        console.log(`[BATCH_COUNT] 原始数量: ${batch.length}`);
+        console.log(`[BATCH_COUNT] 有效数量: ${validTestCases.length}`);
+        console.log(`[BATCH_COUNT] 跳过数量: ${batchSkippedCases.length}`);
+        console.log(`[BATCH_COUNT] 映射数量: ${Object.keys(batchTestCaseMapping).length}`);
+        console.log(`[BATCH_COUNT] CASE_LIST长度: ${caseList.length}`);
+        console.log(`[BATCH_COUNT] 数量校验: ${batch.length} = ${validTestCases.length} + ${batchSkippedCases.length} ? ${batch.length === validTestCases.length + batchSkippedCases.length ? '✓ 正确' : '✗ 错误！'}`);
+        
+        // 如果有跳过的用例，详细记录
+        if (batchSkippedCases.length > 0) {
+          console.log(`[BATCH_COUNT] 跳过的用例详情:`);
+          batchSkippedCases.forEach((tc, idx) => {
+            console.log(`[BATCH_COUNT]   - 第${idx + 1}个: testId=${tc.testId}, className=${tc.className}, methodName=${tc.methodName}, caseId=${tc.caseId}`);
+          });
+        }
+
+        // 🚀 如果没有有效的测试用例，跳过这个批次
+        if (validTestCases.length === 0 || caseList.length === 0) {
+          console.warn(`[BATCH_COUNT] ⚠️ 批次 ${i + 1} 没有有效的测试用例，跳过此批次！`);
+          continue;
+        }
 
         const requestData = {
           allParams: {
@@ -302,25 +420,6 @@ export async function callPipeWebHook(
         console.log(`[Pipe] 提取的buildId: ${buildId}`);
         console.log(`[Pipe] 提取的pipeJumpUrl: ${pipeJumpUrl}`);
 
-        // 为当前批次构建独立的映射关系
-        const batchTestCaseMapping: Record<string, any> = {};
-        batch.forEach(testCase => {
-          const executionData = {
-            testExecutionId: testCase.testExecutionId || testCase.executionId,
-            caseId: testCase.caseId,
-            caseName: testCase.caseName,
-            repository: testCase.repository,
-            filePath: testCase.filePath,
-            className: testCase.className,
-            methodName: testCase.methodName,
-            testId: testCase.testId,
-          };
-
-          if (testCase.testId) {
-            batchTestCaseMapping[testCase.testId] = executionData;
-          }
-        });
-
         console.log(`[Pipe] 批次 ${i + 1} 构建映射关系完成，映射数量: ${Object.keys(batchTestCaseMapping).length}`);
 
         results.push({
@@ -328,7 +427,7 @@ export async function callPipeWebHook(
           pipeJumpUrl,
           batch: i + 1,
           totalBatches: batches.length,
-          caseCount: batch.length,
+          caseCount: Object.keys(batchTestCaseMapping).length, // 🚀 修复：使用实际映射数量
           repoKey,
           batchTestCaseMapping, // 🚀 新增：每个批次的独立映射关系
         });
@@ -338,6 +437,17 @@ export async function callPipeWebHook(
     console.log('[Pipe] === 所有批次处理完成 ===');
     console.log('[Pipe] 总批次数量:', results.length);
     console.log('[Pipe] 所有结果汇总:', JSON.stringify(results, null, 2));
+    
+    // 添加总体数量统计
+    const totalProcessed = results.reduce((sum, r) => sum + (r.caseCount || 0), 0);
+    const totalSkipped = skippedTestCases.length;
+    const totalDuplicates = duplicateTestCases.length;
+    console.log(`\n[TOTAL_COUNT] ========== 最终统计汇总 ==========`);
+    console.log(`[TOTAL_COUNT] 总输入: ${params.testCases.length} 个用例`);
+    console.log(`[TOTAL_COUNT] 成功处理: ${totalProcessed} 个用例`);
+    console.log(`[TOTAL_COUNT] 跳过处理: ${totalSkipped} 个用例`);
+    console.log(`[TOTAL_COUNT] 重复覆盖: ${totalDuplicates} 个用例`);
+    console.log(`[TOTAL_COUNT] 数量校验: ${params.testCases.length} = ${totalProcessed} + ${totalSkipped} + ${totalDuplicates} ? ${params.testCases.length === totalProcessed + totalSkipped + totalDuplicates ? '✓ 正确' : '✗ 错误！差异:' + (params.testCases.length - totalProcessed - totalSkipped - totalDuplicates)}`);
 
     // 🚀 返回所有批次结果，每个批次都有独立的映射关系
     const batchResults = results.map((result, index) => ({
@@ -347,7 +457,7 @@ export async function callPipeWebHook(
       batchInfo: {
         batchIndex: index + 1,
         totalBatches: results.length,
-        caseCount: result.caseCount || 0,
+        caseCount: result.caseCount || 0, // 现在这个值已经是实际映射数量了
         repoKey: result.repoKey,
       },
     }));
@@ -365,11 +475,25 @@ export async function callPipeWebHook(
       };
     }
 
+    // 合并跳过的和重复的用例信息
+    const allSkippedAndDuplicates = [...skippedTestCases];
+    
+    // 将重复的用例也加入到跳过列表中
+    duplicateTestCases.forEach(dup => {
+      allSkippedAndDuplicates.push({
+        batchIndex: dup.batchIndex,
+        caseIndex: -1, // 重复的用例没有具体索引
+        reason: `重复的testId，被覆盖：${dup.testId}。被覆盖的用例：caseId=${dup.oldData.caseId}, executionId=${dup.oldData.executionId}`,
+        testCase: dup.newData
+      });
+    });
+
     // 多批次情况，返回所有批次信息
     return {
       batches: batchResults,
       totalBatches: batchResults.length,
       testCaseMapping: testCaseMapping,
+      skippedTestCases: allSkippedAndDuplicates.length > 0 ? allSkippedAndDuplicates : undefined,
       // 为了兼容性，提供主要信息
       buildId: batchResults[0]?.buildId,
       pipeJumpUrl: batchResults[0]?.pipeJumpUrl,
@@ -419,36 +543,36 @@ export const automationWebhook = async params => {
       const result = await storage.entity('AutomationWebhookQueue').add(queueData);
       console.log('[AutomationWebhook] 队列写入成功，result:', JSON.stringify(result));
 
-      // 立即尝试处理队列（如果没有正在处理的任务）
-      try {
-        console.log('[AutomationWebhook] 检查是否可以立即处理...');
-        
-        // 检查是否有正在处理的任务
-        const processingCount = await storage
-          .entity('AutomationWebhookQueue')
-          .query()
-          .equalTo('status', 'processing')
-          .count();
-        
-        if (processingCount === 0) {
-          console.log('[AutomationWebhook] 没有正在处理的任务，立即触发处理');
-          
-          // 异步触发处理，不等待结果
-          // 使用setTimeout确保webhook响应先返回，避免超时
-          setTimeout(async () => {
-            try {
-              await processAutomationQueue();
-            } catch (error) {
-              console.error('[AutomationWebhook] 立即处理失败:', error);
-            }
-          }, 100);
-        } else {
-          console.log(`[AutomationWebhook] 已有 ${processingCount} 个任务正在处理，等待定时任务`);
-        }
-      } catch (triggerError) {
-        // 触发处理失败不影响webhook响应
-        console.error('[AutomationWebhook] 触发立即处理时出错:', triggerError);
-      }
+      // 立即尝试处理队列（如果没有正在处理的任务）先注释掉后期再改成消息队列方式处理吧
+      // try {
+      //   console.log('[AutomationWebhook] 检查是否可以立即处理...');
+      //   // 检查是否有正在处理的任务
+      //   const processingCount = await storage
+      //     .entity('AutomationWebhookQueue')
+      //     .query()
+      //     .equalTo('status', 'processing')
+      //     .count();
+      //   if (processingCount === 0) {
+      //     console.log('[AutomationWebhook] 没有正在处理的任务，立即触发处理');
+      //     // 直接调用异步函数，不等待结果
+      //     console.log('[AutomationWebhook] 直接触发队列处理，不等待结果');
+      //     // 直接调用，不await，让它在后台执行
+      //     processAutomationQueue()
+      //       .then(() => {
+      //         console.log('[AutomationWebhook] 队列处理完成');
+      //       })
+      //       .catch(error => {
+      //         console.error('[AutomationWebhook] 队列处理失败:', error);
+      //         console.error('[AutomationWebhook] 错误堆栈:', error?.stack);
+      //       });
+      //     console.log('[AutomationWebhook] 已触发队列处理，即将返回webhook响应');
+      //   } else {
+      //     console.log(`[AutomationWebhook] 已有 ${processingCount} 个任务正在处理，等待定时任务`);
+      //   }
+      // } catch (triggerError) {
+      //   // 触发处理失败不影响webhook响应
+      //   console.error('[AutomationWebhook] 触发立即处理时出错:', triggerError);
+      // }
 
       return buildResponse({
         success: true,

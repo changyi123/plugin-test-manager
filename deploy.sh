@@ -43,12 +43,27 @@ get_current_version() {
 # 增加版本号
 increment_version() {
     local version=$1
-    # 分割版本号 4.38.201 -> 4 38 201
-    IFS='.' read -ra ADDR <<< "$version"
-    # 最后一位+1
-    ADDR[2]=$((ADDR[2] + 1))
-    # 重新组合
-    echo "${ADDR[0]}.${ADDR[1]}.${ADDR[2]}"
+    
+    # 检查是否是 release 版本格式 (如: 4.38.671-release.306)
+    if [[ $version == *"-release."* ]]; then
+        # 提取基础版本和 release 号
+        local base_version=$(echo "$version" | cut -d'-' -f1)
+        local release_num=$(echo "$version" | cut -d'.' -f4)
+        
+        # release 号加 1
+        local new_release_num=$((release_num + 1))
+        
+        # 重新组合
+        echo "${base_version}-release.${new_release_num}"
+    else
+        # 普通版本号格式 (如: 4.38.201)
+        # 分割版本号 4.38.201 -> 4 38 201
+        IFS='.' read -ra ADDR <<< "$version"
+        # 最后一位+1
+        ADDR[2]=$((ADDR[2] + 1))
+        # 重新组合
+        echo "${ADDR[0]}.${ADDR[1]}.${ADDR[2]}"
+    fi
 }
 
 # 更新版本号到文件
@@ -231,9 +246,15 @@ main() {
     CURRENT_VERSION=$(get_current_version)
     print_msg "当前版本: $CURRENT_VERSION"
     
-    # 计算新版本
-    NEW_VERSION=$(increment_version $CURRENT_VERSION)
-    print_msg "新版本: $NEW_VERSION"
+    # 检查命令行参数是否提供了自定义版本号
+    if [ -n "$1" ]; then
+        NEW_VERSION="$1"
+        print_msg "使用自定义版本: $NEW_VERSION"
+    else
+        # 计算新版本
+        NEW_VERSION=$(increment_version $CURRENT_VERSION)
+        print_msg "新版本 (自动递增): $NEW_VERSION"
+    fi
     
     # 询问用户确认
     read -p "确认要部署版本 $NEW_VERSION 吗? (y/N): " -n 1 -r

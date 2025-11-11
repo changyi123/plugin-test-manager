@@ -75,6 +75,16 @@ const ExecutionRecordsTab: React.FC = () => {
     return <Tag color={config.color}>{config.text}</Tag>;
   };
 
+  // 获取记录类型标签
+  const getRecordTypeTag = (recordType: string) => {
+    if (recordType === 'summary') {
+      return <Tag color="blue">主记录</Tag>;
+    } else if (recordType === 'batch') {
+      return <Tag color="gray">批次记录</Tag>;
+    }
+    return <Tag color="default">未知</Tag>;
+  };
+
   // 执行记录表格列定义
   const columns = [
     {
@@ -85,10 +95,15 @@ const ExecutionRecordsTab: React.FC = () => {
       ellipsis: {
         showTitle: false,
       },
-      render: (text: string) => (
-        <Tooltip title={text}>
-          <span>{text}</span>
-        </Tooltip>
+      render: (text: string, record: AutomationExecutionRecord) => (
+        <div>
+          <Tooltip title={text}>
+            <span>{text}</span>
+          </Tooltip>
+          <div style={{ marginTop: 4 }}>
+            {getRecordTypeTag(record.recordType || 'batch')}
+          </div>
+        </div>
       ),
     },
     {
