@@ -212,6 +212,10 @@ async function executeBatchCreate(
         itemsCount: response?.items?.length || 0,
         errorsCount: response?.errors?.length || 0,
       });
+      console.log(`[AutoSync] 发送${operations.length}个操作，返回${(response?.items?.length || 0) + (response?.errors?.length || 0)}个结果`);
+      if (response?.items?.[0]) {
+        console.log(`[AutoSync] 第一个item结构示例:`, JSON.stringify(response.items[0]));
+      }
 
       const results: ExecutionResult[] = [];
 
@@ -221,20 +225,7 @@ async function executeBatchCreate(
           const createdItem = response.items[i];
           const operation = operations[i];
           
-          // 记录成功日志
-          await logSyncOperation({
-            operationType: 'CREATE',
-            testId: operation.testId,
-            caseId: createdItem.objectId || createdItem.id,
-            success: true,
-            details: `并发创建用例: ${operation.caseData.caseName}`,
-            commitId: operation.caseData?.sourceInfo?.commitId || commitContext?.commitId,
-            repositoryId: commitContext?.repositoryId,
-            repositoryName: commitContext?.repositoryName,
-            branchName: commitContext?.gitBranch,
-            webhookQueueId: commitContext?.queueId,
-          });
-
+          // 成功的不记录日志，只记录到 results
           results.push({
             success: true,
             operation,
@@ -370,8 +361,27 @@ async function executeBatchUpdate(
   console.log(`[AutoSync] 并发更新 ${operations.length} 个用例，每次并发5个`);
 
   try {
+    // 0. 过滤掉没有existingCaseInfo的操作（用例不存在，无法更新）
+    const validOperations = operations.filter(op => op.existingCaseInfo?.caseId);
+    const invalidOperations = operations.filter(op => !op.existingCaseInfo?.caseId);
+
+    if (invalidOperations.length > 0) {
+      console.log(`[AutoSync] ${invalidOperations.length} 个操作因用例不存在而跳过更新`);
+    }
+
+    if (validOperations.length === 0) {
+      console.log(`[AutoSync] 没有可更新的用例（所有用例都不存在）`);
+      return operations.map(op => ({
+        success: false,
+        operation: op,
+        error: '用例不存在，无法更新',
+      }));
+    }
+
+    console.log(`[AutoSync] 实际更新 ${validOperations.length} 个用例`);
+
     // 1. 预先创建所有需要的Repository，避免并发创建同一个Repository
-    const uniqueModulePaths = [...new Set(operations.map(op => {
+    const uniqueModulePaths = [...new Set(validOperations.map(op => {
       // MIGRATE操作使用moduleChange.newModulePath，其他操作使用caseData.modulePath
       return op.operationType === 'MIGRATE' ? op.moduleChange?.newModulePath : op.caseData.modulePath;
     }).filter(Boolean))];
@@ -385,7 +395,7 @@ async function executeBatchUpdate(
     }
 
     // 2. 准备更新数据
-    const updateDataList = operations.map(op => {
+    const updateDataList = validOperations.map(op => {
       // MIGRATE操作使用moduleChange.newModulePath，其他操作使用caseData.modulePath
       const modulePath = op.operationType === 'MIGRATE' ? op.moduleChange?.newModulePath : op.caseData.modulePath;
       const repositoryId = repositoryCache.get(modulePath) || '';
@@ -479,24 +489,20 @@ async function executeBatchUpdate(
 
       const results: ExecutionResult[] = [];
 
+      // 为无效操作添加失败结果
+      for (const op of invalidOperations) {
+        results.push({
+          success: false,
+          operation: op,
+          error: '用例不存在，无法更新',
+        });
+      }
+
       // 处理更新结果
       if (response?.code === 200) {
-        // 批量更新成功，为每个操作生成成功结果
-        for (let i = 0; i < operations.length; i++) {
-          const operation = operations[i];
-          
-          await logSyncOperation({
-            operationType: 'UPDATE',
-            testId: operation.testId,
-            caseId: operation.existingCaseInfo.caseId,
-            success: true,
-            details: `并发更新用例: ${operation.caseData.caseName}`,
-            commitId: operation.caseData?.sourceInfo?.commitId || commitContext?.commitId,
-            repositoryId: commitContext?.repositoryId,
-            repositoryName: commitContext?.repositoryName,
-            branchName: commitContext?.gitBranch,
-            webhookQueueId: commitContext?.queueId,
-          });
+        // 批量更新成功，为每个操作生成成功结果（不记录日志）
+        for (let i = 0; i < validOperations.length; i++) {
+          const operation = validOperations[i];
 
           results.push({
             success: true,
@@ -509,8 +515,8 @@ async function executeBatchUpdate(
         // 批量更新失败，为每个操作生成失败结果
         const errorMessage = response?.message || '批量更新失败';
         console.error(`[AutoSync] 批量更新失败: ${errorMessage}`);
-        
-        for (const operation of operations) {
+
+        for (const operation of validOperations) {
           await logSyncOperation({
             operationType: 'UPDATE',
             testId: operation.testId,
@@ -647,25 +653,28 @@ async function executeBatchDelete(
       });
     }
     
-    // 为每个操作生成结果并记录日志
+    // 为每个操作生成结果，只记录失败的日志
     const results = await Promise.all(
       operations.map(async op => {
         const caseId = op.existingCaseInfo?.caseId;
         const success = caseId && !failedIds.has(caseId);
         
+        // 只记录失败的日志
+        if (!success) {
         await logSyncOperation({
           operationType: 'DELETE',
           testId: op.testId,
           caseId: caseId,
-          success: success,
-          details: success ? `成功删除用例: ${op.testId}` : `删除用例失败: ${op.testId}`,
-          error: success ? undefined : `用例ID ${caseId} 删除失败`,
+            success: false,
+            details: `删除用例失败: ${op.testId}`,
+            error: `用例ID ${caseId} 删除失败`,
           commitId: op.caseData?.sourceInfo?.commitId || commitContext?.commitId,
           repositoryId: commitContext?.repositoryId,
           repositoryName: commitContext?.repositoryName,
           branchName: commitContext?.gitBranch,
           webhookQueueId: commitContext?.queueId,
         });
+        }
         
         return {
           success: success,

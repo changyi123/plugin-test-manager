@@ -150,14 +150,23 @@ export async function updateExecutionProgress(queueId: string, results: any) {
       .equalTo('queueId', queueId)
       .first();
 
+    // 【调试日志1】打印 results.stats 完整对象
+    console.log('[Statistics] results.stats:', JSON.stringify(results.stats));
+
     const updateData = {
       currentStep: ProcessStep.COMPLETED,
       completedOperations: results.total,
       successfulCases: results.successful,
       failedCases: results.failed,
-      skippedCases: results.skipped || 0,
       lastUpdateTime: new Date(),
+      // 保存准确的分类成功数
+      createSuccessful: results.stats?.CREATE?.successful || 0,
+      updateSuccessful: (results.stats?.UPDATE?.successful || 0) + (results.stats?.MIGRATE?.successful || 0), // MIGRATE算作UPDATE
+      deleteSuccessful: results.stats?.DELETE?.successful || 0,
     };
+
+    // 【调试日志2】打印计算出来的分类成功数
+    console.log(`[Statistics] 分类成功数: CREATE=${updateData.createSuccessful}, UPDATE=${updateData.updateSuccessful}, DELETE=${updateData.deleteSuccessful}`);
 
     if (stats) {
       await storage.entity('QueueProcessingStatistics').set(stats.objectId, updateData);
@@ -287,7 +296,11 @@ export async function markProcessingFailed(queueId: string, errorMessage: string
 /**
  * 开始执行操作阶段
  */
-export async function updateExecutionStart(queueId: string, operationsCount: number) {
+export async function updateExecutionStart(
+  queueId: string,
+  operationsCount: number,
+  mergeInfo?: { count: number; duplicateTestIds: string[] }
+) {
   try {
     const stats = await storage
       .entity('QueueProcessingStatistics')
@@ -295,11 +308,17 @@ export async function updateExecutionStart(queueId: string, operationsCount: num
       .equalTo('queueId', queueId)
       .first();
 
-    const updateData = {
+    const updateData: any = {
       currentStep: ProcessStep.EXECUTING_OPERATIONS,
       pendingOperations: operationsCount,
       lastUpdateTime: new Date(),
     };
+
+    // 如果有合并信息，保存到数据库（序列化为JSON字符串）
+    if (mergeInfo && mergeInfo.count > 0) {
+      updateData.operationMergeInfo = JSON.stringify(mergeInfo);
+      console.log(`[Statistics] 记录操作合并信息: 合并了${mergeInfo.count}个操作，涉及${mergeInfo.duplicateTestIds.length}个重复testId`);
+    }
 
     if (stats) {
       await storage.entity('QueueProcessingStatistics').set(stats.objectId, updateData);

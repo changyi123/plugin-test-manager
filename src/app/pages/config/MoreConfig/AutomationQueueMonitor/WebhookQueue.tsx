@@ -58,13 +58,13 @@ const WebhookQueue: React.FC = () => {
       const now = Date.now();
       const duration = Math.floor((now - startTime) / 1000);
       return formatDuration(duration);
-    } else if (record.processedAt) {
-      // 已完成/失败且有processedAt：显示实际处理时长
-      const endTime = new Date(record.processedAt).getTime();
+    } else if (record.processedTime) {
+      // 已完成/失败且有processedTime：显示实际处理时长
+      const endTime = new Date(record.processedTime).getTime();
       const duration = Math.floor((endTime - startTime) / 1000);
       return formatDuration(duration);
     } else if (record.updatedAt && (record.status === 'completed' || record.status === 'failed')) {
-      // 已完成/失败但没有processedAt：使用updatedAt作为结束时间
+      // 已完成/失败但没有processedTime：使用updatedAt作为结束时间
       const endTime = new Date(record.updatedAt).getTime();
       const duration = Math.floor((endTime - startTime) / 1000);
       return formatDuration(duration);
@@ -227,18 +227,27 @@ const WebhookQueue: React.FC = () => {
   // 表格列定义
   const columns = [
     {
-      title: 'Webhook UUID',
-      dataIndex: 'webhookUuid',
-      key: 'webhookUuid',
+      title: 'Commit ID',
+      dataIndex: 'commitIds',
+      key: 'commitIds',
       width: 200,
       ellipsis: {
         showTitle: false,
       },
-      render: (text: string) => (
-        <Tooltip title={text}>
-          <span>{text}</span>
-        </Tooltip>
-      ),
+      render: (text: string) => {
+        try {
+          const commits = JSON.parse(text || '[]');
+          const displayText = commits.slice(0, 2).map((c: string) => c.substring(0, 8)).join(', ');
+          const fullText = commits.map((c: string) => c.substring(0, 8)).join(', ');
+          return (
+            <Tooltip title={fullText}>
+              <span>{displayText}</span>
+            </Tooltip>
+          );
+        } catch {
+          return <span>-</span>;
+        }
+      },
     },
     {
       title: '仓库名称',
@@ -352,87 +361,6 @@ const WebhookQueue: React.FC = () => {
             >
               <div style={{ color: '#ff4d4f', fontWeight: 'bold' }}>❌ 处理失败</div>
               <div style={{ fontSize: '12px', color: '#1890ff' }}>点击查看详情</div>
-            </div>
-          );
-        }
-
-        return '-';
-      },
-    },
-    {
-      title: '用例统计',
-      key: 'caseStats',
-      width: 120,
-      render: (_, record: AutomationWebhookQueue) => {
-        if (record.status === 'completed') {
-          return (
-            <div
-              style={{
-                cursor: 'pointer',
-                color: '#1890ff',
-                textAlign: 'center',
-                padding: '4px',
-                borderRadius: '4px',
-                transition: 'background-color 0.3s',
-              }}
-              onClick={() => handleViewDetails(record.objectId!)}
-              onMouseEnter={e => {
-                e.currentTarget.style.backgroundColor = '#f0f0f0';
-              }}
-              onMouseLeave={e => {
-                e.currentTarget.style.backgroundColor = 'transparent';
-              }}
-            >
-              <div style={{ fontSize: '12px', fontWeight: 'bold' }}>点击查看</div>
-              <div style={{ fontSize: '11px', color: '#666' }}>详细统计</div>
-            </div>
-          );
-        }
-
-        if (record.status === 'processing') {
-          return (
-            <div
-              style={{
-                cursor: 'pointer',
-                color: '#fa8c16',
-                textAlign: 'center',
-                padding: '4px',
-                borderRadius: '4px',
-                transition: 'background-color 0.3s',
-              }}
-              onClick={() => handleViewDetails(record.objectId!)}
-              onMouseEnter={e => {
-                e.currentTarget.style.backgroundColor = '#f0f0f0';
-              }}
-              onMouseLeave={e => {
-                e.currentTarget.style.backgroundColor = 'transparent';
-              }}
-            >
-              <div style={{ fontSize: '12px', fontWeight: 'bold' }}>查看进度</div>
-            </div>
-          );
-        }
-
-        if (record.status === 'failed') {
-          return (
-            <div
-              style={{
-                cursor: 'pointer',
-                color: '#ff4d4f',
-                textAlign: 'center',
-                padding: '4px',
-                borderRadius: '4px',
-                transition: 'background-color 0.3s',
-              }}
-              onClick={() => handleViewDetails(record.objectId!)}
-              onMouseEnter={e => {
-                e.currentTarget.style.backgroundColor = '#f0f0f0';
-              }}
-              onMouseLeave={e => {
-                e.currentTarget.style.backgroundColor = 'transparent';
-              }}
-            >
-              <div style={{ fontSize: '12px', fontWeight: 'bold' }}>查看错误</div>
             </div>
           );
         }
@@ -614,8 +542,8 @@ const WebhookQueue: React.FC = () => {
                   : '-'}
               </Descriptions.Item>
               <Descriptions.Item label="处理时间">
-                {queueDetails.queueInfo?.processedAt
-                  ? new Date(queueDetails.queueInfo.processedAt).toLocaleString()
+                {queueDetails.queueInfo?.processedTime
+                  ? new Date(queueDetails.queueInfo.processedTime).toLocaleString()
                   : '-'}
               </Descriptions.Item>
             </Descriptions>
@@ -631,206 +559,62 @@ const WebhookQueue: React.FC = () => {
                   <Descriptions.Item label="当前Commit">
                     {queueDetails.processingStats.currentCommit || '-'}
                   </Descriptions.Item>
-                  <Descriptions.Item label="当前文件">
-                    {queueDetails.processingStats.currentFile || '-'}
-                  </Descriptions.Item>
-                  <Descriptions.Item label="文件进度">
-                    {queueDetails.processingStats.totalFiles > 0 ? (
-                      <div>
-                        <Progress
-                          percent={Math.round(
-                            (queueDetails.processingStats.processedFiles /
-                              queueDetails.processingStats.totalFiles) *
-                              100,
-                          )}
-                          size="small"
-                          format={() =>
-                            `${queueDetails.processingStats!.processedFiles}/${
-                              queueDetails.processingStats!.totalFiles
-                            }`
-                          }
-                        />
-                      </div>
-                    ) : (
-                      '-'
-                    )}
-                  </Descriptions.Item>
-                  <Descriptions.Item label="识别用例数">
+                  <Descriptions.Item label="识别操作数">
                     <span
                       style={{
-                        color: queueDetails.operationStats ? '#722ed1' : '#fa8c16',
+                        color: '#fa8c16',
                         fontWeight: 'bold',
                       }}
                     >
-                      {queueDetails.operationStats?.uniqueTestCases ||
-                        queueDetails.processingStats.identifiedCases ||
-                        0}
+                      {queueDetails.processingStats.identifiedCases || 0}
                     </span>
-                    {!queueDetails.operationStats && (
-                      <span style={{ fontSize: '12px', color: '#999', marginLeft: '8px' }}>
-                        (操作数)
-                      </span>
-                    )}
                   </Descriptions.Item>
                   <Descriptions.Item label="待执行操作">
-                    {queueDetails.processingStats.pendingOperations || 0}
+                    <span style={{ fontWeight: 'bold' }}>
+                      {queueDetails.processingStats.pendingOperations || 0}
+                    </span>
+                    {queueDetails.processingStats.operationMergeInfo &&
+                      queueDetails.processingStats.operationMergeInfo.count > 0 && (
+                        <span style={{ fontSize: '12px', color: '#999', marginLeft: '8px' }}>
+                          (合并后)
+                        </span>
+                      )}
                   </Descriptions.Item>
                 </Descriptions>
               </div>
             )}
 
-            {/* 操作统计详情 */}
-            {(() => {
-              // 计算从 caseGenerationLogs 得出的统计数据
-              let calculatedStats = null;
-
-              if (
-                !queueDetails.operationStats &&
-                queueDetails.caseGenerationLogs &&
-                queueDetails.caseGenerationLogs.length > 0
-              ) {
-                const stats = {
-                  createOperations: 0,
-                  updateOperations: 0,
-                  deleteOperations: 0,
-                  totalOperations: 0,
-                  uniqueFiles: new Set(),
-                };
-
-                queueDetails.caseGenerationLogs.forEach(log => {
-                  try {
-                    const operationTypes = JSON.parse(log.operationTypes || '[]');
-                    operationTypes.forEach(type => {
-                      const upperType = type.toUpperCase();
-                      if (upperType === 'CREATE') stats.createOperations += log.operationsGenerated;
-                      else if (upperType === 'UPDATE')
-                        stats.updateOperations += log.operationsGenerated;
-                      else if (upperType === 'DELETE')
-                        stats.deleteOperations += log.operationsGenerated;
-                      else if (upperType === 'MIGRATE')
-                        stats.updateOperations += log.operationsGenerated; // MIGRATE算作UPDATE
-                    });
-                    stats.totalOperations += log.operationsGenerated;
-                    stats.uniqueFiles.add(log.fileName);
-                  } catch (error) {
-                    console.error('[操作统计] 解析操作类型失败:', error);
-                  }
-                });
-
-                calculatedStats = {
-                  createOperations: stats.createOperations,
-                  updateOperations: stats.updateOperations,
-                  deleteOperations: stats.deleteOperations,
-                  totalOperations: stats.totalOperations,
-                  uniqueTestCases: stats.uniqueFiles.size,
-                };
-              }
-
-              const statsToShow = queueDetails.operationStats || calculatedStats;
-
-              return statsToShow ? (
-                <div style={{ marginTop: 16 }}>
-                  <h4>操作统计{!queueDetails.operationStats && ' (从日志计算)'}</h4>
-                  <Descriptions bordered size="small" column={3}>
-                    <Descriptions.Item label="创建操作">
-                      <span style={{ color: '#52c41a', fontWeight: 'bold' }}>
-                        {statsToShow.createOperations || 0}
-                      </span>
-                    </Descriptions.Item>
-                    <Descriptions.Item label="更新操作">
-                      <span style={{ color: '#1890ff', fontWeight: 'bold' }}>
-                        {statsToShow.updateOperations || 0}
-                      </span>
-                    </Descriptions.Item>
-                    <Descriptions.Item label="删除操作">
-                      <span style={{ color: '#ff4d4f', fontWeight: 'bold' }}>
-                        {statsToShow.deleteOperations || 0}
-                      </span>
-                    </Descriptions.Item>
-                    <Descriptions.Item label="总操作数">
-                      <span style={{ fontWeight: 'bold' }}>{statsToShow.totalOperations || 0}</span>
-                    </Descriptions.Item>
-                    <Descriptions.Item label="涉及文件数">
-                      <span style={{ color: '#722ed1', fontWeight: 'bold' }}>
-                        {statsToShow.uniqueTestCases || 0}
-                      </span>
-                    </Descriptions.Item>
-                  </Descriptions>
-                </div>
-              ) : null;
-            })()}
-
-            {/* 执行统计 */}
-            {queueDetails.processingStats &&
-              queueDetails.queueInfo?.status === 'completed' &&
-              (() => {
-                // 获取操作统计（用于显示执行结果的分类）
-                const statsToShow =
-                  queueDetails.operationStats ||
-                  (() => {
-                    if (
-                      queueDetails.caseGenerationLogs &&
-                      queueDetails.caseGenerationLogs.length > 0
-                    ) {
-                      const stats = {
-                        createOperations: 0,
-                        updateOperations: 0,
-                        deleteOperations: 0,
-                      };
-                      queueDetails.caseGenerationLogs.forEach(log => {
-                        const operationTypes = JSON.parse(log.operationTypes || '[]');
-                        operationTypes.forEach(type => {
-                          const upperType = type.toUpperCase();
-                          if (upperType === 'CREATE')
-                            stats.createOperations += log.operationsGenerated;
-                          else if (upperType === 'UPDATE')
-                            stats.updateOperations += log.operationsGenerated;
-                          else if (upperType === 'DELETE')
-                            stats.deleteOperations += log.operationsGenerated;
-                          else if (upperType === 'MIGRATE')
-                            stats.updateOperations += log.operationsGenerated; // MIGRATE算作UPDATE
-                        });
-                      });
-                      return stats;
-                    }
-                    return null;
-                  })();
-
-                return (
-                  <div style={{ marginTop: 16 }}>
-                    <h4>执行结果</h4>
-                    <Descriptions bordered size="small" column={3}>
-                      {statsToShow && (
-                        <>
-                          <Descriptions.Item label="创建成功">
-                            <span style={{ color: '#52c41a', fontWeight: 'bold' }}>
-                              {statsToShow.createOperations || 0}
-                            </span>
-                          </Descriptions.Item>
-                          <Descriptions.Item label="更新成功">
-                            <span style={{ color: '#1890ff', fontWeight: 'bold' }}>
-                              {statsToShow.updateOperations || 0}
-                            </span>
-                          </Descriptions.Item>
-                          <Descriptions.Item label="删除成功">
-                            <span style={{ color: '#ff4d4f', fontWeight: 'bold' }}>
-                              {statsToShow.deleteOperations || 0}
-                            </span>
-                          </Descriptions.Item>
-                        </>
-                      )}
+            {/* 执行结果 */}
+            {queueDetails.processingStats && queueDetails.queueInfo?.status === 'completed' && (
+              <div style={{ marginTop: 16 }}>
+                <h4>执行结果</h4>
+                <Descriptions bordered size="small" column={3}>
+                  <Descriptions.Item label="创建成功">
+                    <span style={{ color: '#52c41a', fontWeight: 'bold' }}>
+                      {queueDetails.processingStats.createSuccessful || 0}
+                    </span>
+                  </Descriptions.Item>
+                  <Descriptions.Item label="更新成功">
+                    <span style={{ color: '#1890ff', fontWeight: 'bold' }}>
+                      {queueDetails.processingStats.updateSuccessful || 0}
+                    </span>
+                  </Descriptions.Item>
+                  <Descriptions.Item label="删除成功">
+                    <span style={{ color: '#ff4d4f', fontWeight: 'bold' }}>
+                      {queueDetails.processingStats.deleteSuccessful || 0}
+                    </span>
+                  </Descriptions.Item>
                       <Descriptions.Item label="总成功数">
                         <span style={{ color: '#52c41a' }}>
-                          {queueDetails.processingStats.successfulCases || 0}
+                          {(queueDetails.processingStats.createSuccessful || 0) +
+                            (queueDetails.processingStats.updateSuccessful || 0) +
+                            (queueDetails.processingStats.deleteSuccessful || 0)}
                         </span>
                       </Descriptions.Item>
                       <Descriptions.Item label="失败数量">
                         <span style={{ color: '#ff4d4f' }}>
                           {queueDetails.processingStats.failedCases || 0}
                         </span>
-                      </Descriptions.Item>
-                      <Descriptions.Item label="跳过数量">
-                        {queueDetails.processingStats.skippedCases || 0}
                       </Descriptions.Item>
                       <Descriptions.Item label="成功率">
                         {queueDetails.processingStats.completedOperations > 0
@@ -845,11 +629,55 @@ const WebhookQueue: React.FC = () => {
                         {queueDetails.processingStats.lastUpdateTime
                           ? new Date(queueDetails.processingStats.lastUpdateTime).toLocaleString()
                           : '-'}
-                      </Descriptions.Item>
-                    </Descriptions>
+                  </Descriptions.Item>
+                </Descriptions>
+              </div>
+            )}
+
+            {/* 操作合并信息 */}
+            {queueDetails.processingStats?.operationMergeInfo &&
+              queueDetails.processingStats.operationMergeInfo.count > 0 && (
+                <div style={{ marginTop: 16 }}>
+                  <h4>
+                    ⚠️ 操作合并信息
+                    <span style={{ fontSize: '12px', color: '#999', marginLeft: '8px', fontWeight: 'normal' }}>
+                      (发现重复testId，已自动合并)
+                    </span>
+                  </h4>
+                  <div
+                    style={{
+                      background: '#fffbe6',
+                      border: '1px solid #ffe58f',
+                      borderRadius: 4,
+                      padding: 12,
+                    }}
+                  >
+                    <div style={{ marginBottom: 8 }}>
+                      <strong>合并数量:</strong> 合并了 {queueDetails.processingStats.operationMergeInfo.count} 个重复操作
+                    </div>
+                    <div>
+                      <strong>重复的testId列表:</strong>
+                      <div style={{ marginTop: 8, maxHeight: '200px', overflowY: 'auto' }}>
+                        {queueDetails.processingStats.operationMergeInfo.duplicateTestIds.map((testId, index) => (
+                          <div
+                            key={index}
+                            style={{
+                              padding: '4px 8px',
+                              background: '#fff',
+                              margin: '4px 0',
+                              borderRadius: 2,
+                              fontSize: '12px',
+                              fontFamily: 'monospace',
+                            }}
+                          >
+                            {testId}
+                          </div>
+                        ))}
+                      </div>
+                    </div>
                   </div>
-                );
-              })()}
+                </div>
+              )}
 
             {/* 队列错误信息 */}
             {queueDetails.queueInfo?.errorMessage && (
@@ -956,52 +784,6 @@ const WebhookQueue: React.FC = () => {
                     },
                   ]}
                 />
-              </div>
-            )}
-
-            {/* 文件处理概览 */}
-            {queueDetails.summary && (
-              <div style={{ marginTop: 16 }}>
-                <h4>处理概览</h4>
-                <div style={{ display: 'flex', gap: 16 }}>
-                  <div style={{ textAlign: 'center' }}>
-                    <div style={{ fontSize: 24, fontWeight: 'bold', color: '#1890ff' }}>
-                      {queueDetails.fileProcessingLogs?.length ||
-                        queueDetails.summary.totalFiles ||
-                        0}
-                    </div>
-                    <div style={{ fontSize: 12, color: '#666' }}>处理文件数</div>
-                  </div>
-                  <div style={{ textAlign: 'center' }}>
-                    <div
-                      style={{
-                        fontSize: 24,
-                        fontWeight: 'bold',
-                        color: queueDetails.operationStats ? '#722ed1' : '#fa8c16',
-                      }}
-                    >
-                      {queueDetails.operationStats?.uniqueTestCases ||
-                        queueDetails.summary.identifiedCases}
-                    </div>
-                    <div style={{ fontSize: 12, color: '#666' }}>
-                      {queueDetails.operationStats ? '涉及文件数' : '总操作数'}
-                    </div>
-                  </div>
-                  <div style={{ textAlign: 'center' }}>
-                    <div style={{ fontSize: 24, fontWeight: 'bold', color: '#13c2c2' }}>
-                      {queueDetails.summary.successfulCases}
-                    </div>
-                    <div style={{ fontSize: 12, color: '#666' }}>执行成功数</div>
-                  </div>
-                  {queueDetails.summary.failedCases > 0 && (
-                    <div style={{ textAlign: 'center' }}>
-                      <div style={{ fontSize: 24, fontWeight: 'bold', color: '#ff4d4f' }}>
-                        {queueDetails.summary.failedCases}
-                      </div>
-                      <div style={{ fontSize: 12, color: '#666' }}>执行失败数</div>
-                    </div>
-                  )}
-                </div>
               </div>
             )}
 

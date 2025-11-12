@@ -549,11 +549,19 @@ export interface QueueDetailedStats {
     completedOperations: number;
     successfulCases: number;
     failedCases: number;
-    skippedCases: number;
     currentCommit?: string;
     currentFile?: string;
     currentStep?: string;
     lastUpdateTime?: Date;
+    // 新增：准确的分类成功数
+    createSuccessful?: number;
+    updateSuccessful?: number;
+    deleteSuccessful?: number;
+    // 操作合并信息
+    operationMergeInfo?: {
+      count: number;
+      duplicateTestIds: string[];
+    };
   };
   operationStats?: {
     createOperations: number;

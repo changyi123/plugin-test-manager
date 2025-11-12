@@ -14,11 +14,11 @@ export interface AutomationWebhookQueue {
   gitPath: string; // Git路径
   status: 'pending' | 'processing' | 'completed' | 'failed'; // 处理状态
   retryCount: number; // 重试次数
-  processedAt?: Date; // 处理时间
+  processedTime?: Date; // 处理时间
   errorMessage?: string; // 错误信息
   createdAt?: Date; // 创建时间
   updatedAt?: Date; // 更新时间
-  
+
   // 统计数据（仅在completed状态时由后端API附加）
   stats?: {
     successfulCases: number;
@@ -78,7 +78,7 @@ export interface PipeCallbackQueue {
   callbackData: string; // 回调数据JSON
   status: 'pending' | 'processing' | 'completed' | 'failed'; // 处理状态
   retryCount: number; // 重试次数
-  processedAt?: Date; // 处理时间
+  processedTime?: Date; // 处理时间
   errorMessage?: string; // 错误信息
   testCaseMapping?: string; // 测试用例映射关系（JSON字符串）
   testExecutionIds?: string; // 测试执行ID列表（JSON字符串）

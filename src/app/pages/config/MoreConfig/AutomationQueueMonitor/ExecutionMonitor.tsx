@@ -415,8 +415,8 @@ const PipeCallbackTab: React.FC = () => {
     },
     {
       title: '处理时间',
-      dataIndex: 'processedAt',
-      key: 'processedAt',
+      dataIndex: 'processedTime',
+      key: 'processedTime',
       width: 160,
       render: (date: string) => (date ? new Date(date).toLocaleString() : '-'),
     },
@@ -584,7 +584,7 @@ const PipeCallbackTab: React.FC = () => {
                 {selectedRecord.createdAt ? new Date(selectedRecord.createdAt).toLocaleString() : '-'}
               </Descriptions.Item>
               <Descriptions.Item label="处理时间">
-                {selectedRecord.processedAt ? new Date(selectedRecord.processedAt).toLocaleString() : '-'}
+                {selectedRecord.processedTime ? new Date(selectedRecord.processedTime).toLocaleString() : '-'}
               </Descriptions.Item>
             </Descriptions>
 
