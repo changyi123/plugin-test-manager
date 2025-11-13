@@ -46,6 +46,8 @@ export type CopyTestCaseV2PayloadTo = {
 
 export type GeneralSetting = {
   caseDetailExtra: boolean;
+  // 允许自动化用例手动执行开关，默认 true 表示允许
+  allowAutomationManualExecution?: boolean;
 };
 
 export type CaseSnapshotType =

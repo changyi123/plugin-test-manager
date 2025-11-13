@@ -81,7 +81,7 @@ const getDefectIds = data =>
 const TestRunV2: React.FC<TestRunType> = props => {
   const { t } = useI18n();
   const event = useSaveTriggerEvent();
-  const { config } = useTestConfig();
+  const { config, generalSetting } = useTestConfig();
   const { getNext, selectedTestPlanId } = props;
   const [autoNext, setAutoNext] = useSessionStorageState(
     generateStorageKey(TEST_RUN_AUTO_NEXT_KEY),
@@ -126,6 +126,7 @@ const TestRunV2: React.FC<TestRunType> = props => {
             id: [testCaseId],
             type: TestType.Case,
           },
+          fields: ['r_test_manager_atm_test_id'], // 获取自动化用例字段
           limit: 1,
         });
         return testCaseList[0] as TestDetailEntity;
@@ -135,12 +136,17 @@ const TestRunV2: React.FC<TestRunType> = props => {
 
       returnData.testRunEntity = testRunEntity;
 
+      console.log('[TestRunV2 useRequest] 查询到的 testRunEntity:', testRunEntity);
+      console.log('[TestRunV2 useRequest] testRunEntity.referenceCase:', testRunEntity?.referenceCase);
+
       if (!testRunEntity) return returnData;
 
-      // 增加 testCaseEntity 数据
-      returnData.testCaseEntity = {
-        objectId: testRunEntity.referenceCase,
-      };
+      // 始终加载完整的 testCaseEntity 数据，用于判断是否是自动化用例
+      const testCaseId = testRunEntity.referenceCase;
+      console.log('[TestRunV2 useRequest] 准备查询 testCaseId:', testCaseId);
+      const testCaseEntity = await getTestCaseEntity(testCaseId);
+      console.log('[TestRunV2 useRequest] 查询到的 testCaseEntity:', testCaseEntity);
+      returnData.testCaseEntity = testCaseEntity;
 
       if (
         (!testRunEntity.runDetail ||
@@ -148,13 +154,7 @@ const TestRunV2: React.FC<TestRunType> = props => {
           testRunEntity.runDetail.init) &&
         [CASESNAPSHOT_TYPE.NO_AUTOBUILDVERSION_NO_SELVERSION].includes(config?.caseSnapshot?.type)
       ) {
-        const testCaseId = testRunEntity.referenceCase;
-        const [testCaseEntity, stepsDataFromTestCase] = await Promise.all([
-          getTestCaseEntity(testCaseId),
-          getTestStepsByTestDetailId(testCaseId),
-        ]);
-
-        returnData.testCaseEntity = testCaseEntity;
+        const stepsDataFromTestCase = await getTestStepsByTestDetailId(testCaseId);
 
         // 进一步校验测试执行是否未被初始化
         const testRunIsNotInitial =
@@ -405,7 +405,30 @@ const TestRunV2: React.FC<TestRunType> = props => {
                   hideIcon
                 />
                 <div className={cx('status-divider')}>
-                  <StatusList onStatusChange={handleStatusChange} status={testRunEntity?.status} />
+                  <StatusList
+                    onStatusChange={handleStatusChange}
+                    status={testRunEntity?.status}
+                    disabled={
+                      // 判断是否是自动化用例 && 配置是否禁止手动执行
+                      (() => {
+                        console.log('=== [TestRunV2] 状态按钮 disabled 判断 ===');
+                        console.log('testCaseEntity:', testCaseEntity);
+                        console.log('testCaseEntity?.values?.r_test_manager_atm_test_id:', testCaseEntity?.values?.r_test_manager_atm_test_id);
+                        console.log('generalSetting?.allowAutomationManualExecution:', generalSetting?.allowAutomationManualExecution);
+
+                        const isAutomationCase = !!testCaseEntity?.values?.r_test_manager_atm_test_id;
+                        const isDisallowed = generalSetting?.allowAutomationManualExecution === false;
+                        const shouldDisable = isAutomationCase && isDisallowed;
+
+                        console.log('isAutomationCase:', isAutomationCase);
+                        console.log('isDisallowed:', isDisallowed);
+                        console.log('shouldDisable:', shouldDisable);
+                        console.log('=======================================');
+                        return shouldDisable;
+                      })()
+                    }
+                    disabledReason={t('自动化用例不允许手动执行，请在通用设置中开启')}
+                  />
                 </div>
                 {/* <div className={cx('assigner')}></div> */}
               </div>

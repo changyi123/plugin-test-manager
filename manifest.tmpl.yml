@@ -1501,6 +1501,9 @@ tables:
      # 用例详情是否独立显示
       caseDetailExtra:
         type: Boolean
+      # 允许自动化用例手动执行
+      allowAutomationManualExecution:
+        type: Boolean
 locales:
   zh-CN:
     test-manager-test-detail:
@@ -1824,9 +1827,6 @@ storage:
         failedCases:
           type: Float
           defaultValue: 0
-        skippedCases:
-          type: Float
-          defaultValue: 0
         currentCommit:
           type: String
         currentFile:
@@ -1835,6 +1835,17 @@ storage:
           type: String
         lastUpdateTime:
           type: Date
+        createSuccessful:
+          type: Float
+          defaultValue: 0
+        updateSuccessful:
+          type: Float
+          defaultValue: 0
+        deleteSuccessful:
+          type: Float
+          defaultValue: 0
+        operationMergeInfo:
+          type: String
       indexes:
         - name: unique_queue_id
           fields:

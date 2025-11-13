@@ -48,6 +48,7 @@ import { openBaseLineViewItemModal } from '@/lib/api/sdk';
 import { useCurrentUser } from '@/lib/api/user';
 import { getCurrentUserSetting, saveUserSetting } from '@/lib/api/userSetting';
 import { getAppEnv } from '@/lib/appEnv';
+import { checkHasAutomationCase } from '@/lib/utils/checkAutomationCase';
 import { featureFlags, SupportFeatureFlags } from '@/lib/appEnv';
 import {
   CASESNAPSHOT_TYPE,
@@ -136,7 +137,7 @@ const TestEntityList: React.FC<TestEntityListProps> = ({
   const { t } = useI18n();
   const enableRepositoryTableStep = featureFlags(SupportFeatureFlags.ENABLE_REPOSITORY_TABLE_STEP);
   const proxima = createProximaSdk();
-  const { config } = useTestConfig();
+  const { config, generalSetting } = useTestConfig();
   const { getCreatePermission, testCaseFieldKeys, globalTestConfig, createItemUseModal } =
     useBaseAction();
   const { TestToDefect = '' } = useItemLinkTypeConfig();
@@ -1018,10 +1019,15 @@ const TestEntityList: React.FC<TestEntityListProps> = ({
         width: 200,
         render(_, record) {
           const { result: enabled } = canExecuteTestRun(record.designee);
+          // 判断是否是自动化用例且配置不允许手动执行
+          const isAutomationCase = !!record?.values?.r_test_manager_atm_test_id;
+          const isDisallowed = generalSetting?.allowAutomationManualExecution === false;
+          const shouldDisableForAutomation = isAutomationCase && isDisallowed;
+
           return (
             <StatusBadge
               useRootContainer
-              readonly={!enabled}
+              readonly={!enabled || shouldDisableForAutomation}
               status={record.runStatus}
               onStatusChange={status => handleTestRunStatusChange(record, status)}
             />
@@ -1311,6 +1317,12 @@ const TestEntityList: React.FC<TestEntityListProps> = ({
         return;
       }
 
+      // 检查是否包含自动化用例且配置不允许手动执行
+      const hasAutomationCase = await checkHasAutomationCase(canExecuteTestRunIds, generalSetting, t);
+      if (hasAutomationCase) {
+        return;
+      }
+
       // 更新测试执行状态
       const updateParams = await getUpdateParams({
         runIds: canExecuteTestRunIds,
@@ -1323,7 +1335,7 @@ const TestEntityList: React.FC<TestEntityListProps> = ({
           if (isOver) {
             notification.success({
               message: t('page.plan.testEntityList.updateRunStateAndLimitTips', { number: actionTestTaskLimitQuantity }),
-              description: t('page.plan.testEntityList.connectAdmin'),  
+              description: t('page.plan.testEntityList.connectAdmin'),
             });
           } else {
             notification.success({

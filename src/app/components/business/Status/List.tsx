@@ -10,9 +10,11 @@ interface StatusListProps {
   onStatusChange?: (val: any, isStep?: boolean) => void;
   className?: string;
   status?: string;
+  disabled?: boolean;
+  disabledReason?: string;
 }
 
-const List: React.FC<StatusListProps> = ({ className, onStatusChange, status }) => {
+const List: React.FC<StatusListProps> = ({ className, onStatusChange, status, disabled, disabledReason }) => {
   const { t } = useI18n();
   const statusConfig = useStatusConfig();
 
@@ -22,17 +24,19 @@ const List: React.FC<StatusListProps> = ({ className, onStatusChange, status }) 
   }, [statusConfig, status]);
 
   const statusChange = val => {
+    if (disabled) return;
     if (status === val.key) return;
     onStatusChange(val);
   };
 
   return (
-    <div className={cx(className, 'status-list')}>
+    <div className={cx(className, 'status-list')} title={disabled ? disabledReason : undefined}>
       {statusList?.map(status => (
         <div
-          className={cx('status', status.key)}
+          className={cx('status', status.key, { disabled })}
           key={status.key}
           onClick={() => statusChange(status)}
+          style={{ cursor: disabled ? 'not-allowed' : 'pointer', opacity: disabled ? 0.5 : 1 }}
         >
           {t(`status.${status.key}.name`)}
         </div>

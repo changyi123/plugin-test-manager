@@ -775,10 +775,13 @@ export const getGeneralSetting = async () => {
 };
 
 // 更新测试管理通用配置
-export const updateGeneralSetting = async ({ caseDetailExtra, objectId }) => {
+export const updateGeneralSetting = async ({ caseDetailExtra, allowAutomationManualExecution, objectId }) => {
   const object = objectId ? new GeneralSetting({ objectId }) : new GeneralSetting();
 
-  await object.save({ caseDetailExtra });
+  await object.save({
+    caseDetailExtra,
+    allowAutomationManualExecution,
+  });
 };
 
 // 调用外部接口保存itemTypeMap

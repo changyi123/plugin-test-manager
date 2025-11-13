@@ -82,7 +82,7 @@ const getDefectIds = data =>
 const TestRun: React.FC<TestRunType> = props => {
   const { t } = useI18n();
   const event = useSaveTriggerEvent();
-  const { config } = useTestConfig();
+  const { config, generalSetting } = useTestConfig();
   const { idSequence = [], selectedTestPlanId } = props;
   const [autoNext, setAutoNext] = useSessionStorageState(
     generateStorageKey(TEST_RUN_AUTO_NEXT_KEY),
@@ -126,6 +126,7 @@ const TestRun: React.FC<TestRunType> = props => {
             id: [testCaseId],
             type: TestType.Case,
           },
+          fields: ['r_test_manager_atm_test_id'], // 获取自动化用例字段
           limit: 1,
         });
         return testCaseList[0] as TestDetailEntity;
@@ -137,10 +138,9 @@ const TestRun: React.FC<TestRunType> = props => {
 
       if (!testRunEntity) return returnData;
 
-      // 增加 testCaseEntity 数据
-      returnData.testCaseEntity = {
-        objectId: testRunEntity.referenceCase,
-      };
+      // 增加 testCaseEntity 数据 - 始终查询完整数据以获取自动化用例字段
+      const testCaseId = testRunEntity.referenceCase;
+      returnData.testCaseEntity = await getTestCaseEntity(testCaseId);
 
       if (
         (!testRunEntity.runDetail ||
@@ -148,7 +148,6 @@ const TestRun: React.FC<TestRunType> = props => {
           testRunEntity.runDetail.init) &&
         [CASESNAPSHOT_TYPE.NO_AUTOBUILDVERSION_NO_SELVERSION].includes(config?.caseSnapshot?.type)
       ) {
-        const testCaseId = testRunEntity.referenceCase;
         const [testCaseEntity, stepsDataFromTestCase] = await Promise.all([
           getTestCaseEntity(testCaseId),
           getTestStepsByTestDetailId(testCaseId),
@@ -417,7 +416,32 @@ const TestRun: React.FC<TestRunType> = props => {
                   hideIcon
                 />
                 <div className={cx('status-divider')}>
-                  <StatusList onStatusChange={handleStatusChange} status={testRunEntity?.status} />
+                  <StatusList
+                    onStatusChange={handleStatusChange}
+                    status={testRunEntity?.status}
+                    disabled={
+                      (() => {
+                        console.log('=== [TestRun V1] 状态按钮 disabled 判断 ===');
+                        console.log('testCaseEntity:', testCaseEntity);
+                        console.log('testCaseEntity?.values:', testCaseEntity?.values);
+                        console.log('testCaseEntity?.values?.r_test_manager_atm_test_id:', testCaseEntity?.values?.r_test_manager_atm_test_id);
+                        console.log('generalSetting:', generalSetting);
+                        console.log('generalSetting?.allowAutomationManualExecution:', generalSetting?.allowAutomationManualExecution);
+
+                        const isAutomationCase = !!testCaseEntity?.values?.r_test_manager_atm_test_id;
+                        const isDisallowed = generalSetting?.allowAutomationManualExecution === false;
+                        const shouldDisable = isAutomationCase && isDisallowed;
+
+                        console.log('isAutomationCase:', isAutomationCase);
+                        console.log('isDisallowed:', isDisallowed);
+                        console.log('shouldDisable:', shouldDisable);
+                        console.log('=======================================');
+
+                        return shouldDisable;
+                      })()
+                    }
+                    disabledReason={t('自动化用例不允许手动执行')}
+                  />
                 </div>
                 {/* <div className={cx('assigner')}></div> */}
               </div>

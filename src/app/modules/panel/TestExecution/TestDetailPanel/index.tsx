@@ -38,6 +38,7 @@ import {
 } from '@/lib/api/item';
 import { openBaseLineViewItemModal } from '@/lib/api/sdk';
 import { getAppEnv } from '@/lib/appEnv';
+import { checkHasAutomationCase } from '@/lib/utils/checkAutomationCase';
 import { CASESNAPSHOT_TYPE, TestLinkType, TestType } from '@/lib/constants';
 import { useBaseAction, useTestConfig } from '@/lib/hooks/useContext';
 import useI18n from '@/lib/hooks/useI18n';
@@ -50,7 +51,7 @@ import cx from './index.less';
 const Test = () => {
   const proxima = createProximaSdk();
   const { t } = useI18n();
-  const { testEntity, workspace, config } = useTestConfig();
+  const { testEntity, workspace, config, generalSetting } = useTestConfig();
   const { getCreatePermission, globalTestConfig } = useBaseAction();
   const tableActionRef = React.useRef<ActionType>();
   const { canExecuteTestRun } = useTestRunActionAuth({ workspaceKey: workspace?.key });
@@ -141,6 +142,7 @@ const Test = () => {
         },
         selector: selector,
         limit: runs?.length ?? 10,
+        fields: ['r_test_manager_atm_test_id'], // 获取自动化用例字段
       });
 
       const caseMap = new Map();
@@ -157,6 +159,8 @@ const Test = () => {
             ...r,
             key: caseData?.key,
             name: caseData?.name,
+            // 传递自动化用例字段,用于判断是否可以手动执行
+            caseValues: caseData?.values,
           };
         }),
       };
@@ -333,11 +337,18 @@ const Test = () => {
             });
             refreshDepData('updateTestRunStatus');
           };
+
           const { result: enable } = canExecuteTestRun(record.designee);
+
+          // 判断是否为自动化用例且配置不允许手动执行
+          const isAutomationCase = !!record?.caseValues?.r_test_manager_atm_test_id;
+          const isDisallowed = generalSetting?.allowAutomationManualExecution === false;
+          const shouldDisableForAutomation = isAutomationCase && isDisallowed;
+
           return (
             <StatusBadge
               useRootContainer
-              readonly={!enable}
+              readonly={!enable || shouldDisableForAutomation}
               status={record?.status}
               onStatusChange={handleStatusChange}
             />
@@ -454,6 +465,12 @@ const Test = () => {
       // 没有可执行的测试执行时直接返回
       if (!canExecuteTestRunIds.length) {
         message.error(t('page.plan.testEntityList.noCanUpdateRunStateTips'));
+        return;
+      }
+
+      // 检查是否包含自动化用例且配置不允许手动执行
+      const hasAutomationCase = await checkHasAutomationCase(canExecuteTestRunIds, generalSetting, t);
+      if (hasAutomationCase) {
         return;
       }
 

@@ -2,9 +2,10 @@ import { EllipsisOutlined } from '@ant-design/icons';
 import { useListener } from '@projectproxima/proxima-sdk-js';
 import { Dropdown, Menu, message, notification, Spin } from 'antd';
 import _ from 'lodash';
-import React, { useEffect, useState } from 'react';
+import React, { useContext, useEffect, useState } from 'react';
 
 import SearchInput from '@/components/business/SearchInput';
+import { TestConfigContext } from '@/components/business/TestManagerProvider/context';
 import OverflowTooltip from '@/components/common/OverflowTooltip';
 import { deleteTestEntity, updateTestEntity } from '@/lib/api/item';
 import useI18n from '@/lib/hooks/useI18n';
@@ -51,6 +52,7 @@ const ExecutionList: React.FC<ExecutionListProps> = ({
   const { t } = useI18n();
   const { tableSelectionToggleEvent } = usePageContext();
   const [searchValue, setSearchValue] = useState<string>();
+  const { generalSetting } = useContext(TestConfigContext);
 
   // 事项数据更新后刷新列表
   useListener('updateItemList', async props => {
@@ -75,6 +77,16 @@ const ExecutionList: React.FC<ExecutionListProps> = ({
     setLoading(loading);
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [loading]);
+
+  // 打印通用配置中的「允许自动化用例手动执行」开关值
+  useEffect(() => {
+    if (executionList?.length > 0) {
+      console.log('=== 测试计划执行列表 - 通用配置 ===');
+      console.log('allowAutomationManualExecution:', generalSetting?.allowAutomationManualExecution);
+      console.log('完整的 generalSetting:', generalSetting);
+      console.log('==============================');
+    }
+  }, [executionList, generalSetting]);
 
   const menuClick = (type: string, data) => {
     if (type === 'check') {
