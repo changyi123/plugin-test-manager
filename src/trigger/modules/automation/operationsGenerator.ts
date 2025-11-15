@@ -410,16 +410,16 @@ async function generateDeleteAllOperations(
   );
   const operations: CaseOperation[] = [];
 
-  for (const [testId, historyCase] of historyCases) {
+  for (const historyCase of historyCases) {
     operations.push({
       operationType: 'DELETE',
-      testId: testId,
+      testId: historyCase.testId,
       methodName: historyCase.methodName,
       className: historyCase.className,
       filePath: fileDecision.filePath,
       existingCaseInfo: {
         caseId: historyCase.caseId,
-        testId: testId,
+        testId: historyCase.testId,
         name: historyCase.methodName,
         currentModulePath: historyCase.modulePath,
       },
@@ -461,10 +461,17 @@ async function generateOperationBOperations(
   }
 
   // 2. 获取历史用例信息（用于检测类名变更）
-  const historyCases = await getHistoryCasesForFile(
+  const historyCasesList = await getHistoryCasesForFile(
     fileDecision.filePath,
     commitContext.workspaceKey,
   );
+  // 转换为Map以便快速查找（注意：如果有重复testId，这里只保留第一个，但operation_b场景不会删除重复用例）
+  const historyCases = new Map<string, HistoryCaseInfo>();
+  for (const caseInfo of historyCasesList) {
+    if (!historyCases.has(caseInfo.testId)) {
+      historyCases.set(caseInfo.testId, caseInfo);
+    }
+  }
 
   // 3. 分析受影响的方法（通过diff）
   const affectedMethods = await getAffectedMethodsFromDiff(
@@ -657,16 +664,16 @@ async function generateConfigCoordinationOperations(
         fileDecision.filePath,
         commitContext.workspaceKey,
       );
-      for (const [testId, historyCase] of historyCases) {
+      for (const historyCase of historyCases) {
         operations.push({
           operationType: 'MIGRATE',
-          testId: testId,
+          testId: historyCase.testId,
           methodName: historyCase.methodName,
           className: historyCase.className,
           filePath: fileDecision.filePath,
           existingCaseInfo: {
             caseId: historyCase.caseId,
-            testId: testId,
+            testId: historyCase.testId,
             name: historyCase.methodName,
             currentModulePath: historyCase.modulePath,
           },
@@ -751,8 +758,16 @@ async function generateModuleChangeOperations(
   const operations: CaseOperation[] = [];
 
   // 2. 查询历史用例信息
-  const historyCases = await getHistoryCasesForFile(fileDecision.filePath, commitContext.workspaceKey);
-  console.log(`[T5.8] 文件 ${fileDecision.filePath} 查询到 ${historyCases.size} 个历史用例`);
+  const historyCasesList = await getHistoryCasesForFile(fileDecision.filePath, commitContext.workspaceKey);
+  console.log(`[T5.8] 文件 ${fileDecision.filePath} 查询到 ${historyCasesList.length} 个历史用例`);
+
+  // 转换为Map以便快速查找
+  const historyCases = new Map<string, HistoryCaseInfo>();
+  for (const caseInfo of historyCasesList) {
+    if (!historyCases.has(caseInfo.testId)) {
+      historyCases.set(caseInfo.testId, caseInfo);
+    }
+  }
 
   // 3. 为每个测试方法生成MIGRATE操作
   for (const method of currentMethods) {
@@ -813,7 +828,7 @@ async function getHistoryCasesForFile(
   filePath: string,
   workspaceKey?: string,
   itemTypeKey?: string,
-): Promise<Map<string, HistoryCaseInfo>> {
+): Promise<HistoryCaseInfo[]> {
   console.log(`[T5.8] 查询文件历史用例: ${filePath}`);
 
   try {
@@ -850,7 +865,7 @@ async function getHistoryCasesForFile(
       size: 10000, // 提高查询限制以处理大量用例的情况
     });
 
-    const historyCases = new Map<string, HistoryCaseInfo>();
+    const historyCases: HistoryCaseInfo[] = [];
 
     if (result?.payload?.items) {
       console.log(`[T5.8] 找到 ${result.payload.items.length} 个历史用例`);
@@ -878,7 +893,7 @@ async function getHistoryCasesForFile(
           item.r_test_manager_atm_module_path;
 
         if (testId) {
-          historyCases.set(testId, {
+          historyCases.push({
             caseId: item.id,
             testId: testId,
             methodName: methodName || 'Unknown',
@@ -899,7 +914,7 @@ async function getHistoryCasesForFile(
     return historyCases;
   } catch (error) {
     console.error(`[T5.8] 查询文件历史用例失败: ${filePath}`, error);
-    return new Map();
+    return [];
   }
 }
 
@@ -934,21 +949,21 @@ async function generateSmartDeleteOperations(
       
       if (currentMapping) {
         console.log(`[T5.8] 文件 ${filePath} 还有其他映射覆盖: ${currentMapping}，跳过删除`);
-        
+
         // 如果有映射但模块不同，可能需要迁移
         const historyCases = await getHistoryCasesForFile(filePath, commitContext.workspaceKey);
-        for (const [testId, caseInfo] of historyCases) {
+        for (const caseInfo of historyCases) {
           if (caseInfo.modulePath !== currentMapping) {
-            console.log(`[T5.8] 用例 ${testId} 需要迁移到新模块: ${caseInfo.modulePath} -> ${currentMapping}`);
+            console.log(`[T5.8] 用例 ${caseInfo.testId} 需要迁移到新模块: ${caseInfo.modulePath} -> ${currentMapping}`);
             operations.push({
               operationType: 'MIGRATE',
-              testId: testId,
+              testId: caseInfo.testId,
               methodName: caseInfo.methodName,
               className: caseInfo.className,
               filePath: filePath,
               existingCaseInfo: {
                 caseId: caseInfo.caseId,
-                testId: testId,
+                testId: caseInfo.testId,
                 name: caseInfo.methodName,
                 currentModulePath: caseInfo.modulePath,
               },
@@ -962,19 +977,19 @@ async function generateSmartDeleteOperations(
         }
       } else {
         console.log(`[T5.8] 文件 ${filePath} 没有其他映射，删除其用例`);
-        
+
         // 没有其他映射覆盖，删除该文件的用例
         const historyCases = await getHistoryCasesForFile(filePath, commitContext.workspaceKey);
-        for (const [testId, historyCase] of historyCases) {
+        for (const historyCase of historyCases) {
           operations.push({
             operationType: 'DELETE',
-            testId: testId,
+            testId: historyCase.testId,
             methodName: historyCase.methodName,
             className: historyCase.className,
             filePath: filePath,
             existingCaseInfo: {
               caseId: historyCase.caseId,
-              testId: testId,
+              testId: historyCase.testId,
               name: historyCase.methodName,
               currentModulePath: historyCase.modulePath,
             },
@@ -997,19 +1012,19 @@ async function generateSmartDeleteOperations(
         fileDecision.filePath,
         commitContext.workspaceKey,
       );
-      
-      for (const [testId, historyCase] of historyCases) {
+
+      for (const historyCase of historyCases) {
         if (historyCase.modulePath !== remainingMapping) {
-          console.log(`[T5.8] 用例 ${testId} 需要迁移: ${historyCase.modulePath} -> ${remainingMapping}`);
+          console.log(`[T5.8] 用例 ${historyCase.testId} 需要迁移: ${historyCase.modulePath} -> ${remainingMapping}`);
           operations.push({
             operationType: 'MIGRATE',
-            testId: testId,
+            testId: historyCase.testId,
             methodName: historyCase.methodName,
             className: historyCase.className,
             filePath: fileDecision.filePath,
             existingCaseInfo: {
               caseId: historyCase.caseId,
-              testId: testId,
+              testId: historyCase.testId,
               name: historyCase.methodName,
               currentModulePath: historyCase.modulePath,
             },
@@ -1020,7 +1035,7 @@ async function generateSmartDeleteOperations(
             },
           });
         } else {
-          console.log(`[T5.8] 用例 ${testId} 模块路径相同，无需操作`);
+          console.log(`[T5.8] 用例 ${historyCase.testId} 模块路径相同，无需操作`);
         }
       }
     } else {
@@ -1030,17 +1045,17 @@ async function generateSmartDeleteOperations(
         fileDecision.filePath,
         commitContext.workspaceKey,
       );
-      
-      for (const [testId, historyCase] of historyCases) {
+
+      for (const historyCase of historyCases) {
         operations.push({
           operationType: 'DELETE',
-          testId: testId,
+          testId: historyCase.testId,
           methodName: historyCase.methodName,
           className: historyCase.className,
           filePath: fileDecision.filePath,
           existingCaseInfo: {
             caseId: historyCase.caseId,
-            testId: testId,
+            testId: historyCase.testId,
             name: historyCase.methodName,
             currentModulePath: historyCase.modulePath,
           },

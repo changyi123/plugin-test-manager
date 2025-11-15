@@ -75,7 +75,7 @@ export async function executeCaseOperations(
   const grouped = groupOperationsByType(operations);
 
   // 2. 查询现有用例信息，用于UPDATE和DELETE操作
-  await enrichOperationsWithExistingCaseInfo(operations, workspaceKey);
+  // await enrichOperationsWithExistingCaseInfo(operations, workspaceKey);
 
   // 3. 暂时只处理CREATE操作，其他操作跳过
   if (grouped.CREATE.length > 0) {
@@ -925,88 +925,96 @@ async function queryExistingCasesByTestIds(
   workspaceKey?: string,
   itemTypeKey?: string,
 ): Promise<Map<string, ExistingCaseInfo>> {
-  console.log(`[AutoSync] 🔍 IQL查询现有用例，testIds: ${testIds.join(', ')}`);
+  console.log(`[AutoSync] 🔍 IQL查询现有用例，总数: ${testIds.length}`);
 
   if (testIds.length === 0) {
     return new Map();
   }
 
+  const existingCases = new Map<string, ExistingCaseInfo>();
+
   try {
-    // 构建IQL查询语句 - 使用 or 条件连接，因为用例唯一标识不支持 in 操作符
-    const orConditions = testIds.map(id => `用例唯一标识 = '${id}'`).join(' or ');
-    let iql = `(${orConditions})`;
+    // 分批查询，每批最多50个testId，避免IQL查询语句过长
+    const BATCH_SIZE = 30;
+    const batches: string[][] = [];
 
-    // 添加事项类型过滤条件
-    if (itemTypeKey) {
-      iql += ` and itemTypeKey = '${itemTypeKey}'`;
+    for (let i = 0; i < testIds.length; i += BATCH_SIZE) {
+      batches.push(testIds.slice(i, i + BATCH_SIZE));
     }
 
-    // 添加工作空间过滤条件
-    if (workspaceKey) {
-      iql += ` and workspaceKey = '${workspaceKey}'`;
-    }
+    console.log(`[AutoSync] 分${batches.length}批查询，每批最多${BATCH_SIZE}个testId`);
 
-    console.log(`[AutoSync] IQL查询语句: ${iql}`);
+    for (let batchIndex = 0; batchIndex < batches.length; batchIndex++) {
+      const batch = batches[batchIndex];
+      console.log(`[AutoSync] 查询第${batchIndex + 1}/${batches.length}批，包含${batch.length}个testId`);
 
-    const result = await iqlSearch({
-      iql,
-      fields: [
-        'id',
-        'name',
-        'values',
-        'r_test_manager_atm_test_id',
-        'r_test_manager_atm_file_path',
-        'r_test_manager_atm_module_path',
-      ],
-      displayContext: AppKey,
-      size: testIds.length,
-    });
+      // 构建IQL查询语句 - 使用 or 条件连接，因为用例唯一标识不支持 in 操作符
+      const orConditions = batch.map(id => `用例唯一标识 = '${id}'`).join(' or ');
+      let iql = `(${orConditions})`;
 
-    const existingCases = new Map<string, ExistingCaseInfo>();
+      // 添加事项类型过滤条件
+      if (itemTypeKey) {
+        iql += ` and itemTypeKey = '${itemTypeKey}'`;
+      }
 
-    if (result?.payload?.items) {
-      console.log(`[AutoSync] IQL查询结果: 找到 ${result.payload.items.length} 个现有用例`);
-      console.log(`[AutoSync] 完整查询结果:`, JSON.stringify(result.payload.items, null, 2));
+      // 添加工作空间过滤条件
+      if (workspaceKey) {
+        iql += ` and workspaceKey = '${workspaceKey}'`;
+      }
 
-      result.payload.items.forEach((item: any, index: number) => {
-        console.log(`[AutoSync] - 事项 ${index + 1}:`);
-        console.log(`[AutoSync]   - id: ${item.id}`);
-        console.log(`[AutoSync]   - name: ${item.name}`);
-        console.log(`[AutoSync]   - values:`, JSON.stringify(item.values, null, 2));
+      console.log(`[AutoSync] 第${batchIndex + 1}批IQL查询语句长度: ${iql.length}`);
+      console.log(`[AutoSync] 第${batchIndex + 1}批完整IQL查询语句: ${iql}`);
 
-        // 尝试从多个位置获取testId
-        const testId =
-          item.values?.r_test_manager_atm_test_id ||
-          item.r_test_manager_atm_test_id ||
-          item.r_test_manager_atm_test_id;
-
-        console.log(`[AutoSync]   - 提取的testId: ${testId}`);
-
-        if (testId) {
-          existingCases.set(testId, {
-            caseId: item.id,
-            testId: testId,
-            name: item.name,
-            ...item.values,
-            ...item,
-          });
-          console.log(
-            `[AutoSync] - 找到用例: testId=${testId}, caseId=${item.id}, name=${item.name}`,
-          );
-        } else {
-          console.log(`[AutoSync] - 警告: 无法从事项中提取testId`);
-        }
+      const result = await iqlSearch({
+        iql,
+        fields: [
+          'id',
+          'name',
+          'values',
+          'r_test_manager_atm_test_id',
+          'r_test_manager_atm_file_path',
+          'r_test_manager_atm_module_path',
+        ],
+        displayContext: AppKey,
+        size: batch.length,
       });
-    } else {
-      console.log(`[AutoSync] IQL查询结果: 未找到任何现有用例`);
+
+      if (result?.payload?.items) {
+        result.payload.items.forEach((item: any) => {
+          // 尝试从多个位置获取testId
+          const testId =
+            item.values?.r_test_manager_atm_test_id ||
+            item.r_test_manager_atm_test_id ||
+            item.r_test_manager_atm_test_id;
+
+          if (testId) {
+            existingCases.set(testId, {
+              caseId: item.id,
+              testId: testId,
+              name: item.name,
+              ...item.values,
+              ...item,
+            });
+            console.log(
+              `[AutoSync] - 找到用例: testId=${testId}, caseId=${item.id}, name=${item.name}`,
+            );
+          } else {
+            console.log(`[AutoSync] - 警告: 无法从事项中提取testId`);
+          }
+        });
+      } else {
+        console.log(`[AutoSync] 第${batchIndex + 1}批查询结果: 未找到任何现有用例`);
+      }
     }
 
+    console.log(`[AutoSync] IQL查询完成，总共找到 ${existingCases.size} 个现有用例`);
     return existingCases;
   } catch (error) {
     console.error(`[AutoSync] IQL查询现有用例失败:`, error);
     return new Map();
   }
 }
+370*3+230+370=
 
 /**
  * 丰富操作信息，添加现有用例的详细信息

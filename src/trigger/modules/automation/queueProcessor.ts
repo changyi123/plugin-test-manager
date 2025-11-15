@@ -197,11 +197,16 @@ async function processSingleRecord(record: any) {
       console.log(`[AutoSync] 原始操作数: ${allOperations.length} 个用例操作`);
 
       // 合并冲突操作
-      const mergedOperations = mergeConflictingOperations(allOperations);
+      const { mergedOperations, mergeInfo } = mergeConflictingOperations(allOperations);
       console.log(`[AutoSync] 合并后操作数: ${mergedOperations.length} 个用例操作`);
 
-      // 更新执行开始状态
-      await updateExecutionStart(record.objectId, mergedOperations.length);
+      if (mergeInfo.count > 0) {
+        console.log(`[AutoSync] 合并信息: 合并了${mergeInfo.count}个重复操作，涉及${mergeInfo.duplicateTestIds.length}个testId`);
+        console.log(`[AutoSync] 重复的testId: ${mergeInfo.duplicateTestIds.join(', ')}`);
+      }
+
+      // 更新执行开始状态，传入合并信息
+      await updateExecutionStart(record.objectId, mergedOperations.length, mergeInfo.count > 0 ? mergeInfo : undefined);
 
       // 获取最新配置用于执行上下文
       const latestConfig = await getAutomationConfig(record.repositoryId, record.branchName);
@@ -310,12 +315,15 @@ async function processSingleRecord(record: any) {
  * 合并冲突的操作
  * 解决多个commit对同一testId产生的冲突操作
  */
-function mergeConflictingOperations(operations: CaseOperation[]): CaseOperation[] {
+function mergeConflictingOperations(operations: CaseOperation[]): {
+  mergedOperations: CaseOperation[];
+  mergeInfo: { count: number; duplicateTestIds: string[] };
+} {
   console.log(`[MergeOps] 开始合并操作，原始操作数: ${operations.length}`);
-  
+
   // 按testId分组
   const operationsByTestId = new Map<string, CaseOperation[]>();
-  
+
   for (const operation of operations) {
     const testId = operation.testId;
     if (!operationsByTestId.has(testId)) {
@@ -323,12 +331,13 @@ function mergeConflictingOperations(operations: CaseOperation[]): CaseOperation[
     }
     operationsByTestId.get(testId)!.push(operation);
   }
-  
+
   console.log(`[MergeOps] 发现 ${operationsByTestId.size} 个唯一testId`);
-  
+
   const mergedOperations: CaseOperation[] = [];
   let mergedCount = 0;
-  
+  const duplicateTestIds: string[] = [];
+
   for (const [testId, ops] of operationsByTestId) {
     if (ops.length === 1) {
       // 没有冲突，直接保留
@@ -336,6 +345,7 @@ function mergeConflictingOperations(operations: CaseOperation[]): CaseOperation[
     } else {
       // 有冲突，需要合并
       console.log(`[MergeOps] testId="${testId}" 有 ${ops.length} 个冲突操作，开始合并`);
+      duplicateTestIds.push(testId); // 记录重复的testId
       const merged = mergeOperationsForSameTestId(testId, ops);
       if (merged) {
         mergedOperations.push(merged);
@@ -343,9 +353,16 @@ function mergeConflictingOperations(operations: CaseOperation[]): CaseOperation[
       }
     }
   }
-  
+
   console.log(`[MergeOps] 合并完成：${operations.length} → ${mergedOperations.length} (合并了${mergedCount}个操作)`);
-  return mergedOperations;
+
+  return {
+    mergedOperations,
+    mergeInfo: {
+      count: mergedCount,
+      duplicateTestIds,
+    },
+  };
 }
 
 /**
