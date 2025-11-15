@@ -1014,8 +1014,6 @@ async function queryExistingCasesByTestIds(
     return new Map();
   }
 }
-370*3+230+370=
-
 /**
  * 丰富操作信息，添加现有用例的详细信息
  */
