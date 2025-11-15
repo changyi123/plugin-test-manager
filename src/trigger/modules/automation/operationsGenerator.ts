@@ -1129,29 +1129,29 @@ async function generateSmartMappingAddedOperations(
     
     // 查询该文件是否已有用例
     const existingCases = await getHistoryCasesForFile(filePath, commitContext.workspaceKey);
-    
-    if (existingCases.size > 0) {
-      console.log(`[T5.8] 文件 ${filePath} 已有 ${existingCases.size} 个用例`);
-      
+
+    if (existingCases.length > 0) {
+      console.log(`[T5.8] 文件 ${filePath} 已有 ${existingCases.length} 个用例`);
+
       // 检查现有用例的模块路径是否与新映射不同
-      for (const [testId, caseInfo] of existingCases) {
+      for (const caseInfo of existingCases) {
         const oldModulePath = caseInfo.modulePath || '';
-        
-        console.log(`[T5.8] 用例 ${testId}: 当前模块="${oldModulePath}", 目标模块="${newModulePath}"`);
-        
+
+        console.log(`[T5.8] 用例 ${caseInfo.testId}: 当前模块="${oldModulePath}", 目标模块="${newModulePath}"`);
+
         if (oldModulePath !== newModulePath) {
-          console.log(`[T5.8] 用例 ${testId} 需要迁移: ${oldModulePath} -> ${newModulePath}`);
-          
+          console.log(`[T5.8] 用例 ${caseInfo.testId} 需要迁移: ${oldModulePath} -> ${newModulePath}`);
+
           // 生成MIGRATE操作
           operations.push({
             operationType: 'MIGRATE',
-            testId: testId,
+            testId: caseInfo.testId,
             methodName: caseInfo.methodName,
             className: caseInfo.className,
             filePath: filePath,
             existingCaseInfo: {
               caseId: caseInfo.caseId,
-              testId: testId,
+              testId: caseInfo.testId,
               name: caseInfo.methodName,
               oldClassName: caseInfo.className,
               currentModulePath: oldModulePath,
@@ -1163,7 +1163,7 @@ async function generateSmartMappingAddedOperations(
             },
           });
         } else {
-          console.log(`[T5.8] 用例 ${testId} 模块路径相同，无需迁移`);
+          console.log(`[T5.8] 用例 ${caseInfo.testId} 模块路径相同，无需迁移`);
         }
       }
     } else {
